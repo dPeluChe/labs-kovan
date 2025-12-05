@@ -1,13 +1,12 @@
 import { Link } from "react-router-dom";
 import { useFamily } from "../contexts/FamilyContext";
-import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import {
   Book,
   Car,
   Users,
   Calendar,
-  LogOut,
+  Settings,
   ChevronRight,
   DollarSign,
   ChefHat,
@@ -64,11 +63,17 @@ const menuItems = [
     description: "Conectar Google Calendar",
     color: "bg-orange-500/10 text-orange-600",
   },
+  {
+    to: "/settings",
+    icon: Settings,
+    label: "Configuración",
+    description: "Navegación y cuenta",
+    color: "bg-gray-500/10 text-gray-600",
+  },
 ];
 
 export function MorePage() {
   const { currentFamily } = useFamily();
-  const { logout, user } = useAuth();
 
   return (
     <div className="pb-4">
@@ -98,24 +103,6 @@ export function MorePage() {
             </div>
           </Link>
         ))}
-
-        {/* Logout */}
-        <button
-          onClick={logout}
-          className="card bg-base-100 shadow-sm border border-base-300 w-full text-left card-interactive"
-        >
-          <div className="card-body p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-error/10 text-error">
-                <LogOut className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm text-error">Cerrar sesión</h3>
-                <p className="text-xs text-base-content/60">{user?.email}</p>
-              </div>
-            </div>
-          </div>
-        </button>
       </div>
     </div>
   );

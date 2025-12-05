@@ -3,6 +3,11 @@
   themes: light --default, dark --prefersdark;
 }
 
+:root {
+  /* Base nav height (4rem/64px) + safe area bottom */
+  --nav-height: calc(4rem + env(safe-area-inset-bottom));
+}
+
 /* Custom base styles */
 html {
   scroll-behavior: smooth;
@@ -12,7 +17,11 @@ body {
   @apply min-h-screen bg-base-100 text-base-content;
 }
 
-/* Safe area for mobile devices */
+/* Safe area utilities */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }

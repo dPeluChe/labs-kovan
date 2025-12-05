@@ -25,6 +25,7 @@ import { FamilyPage } from "./pages/FamilyPage";
 import { ExpensesPage } from "./pages/ExpensesPage";
 import { RecipesPage } from "./pages/RecipesPage";
 import { PlacesPage } from "./pages/PlacesPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 function AppRoutes() {
   const { user, isLoading: authLoading } = useAuth();
@@ -63,6 +64,7 @@ function AppRoutes() {
         <Route path="/expenses" element={<ExpensesPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/places" element={<PlacesPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

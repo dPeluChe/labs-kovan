@@ -52,7 +52,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       
       {/* Toast container */}
-      <div className="fixed top-4 right-4 left-4 z-[100] flex flex-col gap-2 pointer-events-none">
+      <div className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 left-4 z-[100] flex flex-col gap-2 pointer-events-none">
         {toasts.map((toast) => {
           const config = TOAST_CONFIG[toast.type];
           const Icon = config.icon;

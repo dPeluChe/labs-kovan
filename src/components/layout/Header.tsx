@@ -10,7 +10,7 @@ export function Header() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="navbar bg-base-100 border-b border-base-300 px-4 min-h-14">
+    <header className="navbar bg-base-100/90 backdrop-blur-md border-b border-base-300 px-4 min-h-14 sticky top-0 z-40 transition-all duration-300">
       <div className="flex-1">
         <div className="dropdown">
           <div tabIndex={0} role="button" className="btn btn-ghost btn-sm gap-1 px-2">

@@ -9,6 +9,8 @@ export default defineSchema({
     photoUrl: v.optional(v.string()),
     // Using Convex's built-in auth token subject
     tokenIdentifier: v.optional(v.string()),
+    // Navigation preferences
+    navOrder: v.optional(v.array(v.string())),
   })
     .index("by_email", ["email"])
     .index("by_token", ["tokenIdentifier"]),

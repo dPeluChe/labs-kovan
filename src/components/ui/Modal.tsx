@@ -50,6 +50,9 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
 
       {/* Modal content */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? "modal-title" : undefined}
         className={`relative bg-base-100 w-full ${sizeClasses[size]} rounded-t-2xl sm:rounded-2xl shadow-2xl transition-all duration-300 ease-out ${
           isAnimating
             ? "translate-y-0 opacity-100 scale-100"
@@ -59,10 +62,11 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
         {/* Header */}
         {title && (
           <div className="flex items-center justify-between p-4 border-b border-base-300">
-            <h3 className="font-bold text-lg">{title}</h3>
+            <h3 id="modal-title" className="font-bold text-lg">{title}</h3>
             <button
               onClick={onClose}
               className="btn btn-ghost btn-sm btn-circle"
+              aria-label="Close modal"
             >
               <X className="w-5 h-5" />
             </button>
@@ -112,6 +116,9 @@ export function BottomSheet({ isOpen, onClose, title, children }: Omit<ModalProp
 
       {/* Sheet content */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? "sheet-title" : undefined}
         className={`relative bg-base-100 w-full rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out ${
           isAnimating ? "translate-y-0" : "translate-y-full"
         }`}
@@ -124,10 +131,11 @@ export function BottomSheet({ isOpen, onClose, title, children }: Omit<ModalProp
         {/* Header */}
         {title && (
           <div className="flex items-center justify-between px-4 pb-3 border-b border-base-300">
-            <h3 className="font-bold text-lg">{title}</h3>
+            <h3 id="sheet-title" className="font-bold text-lg">{title}</h3>
             <button
               onClick={onClose}
               className="btn btn-ghost btn-sm btn-circle"
+              aria-label="Close sheet"
             >
               <X className="w-5 h-5" />
             </button>

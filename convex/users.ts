@@ -108,3 +108,24 @@ export const getDemoUser = query({
       .first();
   },
 });
+
+export const updateNavOrder = mutation({
+  args: {
+    userId: v.id("users"),
+    navOrder: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.userId, {
+      navOrder: args.navOrder,
+    });
+    return args.navOrder;
+  },
+});
+
+export const getNavOrder = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    return user?.navOrder ?? null;
+  },
+});

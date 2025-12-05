@@ -3,6 +3,7 @@ import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { PageLoader } from "../components/ui/LoadingSpinner";
+import { SkeletonText } from "../components/ui/Skeleton";
 import { Gift, Heart, Book, Car, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -54,7 +55,9 @@ export function DashboardPage() {
           color="bg-purple-500/10 text-purple-600"
         >
           {upcomingEvents === undefined ? (
-            <div className="loading loading-dots loading-sm" />
+            <div className="py-1">
+              <SkeletonText lines={2} />
+            </div>
           ) : upcomingEvents.length === 0 ? (
             <p className="text-sm text-base-content/60">No hay eventos próximos</p>
           ) : (
@@ -82,7 +85,9 @@ export function DashboardPage() {
           color="bg-red-500/10 text-red-600"
         >
           {giftEvents === undefined ? (
-            <div className="loading loading-dots loading-sm" />
+            <div className="py-1">
+              <SkeletonText lines={1} />
+            </div>
           ) : giftEvents.length === 0 ? (
             <p className="text-sm text-base-content/60">No hay eventos activos</p>
           ) : (
@@ -103,7 +108,9 @@ export function DashboardPage() {
           color="bg-pink-500/10 text-pink-600"
         >
           {healthSummary === undefined ? (
-            <div className="loading loading-dots loading-sm" />
+            <div className="py-1">
+              <SkeletonText lines={2} />
+            </div>
           ) : (
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -129,7 +136,9 @@ export function DashboardPage() {
           color="bg-blue-500/10 text-blue-600"
         >
           {librarySummary === undefined ? (
-            <div className="loading loading-dots loading-sm" />
+            <div className="py-1">
+              <SkeletonText lines={1} />
+            </div>
           ) : (
             <div className="flex gap-4 text-sm">
               <div>
@@ -156,7 +165,9 @@ export function DashboardPage() {
           color="bg-green-500/10 text-green-600"
         >
           {servicesSummary === undefined ? (
-            <div className="loading loading-dots loading-sm" />
+            <div className="py-1">
+              <SkeletonText lines={2} />
+            </div>
           ) : (
             <div className="space-y-1">
               <div className="flex gap-4 text-sm">
