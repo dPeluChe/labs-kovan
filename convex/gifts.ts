@@ -1,10 +1,15 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+// Security helper - disabled for demo mode
+// import { getFamilyUser } from "./lib/utils";
 
 // ==================== GIFT EVENTS ====================
 export const getGiftEvents = query({
   args: { familyId: v.id("families") },
   handler: async (ctx, args) => {
+    // TODO: Enable security when auth is fully implemented
+    // await getFamilyUser(ctx, { familyId: args.familyId });
+
     return await ctx.db
       .query("giftEvents")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -249,5 +254,39 @@ export const getGiftEventSummary = query({
       byStatus,
       totalEstimate,
     };
+  },
+});
+
+// Get recipients with their gift status breakdown
+export const getRecipientsWithStatus = query({
+  args: { eventId: v.id("giftEvents") },
+  handler: async (ctx, args) => {
+    const recipients = await ctx.db
+      .query("giftRecipients")
+      .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
+      .collect();
+
+    const result = [];
+
+    for (const recipient of recipients) {
+      const items = await ctx.db
+        .query("giftItems")
+        .withIndex("by_recipient", (q) => q.eq("giftRecipientId", recipient._id))
+        .collect();
+
+      const pending = items.filter((i) => i.status === "idea" || i.status === "to_buy").length;
+      const bought = items.filter((i) => i.status === "bought" || i.status === "wrapped" || i.status === "delivered").length;
+
+      result.push({
+        ...recipient,
+        totalItems: items.length,
+        pending,
+        bought,
+        allBought: items.length > 0 && pending === 0,
+        hasNoGifts: items.length === 0,
+      });
+    }
+
+    return result;
   },
 });

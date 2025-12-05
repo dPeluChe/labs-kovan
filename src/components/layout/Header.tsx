@@ -3,6 +3,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { Moon, Sun, ChevronDown, LogOut, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Avatar } from "../ui/Avatar"; // Import the new Avatar component
 
 export function Header() {
   const { currentFamily, families, setCurrentFamily } = useFamily();
@@ -65,19 +66,7 @@ export function Header() {
             role="button"
             className="btn btn-ghost btn-circle btn-sm avatar placeholder"
           >
-            {user?.photoUrl ? (
-              <img
-                src={user.photoUrl}
-                alt={user.name}
-                className="w-8 h-8 rounded-full"
-              />
-            ) : (
-              <div className="bg-primary text-primary-content rounded-full w-8 h-8 flex items-center justify-center">
-                <span className="text-sm font-medium">
-                  {user?.name?.charAt(0).toUpperCase() || "?"}
-                </span>
-              </div>
-            )}
+            <Avatar src={user?.photoUrl} name={user?.name} size="sm" />
           </div>
           <ul
             tabIndex={0}

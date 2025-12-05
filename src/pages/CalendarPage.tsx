@@ -3,6 +3,7 @@ import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { PageLoader } from "../components/ui/LoadingSpinner";
+import { SkeletonList } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Calendar, MapPin, Clock, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -53,28 +54,32 @@ export function CalendarPage() {
 
       <div className="px-4">
         {!hasIntegration ? (
-          <div className="card bg-base-100 shadow-sm border border-base-300 mt-4">
+          <div className="card bg-base-100 shadow-sm border border-base-300 mt-4 animate-fade-in">
             <div className="card-body text-center">
-              <Calendar className="w-12 h-12 mx-auto text-base-content/30 mb-2" />
-              <h3 className="font-semibold">Conecta tu calendario</h3>
-              <p className="text-sm text-base-content/60 mb-4">
-                Vincula Google Calendar para ver tus eventos aquí
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Calendar className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg">Conecta tu calendario</h3>
+              <p className="text-sm text-base-content/60 mb-4 max-w-xs mx-auto">
+                Vincula Google Calendar para ver tus eventos y citas en un solo lugar.
               </p>
-              <Link to="/settings/calendar" className="btn btn-primary btn-sm">
-                Configurar
+              <Link to="/settings/calendar" className="btn btn-primary btn-sm w-fit mx-auto">
+                Configurar integración
               </Link>
             </div>
           </div>
         ) : events === undefined ? (
-          <PageLoader />
+          <div className="mt-4">
+            <SkeletonList count={4} />
+          </div>
         ) : events.length === 0 ? (
           <EmptyState
             icon={Calendar}
             title="Sin eventos"
-            description="No hay eventos en tu calendario"
+            description="No hay eventos próximos en tu calendario"
           />
         ) : (
-          <div className="space-y-4 mt-4">
+          <div className="space-y-6 mt-4 stagger-children">
             {sortedDates.map((dateKey) => {
               const dateEvents = eventsByDate.get(dateKey) || [];
               const date = new Date(dateKey);
@@ -82,16 +87,17 @@ export function CalendarPage() {
 
               return (
                 <div key={dateKey}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-sm font-semibold ${isToday ? "text-primary" : ""}`}>
+                  <div className="flex items-center gap-2 mb-2 sticky top-[calc(var(--nav-height)/1.5)] bg-base-100/95 backdrop-blur-sm py-2 z-10 -mx-4 px-4 border-b border-base-100">
+                    <span className={`text-sm font-bold uppercase tracking-wider ${isToday ? "text-primary" : "text-base-content/70"}`}>
                       {isToday
                         ? "Hoy"
                         : date.toLocaleDateString("es-MX", {
                             weekday: "long",
-                            month: "short",
                             day: "numeric",
+                            month: "short"
                           })}
                     </span>
+                    {isToday && <span className="badge badge-xs badge-primary">Actual</span>}
                   </div>
 
                   <div className="space-y-2">
@@ -100,35 +106,37 @@ export function CalendarPage() {
                       .map((event) => (
                         <div
                           key={event._id}
-                          className="card bg-base-100 shadow-sm border border-base-300"
+                          className="card bg-base-100 shadow-sm border border-base-300 card-interactive group"
                         >
                           <div className="card-body p-3">
                             <div className="flex items-start gap-3">
-                              <div className="bg-purple-500/10 p-2 rounded-lg">
-                                <Calendar className="w-4 h-4 text-purple-600" />
+                              <div className={`p-2 rounded-lg flex flex-col items-center min-w-[3rem] ${
+                                isToday ? "bg-primary/10 text-primary" : "bg-base-200 text-base-content/70"
+                              }`}>
+                                <span className="text-xs font-bold">
+                                  {new Date(event.startDateTime).toLocaleTimeString("es-MX", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-sm">{event.title}</h4>
-                                <div className="flex flex-wrap gap-2 mt-1 text-xs text-base-content/60">
+                              
+                              <div className="flex-1 min-w-0 py-0.5">
+                                <h4 className="font-semibold text-sm leading-tight mb-1">{event.title}</h4>
+                                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/60">
                                   {!event.allDay && (
                                     <span className="flex items-center gap-1">
                                       <Clock className="w-3 h-3" />
-                                      {new Date(event.startDateTime).toLocaleTimeString("es-MX", {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })}
-                                      {" - "}
                                       {new Date(event.endDateTime).toLocaleTimeString("es-MX", {
                                         hour: "2-digit",
                                         minute: "2-digit",
                                       })}
                                     </span>
                                   )}
-                                  {event.allDay && <span className="badge badge-xs">Todo el día</span>}
                                   {event.location && (
                                     <span className="flex items-center gap-1">
                                       <MapPin className="w-3 h-3" />
-                                      {event.location}
+                                      <span className="truncate max-w-[150px]">{event.location}</span>
                                     </span>
                                   )}
                                 </div>

@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
-import { PageLoader } from "../components/ui/LoadingSpinner";
+import { SkeletonPageContent } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Book, Plus, Trash2, Check, BookOpen, ShoppingCart } from "lucide-react";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -36,7 +36,7 @@ export function LibraryPage() {
     currentFamily ? { familyId: currentFamily._id } : "skip"
   );
 
-  if (!currentFamily) return <PageLoader />;
+  if (!currentFamily) return null;
 
   const filteredBooks = books?.filter((book) => {
     if (filterType !== "all" && book.type !== filterType) return false;
@@ -113,7 +113,7 @@ export function LibraryPage() {
 
       <div className="px-4">
         {books === undefined ? (
-          <PageLoader />
+          <SkeletonPageContent cards={4} />
         ) : books.length === 0 ? (
           <EmptyState
             icon={Book}

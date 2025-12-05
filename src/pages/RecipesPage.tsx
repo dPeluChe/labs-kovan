@@ -4,7 +4,7 @@ import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/ui/PageHeader";
-import { PageLoader } from "../components/ui/LoadingSpinner";
+import { SkeletonGrid } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ChefHat, Plus, Trash2, Heart, ExternalLink, Star } from "lucide-react";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -22,7 +22,7 @@ export function RecipesPage() {
   const toggleFavorite = useMutation(api.recipes.toggleFavorite);
   const deleteRecipe = useMutation(api.recipes.deleteRecipe);
 
-  if (!currentFamily || !user) return <PageLoader />;
+  if (!currentFamily || !user) return null;
 
   const favorites = recipes?.filter((r) => r.isFavorite) || [];
   const others = recipes?.filter((r) => !r.isFavorite) || [];
@@ -45,7 +45,7 @@ export function RecipesPage() {
 
       <div className="px-4">
         {recipes === undefined ? (
-          <PageLoader />
+          <SkeletonGrid count={4} />
         ) : recipes.length === 0 ? (
           <EmptyState
             icon={ChefHat}

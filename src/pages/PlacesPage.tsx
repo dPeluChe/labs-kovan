@@ -4,7 +4,7 @@ import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/ui/PageHeader";
-import { PageLoader } from "../components/ui/LoadingSpinner";
+import { SkeletonPageContent } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { MapPin, Plus, Trash2, Check, ExternalLink, Star } from "lucide-react";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -33,7 +33,7 @@ export function PlacesPage() {
   const toggleVisited = useMutation(api.places.toggleVisited);
   const deletePlace = useMutation(api.places.deletePlace);
 
-  if (!currentFamily || !user) return <PageLoader />;
+  if (!currentFamily || !user) return null;
 
   const filteredPlaces = places?.filter((p) => {
     if (filter === "pending") return !p.visited;
@@ -86,7 +86,7 @@ export function PlacesPage() {
 
       <div className="px-4">
         {places === undefined ? (
-          <PageLoader />
+          <SkeletonPageContent cards={3} />
         ) : places.length === 0 ? (
           <EmptyState
             icon={MapPin}

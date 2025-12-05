@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
-import { PageLoader } from "../components/ui/LoadingSpinner";
+import { SkeletonPageContent } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Zap, Plus, Car, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -36,7 +36,7 @@ export function ServicesPage() {
     currentFamily ? { familyId: currentFamily._id } : "skip"
   );
 
-  if (!currentFamily) return <PageLoader />;
+  if (!currentFamily) return null;
 
   return (
     <div className="pb-4">
@@ -109,7 +109,7 @@ function ServicesTab({
   services: Service[] | undefined; 
   onAdd: () => void;
 }) {
-  if (services === undefined) return <PageLoader />;
+  if (services === undefined) return <SkeletonPageContent cards={3} />;
 
   if (services.length === 0) {
     return (
@@ -173,7 +173,7 @@ function VehiclesTab({
   vehicles: Vehicle[] | undefined; 
   onAdd: () => void;
 }) {
-  if (vehicles === undefined) return <PageLoader />;
+  if (vehicles === undefined) return <SkeletonPageContent cards={2} />;
 
   if (vehicles.length === 0) {
     return (

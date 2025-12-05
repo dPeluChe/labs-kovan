@@ -11,6 +11,7 @@ import {
   DollarSign,
   ChefHat,
   MapPin,
+  Contact,
 } from "lucide-react";
 
 const menuItems = [
@@ -48,6 +49,13 @@ const menuItems = [
     label: "Servicios y Autos",
     description: "Pagos y mantenimiento",
     color: "bg-green-500/10 text-green-600",
+  },
+  {
+    to: "/contacts",
+    icon: Contact,
+    label: "Directorio",
+    description: "Doctores, mecánicos y más",
+    color: "bg-indigo-500/10 text-indigo-600",
   },
   {
     to: "/family",

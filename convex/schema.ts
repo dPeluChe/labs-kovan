@@ -7,6 +7,7 @@ export default defineSchema({
     name: v.string(),
     email: v.string(),
     photoUrl: v.optional(v.string()),
+    photoStorageId: v.optional(v.id("_storage")),
     // Using Convex's built-in auth token subject
     tokenIdentifier: v.optional(v.string()),
     // Navigation preferences
@@ -107,6 +108,7 @@ export default defineSchema({
     doctorName: v.optional(v.string()),
     clinicName: v.optional(v.string()),
     attachments: v.optional(v.array(v.string())),
+    attachmentStorageIds: v.optional(v.array(v.id("_storage"))),
   }).index("by_person", ["personId"]),
 
   medications: defineTable({
@@ -219,6 +221,7 @@ export default defineSchema({
     title: v.string(),
     url: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
     description: v.optional(v.string()),
     category: v.optional(v.string()), // Desayuno, Comida, Cena, Postre, etc.
     isFavorite: v.optional(v.boolean()),
@@ -232,6 +235,7 @@ export default defineSchema({
     name: v.string(),
     url: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
     address: v.optional(v.string()),
     category: v.union(
       v.literal("restaurant"),
@@ -256,4 +260,46 @@ export default defineSchema({
   })
     .index("by_family", ["familyId"])
     .index("by_email", ["email"]),
+
+  // ==================== CONTACTS DIRECTORY ====================
+  contacts: defineTable({
+    familyId: v.id("families"),
+    name: v.string(),
+    category: v.union(
+      v.literal("doctor"),
+      v.literal("veterinarian"),
+      v.literal("mechanic"),
+      v.literal("plumber"),
+      v.literal("electrician"),
+      v.literal("dentist"),
+      v.literal("emergency"),
+      v.literal("other")
+    ),
+    specialty: v.optional(v.string()), // e.g., "Cardiólogo", "Pediatra"
+    phone: v.optional(v.string()),
+    email: v.optional(v.string()),
+    address: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    isFavorite: v.optional(v.boolean()),
+    addedBy: v.id("users"),
+  }).index("by_family", ["familyId"]),
+
+  // ==================== MEDICAL STUDIES ====================
+  medicalStudies: defineTable({
+    personId: v.id("personProfiles"),
+    title: v.string(), // e.g., "Biometría hemática"
+    date: v.number(),
+    laboratory: v.optional(v.string()),
+    doctorName: v.optional(v.string()),
+    results: v.array(v.object({
+      parameter: v.string(), // e.g., "Glucosa"
+      value: v.string(),     // e.g., "95"
+      unit: v.optional(v.string()), // e.g., "mg/dL"
+      reference: v.optional(v.string()), // e.g., "70-100"
+      status: v.optional(v.union(v.literal("normal"), v.literal("high"), v.literal("low"))),
+    })),
+    notes: v.optional(v.string()),
+    fileUrl: v.optional(v.string()), // For storing PDF/image
+    fileStorageId: v.optional(v.id("_storage")),
+  }).index("by_person", ["personId"]),
 });

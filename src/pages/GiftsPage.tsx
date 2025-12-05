@@ -5,7 +5,9 @@ import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { PageLoader } from "../components/ui/LoadingSpinner";
+import { SkeletonList } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
+import { Modal } from "../components/ui/Modal";
 import { Gift, Plus, ChevronRight } from "lucide-react";
 import { DateInput } from "../components/ui/DateInput";
 import { Link } from "react-router-dom";
@@ -41,7 +43,7 @@ export function GiftsPage() {
 
       <div className="px-4">
         {events === undefined ? (
-          <PageLoader />
+          <SkeletonList count={3} />
         ) : events.length === 0 ? (
           <EmptyState
             icon={Gift}
@@ -57,7 +59,7 @@ export function GiftsPage() {
             }
           />
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 stagger-children">
             {events.map((event) => (
               <GiftEventCard key={event._id} event={event} />
             ))}
@@ -65,12 +67,18 @@ export function GiftsPage() {
         )}
       </div>
 
-      {showNewEventModal && user && (
-        <NewEventModal
-          familyId={currentFamily._id}
-          userId={user._id}
+      {user && (
+        <Modal
+          isOpen={showNewEventModal}
           onClose={() => setShowNewEventModal(false)}
-        />
+          title="Nuevo evento de regalos"
+        >
+          <NewEventForm
+            familyId={currentFamily._id}
+            userId={user._id}
+            onClose={() => setShowNewEventModal(false)}
+          />
+        </Modal>
       )}
     </div>
   );
@@ -86,7 +94,7 @@ function GiftEventCard({
   return (
     <Link
       to={`/gifts/${event._id}`}
-      className="card bg-base-100 shadow-sm border border-base-300"
+      className="card bg-base-100 shadow-sm border border-base-300 card-interactive"
     >
       <div className="card-body p-4">
         <div className="flex items-center gap-3">
@@ -104,8 +112,8 @@ function GiftEventCard({
                 })}
               </p>
             )}
-            {summary && (
-              <div className="flex gap-2 mt-1 text-xs">
+            {summary ? (
+              <div className="flex gap-2 mt-1 text-xs animate-fade-in">
                 <span className="badge badge-sm badge-ghost">
                   {summary.recipientCount} receptores
                 </span>
@@ -118,6 +126,8 @@ function GiftEventCard({
                   </span>
                 )}
               </div>
+            ) : (
+              <div className="h-5 w-32 bg-base-200 rounded animate-pulse mt-1" />
             )}
           </div>
           <ChevronRight className="w-5 h-5 text-base-content/40" />
@@ -127,7 +137,7 @@ function GiftEventCard({
   );
 }
 
-function NewEventModal({
+function NewEventForm({
   familyId,
   userId,
   onClose,
@@ -165,61 +175,55 @@ function NewEventModal({
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="font-bold text-lg mb-4">Nuevo evento de regalos</h3>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Nombre del evento *</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Ej: Navidad 2025, Cumple de mamá"
-              className="input input-bordered w-full"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
-
-          <DateInput
-            label="Fecha (opcional)"
-            value={date}
-            onChange={setDate}
-            disabled={isLoading}
-          />
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Descripción (opcional)</span>
-            </label>
-            <textarea
-              placeholder="Notas adicionales..."
-              className="textarea textarea-bordered w-full"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              disabled={isLoading}
-              rows={2}
-            />
-          </div>
-
-          <div className="modal-action">
-            <button type="button" className="btn" onClick={onClose} disabled={isLoading}>
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={isLoading || !name.trim()}
-            >
-              {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Crear"}
-            </button>
-          </div>
-        </form>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="form-control">
+        <label className="label">
+          <span className="label-text">Nombre del evento *</span>
+        </label>
+        <input
+          type="text"
+          placeholder="Ej: Navidad 2025, Cumple de mamá"
+          className="input input-bordered w-full"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          disabled={isLoading}
+          autoFocus
+        />
       </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+
+      <DateInput
+        label="Fecha (opcional)"
+        value={date}
+        onChange={setDate}
+        disabled={isLoading}
+      />
+
+      <div className="form-control">
+        <label className="label">
+          <span className="label-text">Descripción (opcional)</span>
+        </label>
+        <textarea
+          placeholder="Notas adicionales..."
+          className="textarea textarea-bordered w-full"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          disabled={isLoading}
+          rows={3}
+        />
+      </div>
+
+      <div className="flex justify-end gap-2 pt-2">
+        <button type="button" className="btn" onClick={onClose} disabled={isLoading}>
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={isLoading || !name.trim()}
+        >
+          {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Crear"}
+        </button>
+      </div>
+    </form>
   );
 }

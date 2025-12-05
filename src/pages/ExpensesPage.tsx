@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
-import { PageLoader } from "../components/ui/LoadingSpinner";
+import { SkeletonPageContent } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { DollarSign, Plus, Trash2 } from "lucide-react";
 import { DateInput } from "../components/ui/DateInput";
@@ -37,7 +37,7 @@ export function ExpensesPage() {
 
   const deleteExpense = useMutation(api.expenses.deleteExpense);
 
-  if (!currentFamily) return <PageLoader />;
+  if (!currentFamily) return null;
 
   return (
     <div className="pb-4">
@@ -74,7 +74,7 @@ export function ExpensesPage() {
 
       <div className="px-4">
         {expenses === undefined ? (
-          <PageLoader />
+          <SkeletonPageContent cards={3} />
         ) : expenses.length === 0 ? (
           <EmptyState
             icon={DollarSign}

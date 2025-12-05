@@ -194,6 +194,62 @@ export const deleteMedication = mutation({
   },
 });
 
+// Get all medications for a person (active and inactive)
+export const getAllMedications = query({
+  args: { personId: v.id("personProfiles") },
+  handler: async (ctx, args) => {
+    const meds = await ctx.db
+      .query("medications")
+      .withIndex("by_person", (q) => q.eq("personId", args.personId))
+      .collect();
+
+    const now = Date.now();
+    return meds.map((med) => ({
+      ...med,
+      isActive: !med.endDate || med.endDate > now,
+    }));
+  },
+});
+
+// ==================== MEDICAL STUDIES ====================
+export const getStudies = query({
+  args: { personId: v.id("personProfiles") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("medicalStudies")
+      .withIndex("by_person", (q) => q.eq("personId", args.personId))
+      .collect();
+  },
+});
+
+export const createStudy = mutation({
+  args: {
+    personId: v.id("personProfiles"),
+    title: v.string(),
+    date: v.number(),
+    laboratory: v.optional(v.string()),
+    doctorName: v.optional(v.string()),
+    results: v.array(v.object({
+      parameter: v.string(),
+      value: v.string(),
+      unit: v.optional(v.string()),
+      reference: v.optional(v.string()),
+      status: v.optional(v.union(v.literal("normal"), v.literal("high"), v.literal("low"))),
+    })),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("medicalStudies", args);
+  },
+});
+
+export const deleteStudy = mutation({
+  args: { studyId: v.id("medicalStudies") },
+  handler: async (ctx, args) => {
+    return await ctx.db.delete(args.studyId);
+  },
+});
+
 // ==================== SUMMARY ====================
 export const getHealthSummary = query({
   args: { familyId: v.id("families") },
@@ -255,6 +311,7 @@ export const getHealthSummary = query({
 
     return {
       profileCount: profiles.length,
+      profiles: profiles.map((p) => ({ _id: p._id, name: p.name, relation: p.relation })),
       recentRecords: recentRecords.slice(0, 5),
       activeMedications,
     };

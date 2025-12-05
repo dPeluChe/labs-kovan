@@ -32,7 +32,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-base-200">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-base-200 to-base-300">
       <div className="flex justify-end p-4">
         <button
           onClick={toggleTheme}
@@ -44,67 +44,68 @@ export function LoginPage() {
       </div>
 
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="card bg-base-100 shadow-xl w-full max-w-sm">
+        <div className="card bg-base-100 shadow-2xl w-full max-w-sm animate-scale-in">
           <div className="card-body">
-            <div className="text-center mb-4">
-              <span className="text-5xl">🏠</span>
-              <h1 className="text-2xl font-bold mt-2">Kovan</h1>
-              <p className="text-base-content/60 text-sm">
-                Organiza tu familia en un solo lugar
+            <div className="text-center mb-6">
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce-in">
+                <span className="text-3xl">🏠</span>
+              </div>
+              <h1 className="text-2xl font-bold">Bienvenido a Kovan</h1>
+              <p className="text-base-content/60 text-sm mt-1">
+                Organiza tu vida familiar
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Nombre</span>
+                  <span className="label-text font-medium">Nombre</span>
                 </label>
                 <input
                   type="text"
                   placeholder="Tu nombre"
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full focus:input-primary transition-all"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isLoading}
+                  autoComplete="name"
+                  autoFocus
                 />
               </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Email</span>
+                  <span className="label-text font-medium">Email</span>
                 </label>
                 <input
                   type="email"
                   placeholder="tu@email.com"
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full focus:input-primary transition-all"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
+                  autoComplete="email"
                 />
               </div>
 
               {error && (
-                <div className="alert alert-error text-sm py-2">
+                <div className="alert alert-error text-sm py-2 animate-shake">
                   <span>{error}</span>
                 </div>
               )}
 
               <button
                 type="submit"
-                className="btn btn-primary w-full"
+                className="btn btn-primary w-full btn-lg mt-2 shadow-lg shadow-primary/20"
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <span className="loading loading-spinner loading-sm" />
                 ) : (
-                  "Entrar"
+                  "Entrar a casa"
                 )}
               </button>
             </form>
-
-            <p className="text-center text-xs text-base-content/50 mt-4">
-              Demo mode - No se requiere contraseña
-            </p>
           </div>
         </div>
       </div>
