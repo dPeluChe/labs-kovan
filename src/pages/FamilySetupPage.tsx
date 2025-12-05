@@ -1,12 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useFamily } from "../contexts/FamilyContext";
+import { ArrowLeft } from "lucide-react";
 
 const EMOJIS = ["🏠", "🏡", "🏢", "❤️", "👨‍👩‍👧‍👦", "🐕", "🌟", "🌈"];
 
 export function FamilySetupPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { setCurrentFamily } = useFamily();
   const createFamily = useMutation(api.families.createFamily);
@@ -48,6 +51,14 @@ export function FamilySetupPage() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-base-200">
       <div className="card bg-base-100 shadow-xl w-full max-w-sm">
         <div className="card-body">
+          {/* Cancel button */}
+          <button
+            onClick={() => navigate(-1)}
+            className="btn btn-ghost btn-sm btn-circle absolute top-4 left-4"
+            title="Cancelar"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
           <div className="text-center mb-4">
             <span className="text-5xl">{emoji}</span>
             <h1 className="text-xl font-bold mt-2">Crea tu primera familia</h1>
@@ -97,17 +108,27 @@ export function FamilySetupPage() {
               </div>
             )}
 
-            <button
-              type="submit"
-              className="btn btn-primary w-full"
-              disabled={isLoading || !name.trim()}
-            >
-              {isLoading ? (
-                <span className="loading loading-spinner loading-sm" />
-              ) : (
-                "Crear familia"
-              )}
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="btn btn-ghost flex-1"
+                disabled={isLoading}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary flex-1"
+                disabled={isLoading || !name.trim()}
+              >
+                {isLoading ? (
+                  <span className="loading loading-spinner loading-sm" />
+                ) : (
+                  "Crear familia"
+                )}
+              </button>
+            </div>
           </form>
         </div>
       </div>

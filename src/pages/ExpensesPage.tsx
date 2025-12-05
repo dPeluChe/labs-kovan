@@ -5,6 +5,7 @@ import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { SkeletonPageContent } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
+import { useConfirmModal } from "../components/ui/ConfirmModal";
 import { DollarSign, Plus, Trash2 } from "lucide-react";
 import { DateInput } from "../components/ui/DateInput";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -24,6 +25,7 @@ const CATEGORY_CONFIG: Record<ExpenseCategory, { label: string; icon: string; co
 export function ExpensesPage() {
   const { currentFamily } = useFamily();
   const [showNewExpense, setShowNewExpense] = useState(false);
+  const { confirm, ConfirmModal } = useConfirmModal();
 
   const expenses = useQuery(
     api.expenses.getExpenses,
@@ -112,7 +114,19 @@ export function ExpensesPage() {
                         <div className="font-bold">${expense.amount.toLocaleString()}</div>
                       </div>
                       <button
-                        onClick={() => deleteExpense({ expenseId: expense._id })}
+                        onClick={async () => {
+                          const confirmed = await confirm({
+                            title: "Eliminar gasto",
+                            message: `¿Estás seguro de que quieres eliminar "${expense.description}"?`,
+                            confirmText: "Eliminar",
+                            cancelText: "Cancelar",
+                            variant: "danger",
+                            icon: "trash",
+                          });
+                          if (confirmed) {
+                            await deleteExpense({ expenseId: expense._id });
+                          }
+                        }}
                         className="btn btn-ghost btn-xs btn-circle text-error"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -132,6 +146,8 @@ export function ExpensesPage() {
           onClose={() => setShowNewExpense(false)}
         />
       )}
+
+      <ConfirmModal />
     </div>
   );
 }

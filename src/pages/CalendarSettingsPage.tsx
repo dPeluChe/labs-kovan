@@ -5,6 +5,7 @@ import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
+import { useConfirmModal } from "../components/ui/ConfirmModal";
 import { ArrowLeft, Calendar, Trash2, Check } from "lucide-react";
 
 export function CalendarSettingsPage() {
@@ -14,6 +15,7 @@ export function CalendarSettingsPage() {
   const [calendarId, setCalendarId] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { confirm, ConfirmModal } = useConfirmModal();
 
   const integration = useQuery(
     api.calendar.getCalendarIntegration,
@@ -44,7 +46,16 @@ export function CalendarSettingsPage() {
   };
 
   const handleRemove = async () => {
-    if (confirm("¿Desconectar el calendario?")) {
+    const confirmed = await confirm({
+      title: "Desconectar calendario",
+      message: "¿Estás seguro de que quieres desconectar el calendario? Se perderá la sincronización.",
+      confirmText: "Desconectar",
+      cancelText: "Cancelar",
+      variant: "warning",
+      icon: "warning",
+    });
+    
+    if (confirmed) {
       await removeIntegration({ familyId: currentFamily._id });
     }
   };
@@ -153,6 +164,9 @@ export function CalendarSettingsPage() {
           </div>
         </div>
       </div>
+      
+      {/* Confirm Modal */}
+      <ConfirmModal />
     </div>
   );
 }

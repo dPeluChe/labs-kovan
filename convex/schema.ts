@@ -37,6 +37,7 @@ export default defineSchema({
     name: v.string(),
     date: v.optional(v.number()), // Unix timestamp
     description: v.optional(v.string()),
+    isCompleted: v.optional(v.boolean()), // Mark event as finished/archived
     createdBy: v.id("users"),
   }).index("by_family", ["familyId"]),
 
@@ -48,7 +49,8 @@ export default defineSchema({
   }).index("by_event", ["giftEventId"]),
 
   giftItems: defineTable({
-    giftRecipientId: v.id("giftRecipients"),
+    giftEventId: v.optional(v.id("giftEvents")), // Direct link to event for unassigned items (optional for legacy data)
+    giftRecipientId: v.optional(v.id("giftRecipients")), // Optional - null means unassigned
     title: v.string(),
     url: v.optional(v.string()),
     priceEstimate: v.optional(v.number()),
@@ -62,7 +64,9 @@ export default defineSchema({
     ),
     assignedTo: v.optional(v.id("users")),
     notes: v.optional(v.string()),
-  }).index("by_recipient", ["giftRecipientId"]),
+  })
+    .index("by_recipient", ["giftRecipientId"])
+    .index("by_event", ["giftEventId"]),
 
   // ==================== CALENDAR ====================
   calendarIntegrations: defineTable({
@@ -233,10 +237,12 @@ export default defineSchema({
   places: defineTable({
     familyId: v.id("families"),
     name: v.string(),
-    url: v.optional(v.string()),
+    url: v.optional(v.string()), // Post/red social/recomendación
+    mapsUrl: v.optional(v.string()), // Google Maps URL
     imageUrl: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
     address: v.optional(v.string()),
+    highlight: v.optional(v.string()), // "Qué te gustó / Qué venden"
     category: v.union(
       v.literal("restaurant"),
       v.literal("cafe"),

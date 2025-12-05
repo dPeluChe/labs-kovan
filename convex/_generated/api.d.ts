@@ -12,6 +12,7 @@ import type * as calendar from "../calendar.js";
 import type * as contacts from "../contacts.js";
 import type * as expenses from "../expenses.js";
 import type * as families from "../families.js";
+import type * as files from "../files.js";
 import type * as gifts from "../gifts.js";
 import type * as health from "../health.js";
 import type * as lib_utils from "../lib/utils.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   contacts: typeof contacts;
   expenses: typeof expenses;
   families: typeof families;
+  files: typeof files;
   gifts: typeof gifts;
   health: typeof health;
   "lib/utils": typeof lib_utils;

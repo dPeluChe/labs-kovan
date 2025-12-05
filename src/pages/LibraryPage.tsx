@@ -5,6 +5,7 @@ import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { SkeletonPageContent } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
+import { useConfirmModal } from "../components/ui/ConfirmModal";
 import { Book, Plus, Trash2, Check, BookOpen, ShoppingCart } from "lucide-react";
 import type { Id } from "../../convex/_generated/dataModel";
 
@@ -27,6 +28,7 @@ const STATUS_CONFIG = {
 export function LibraryPage() {
   const { currentFamily } = useFamily();
   const [showNewBook, setShowNewBook] = useState(false);
+  const { confirm, ConfirmModal } = useConfirmModal();
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterOwned, setFilterOwned] = useState<FilterOwned>("all");
@@ -144,6 +146,7 @@ export function LibraryPage() {
                   key={collectionName}
                   name={collectionName}
                   books={collectionBooks!}
+                  confirm={confirm}
                 />
               ))}
 
@@ -155,7 +158,7 @@ export function LibraryPage() {
                 )}
                 <div className="grid grid-cols-2 gap-2">
                   {standalone.map((book) => (
-                    <BookCard key={book._id} book={book} />
+                    <BookCard key={book._id} book={book} confirm={confirm} />
                   ))}
                 </div>
               </div>
@@ -170,6 +173,8 @@ export function LibraryPage() {
           onClose={() => setShowNewBook(false)}
         />
       )}
+
+      <ConfirmModal />
     </div>
   );
 }
@@ -177,8 +182,10 @@ export function LibraryPage() {
 function CollectionGroup({
   name,
   books,
+  confirm,
 }: {
   name: string;
+  confirm: (options: any) => Promise<boolean>;
   books: Array<{
     _id: Id<"books">;
     type: "book" | "manga" | "comic";
@@ -201,7 +208,7 @@ function CollectionGroup({
       </div>
       <div className="grid grid-cols-2 gap-2">
         {sortedBooks.map((book) => (
-          <BookCard key={book._id} book={book} showVolume />
+          <BookCard key={book._id} book={book} showVolume confirm={confirm} />
         ))}
       </div>
     </div>
@@ -211,6 +218,7 @@ function CollectionGroup({
 function BookCard({
   book,
   showVolume = false,
+  confirm,
 }: {
   book: {
     _id: Id<"books">;
@@ -222,6 +230,7 @@ function BookCard({
     status: "pending" | "reading" | "finished";
   };
   showVolume?: boolean;
+  confirm: (options: any) => Promise<boolean>;
 }) {
   const updateBook = useMutation(api.library.updateBook);
   const deleteBook = useMutation(api.library.deleteBook);
@@ -274,7 +283,22 @@ function BookCard({
                 </button>
               </li>
               <li>
-                <button onClick={() => deleteBook({ bookId: book._id })} className="text-error">
+                <button
+                  onClick={async () => {
+                    const confirmed = await confirm({
+                      title: "Eliminar libro",
+                      message: `¿Estás seguro de que quieres eliminar "${book.title}"?`,
+                      confirmText: "Eliminar",
+                      cancelText: "Cancelar",
+                      variant: "danger",
+                      icon: "trash",
+                    });
+                    if (confirmed) {
+                      await deleteBook({ bookId: book._id });
+                    }
+                  }}
+                  className="text-error"
+                >
                   <Trash2 className="w-4 h-4" /> Eliminar
                 </button>
               </li>

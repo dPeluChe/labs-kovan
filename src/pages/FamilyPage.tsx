@@ -6,6 +6,7 @@ import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
+import { useConfirmModal } from "../components/ui/ConfirmModal";
 import {
   ArrowLeft,
   Users,
@@ -23,6 +24,7 @@ export function FamilyPage() {
   const { currentFamily } = useFamily();
   const { user } = useAuth();
   const [showInvite, setShowInvite] = useState(false);
+  const { confirm, ConfirmModal } = useConfirmModal();
 
   const members = useQuery(
     api.families.getFamilyMembers,
@@ -135,8 +137,17 @@ export function FamilyPage() {
                         </span>
                         {isOwner && member.role !== "owner" && member._id !== user._id && (
                           <button
-                            onClick={() => {
-                              if (confirm(`¿Eliminar a ${member.name} de la familia?`)) {
+                            onClick={async () => {
+                              const confirmed = await confirm({
+                                title: "Eliminar miembro",
+                                message: `¿Estás seguro de que quieres eliminar a ${member.name} de la familia? Perderá acceso a todos los datos familiares.`,
+                                confirmText: "Eliminar",
+                                cancelText: "Cancelar",
+                                variant: "danger",
+                                icon: "trash",
+                              });
+                              
+                              if (confirmed) {
                                 removeMember({ membershipId: member.membershipId });
                               }
                             }}
@@ -201,6 +212,9 @@ export function FamilyPage() {
           onClose={() => setShowInvite(false)}
         />
       )}
+      
+      {/* Confirm Modal */}
+      <ConfirmModal />
     </div>
   );
 }

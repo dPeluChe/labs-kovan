@@ -6,6 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { SkeletonGrid } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
+import { useConfirmModal } from "../components/ui/ConfirmModal";
 import { ChefHat, Plus, Trash2, Heart, ExternalLink, Star } from "lucide-react";
 import type { Id } from "../../convex/_generated/dataModel";
 
@@ -13,6 +14,7 @@ export function RecipesPage() {
   const { currentFamily } = useFamily();
   const { user } = useAuth();
   const [showNewRecipe, setShowNewRecipe] = useState(false);
+  const { confirm, ConfirmModal } = useConfirmModal();
 
   const recipes = useQuery(
     api.recipes.getRecipes,
@@ -74,7 +76,19 @@ export function RecipesPage() {
                       key={recipe._id}
                       recipe={recipe}
                       onToggleFavorite={() => toggleFavorite({ recipeId: recipe._id })}
-                      onDelete={() => deleteRecipe({ recipeId: recipe._id })}
+                      onDelete={async () => {
+                        const confirmed = await confirm({
+                          title: "Eliminar receta",
+                          message: `¿Estás seguro de que quieres eliminar "${recipe.title}"?`,
+                          confirmText: "Eliminar",
+                          cancelText: "Cancelar",
+                          variant: "danger",
+                          icon: "trash",
+                        });
+                        if (confirmed) {
+                          await deleteRecipe({ recipeId: recipe._id });
+                        }
+                      }}
                     />
                   ))}
                 </div>
@@ -92,7 +106,19 @@ export function RecipesPage() {
                       key={recipe._id}
                       recipe={recipe}
                       onToggleFavorite={() => toggleFavorite({ recipeId: recipe._id })}
-                      onDelete={() => deleteRecipe({ recipeId: recipe._id })}
+                      onDelete={async () => {
+                        const confirmed = await confirm({
+                          title: "Eliminar receta",
+                          message: `¿Estás seguro de que quieres eliminar "${recipe.title}"?`,
+                          confirmText: "Eliminar",
+                          cancelText: "Cancelar",
+                          variant: "danger",
+                          icon: "trash",
+                        });
+                        if (confirmed) {
+                          await deleteRecipe({ recipeId: recipe._id });
+                        }
+                      }}
                     />
                   ))}
                 </div>
@@ -109,6 +135,8 @@ export function RecipesPage() {
           onClose={() => setShowNewRecipe(false)}
         />
       )}
+
+      <ConfirmModal />
     </div>
   );
 }

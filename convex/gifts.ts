@@ -43,10 +43,14 @@ export const updateGiftEvent = mutation({
     name: v.optional(v.string()),
     date: v.optional(v.number()),
     description: v.optional(v.string()),
+    isCompleted: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const { eventId, ...updates } = args;
-    await ctx.db.patch(eventId, updates);
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([, v]) => v !== undefined)
+    );
+    await ctx.db.patch(eventId, filteredUpdates);
     return eventId;
   },
 });
@@ -159,9 +163,24 @@ export const getAllGiftItemsForEvent = query({
   },
 });
 
+// Get unassigned gifts for an event (gifts in the pool)
+export const getUnassignedGifts = query({
+  args: { eventId: v.id("giftEvents") },
+  handler: async (ctx, args) => {
+    const allItems = await ctx.db
+      .query("giftItems")
+      .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
+      .collect();
+    
+    // Filter to only unassigned items (no recipientId)
+    return allItems.filter(item => !item.giftRecipientId);
+  },
+});
+
 export const createGiftItem = mutation({
   args: {
-    giftRecipientId: v.id("giftRecipients"),
+    giftEventId: v.id("giftEvents"),
+    giftRecipientId: v.optional(v.id("giftRecipients")), // Optional - null means unassigned
     title: v.string(),
     url: v.optional(v.string()),
     priceEstimate: v.optional(v.number()),
@@ -178,6 +197,29 @@ export const createGiftItem = mutation({
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("giftItems", args);
+  },
+});
+
+// Assign an unassigned gift to a recipient
+export const assignGiftItem = mutation({
+  args: {
+    itemId: v.id("giftItems"),
+    giftRecipientId: v.id("giftRecipients"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.itemId, { giftRecipientId: args.giftRecipientId });
+    return args.itemId;
+  },
+});
+
+// Unassign a gift (move back to pool)
+export const unassignGiftItem = mutation({
+  args: {
+    itemId: v.id("giftItems"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.itemId, { giftRecipientId: undefined });
+    return args.itemId;
   },
 });
 

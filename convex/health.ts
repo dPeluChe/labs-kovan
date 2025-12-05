@@ -237,6 +237,7 @@ export const createStudy = mutation({
       status: v.optional(v.union(v.literal("normal"), v.literal("high"), v.literal("low"))),
     })),
     notes: v.optional(v.string()),
+    fileStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("medicalStudies", args);

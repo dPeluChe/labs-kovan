@@ -6,6 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { SkeletonPageContent } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
+import { useConfirmModal } from "../components/ui/ConfirmModal";
 import {
   Users,
   Plus,
@@ -44,6 +45,7 @@ export function ContactsPage() {
   const { user } = useAuth();
   const [showNewContact, setShowNewContact] = useState(false);
   const [filter, setFilter] = useState<ContactCategory | "all" | "favorites">("all");
+  const { confirm, ConfirmModal } = useConfirmModal();
 
   const contacts = useQuery(
     api.contacts.getContacts,
@@ -199,7 +201,19 @@ export function ContactsPage() {
                           <Star className={`w-4 h-4 ${contact.isFavorite ? "fill-current" : ""}`} />
                         </button>
                         <button
-                          onClick={() => deleteContact({ contactId: contact._id })}
+                          onClick={async () => {
+                            const confirmed = await confirm({
+                              title: "Eliminar contacto",
+                              message: `¿Estás seguro de que quieres eliminar a "${contact.name}"?`,
+                              confirmText: "Eliminar",
+                              cancelText: "Cancelar",
+                              variant: "danger",
+                              icon: "trash",
+                            });
+                            if (confirmed) {
+                              await deleteContact({ contactId: contact._id });
+                            }
+                          }}
                           className="btn btn-ghost btn-xs btn-circle text-error"
                         >
                           <Trash2 className="w-3 h-3" />
@@ -221,6 +235,8 @@ export function ContactsPage() {
           onClose={() => setShowNewContact(false)}
         />
       )}
+
+      <ConfirmModal />
     </div>
   );
 }
