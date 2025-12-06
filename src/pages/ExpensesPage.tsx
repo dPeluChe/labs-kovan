@@ -53,10 +53,19 @@ const SUBSCRIPTION_TYPES = {
   other: { label: "Otro", icon: "📋" },
 };
 
+type DateFilter = "thisMonth" | "last3Months" | "all";
+
+const DATE_FILTER_CONFIG: Record<DateFilter, { label: string }> = {
+  thisMonth: { label: "Este mes" },
+  last3Months: { label: "Últimos 3 meses" },
+  all: { label: "Todo" },
+};
+
 export function ExpensesPage() {
   const { currentFamily } = useFamily();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<ExpenseType>("all");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("thisMonth");
   const [showNewExpense, setShowNewExpense] = useState(false);
   const [showNewSubscription, setShowNewSubscription] = useState(false);
   const [showPaySubscription, setShowPaySubscription] = useState<Id<"subscriptions"> | null>(null);
@@ -81,6 +90,27 @@ export function ExpensesPage() {
 
   const deleteExpense = useMutation(api.expenses.deleteExpense);
   const deleteSubscription = useMutation(api.expenses.deleteSubscription);
+
+  // Filtrar gastos por fecha
+  const filteredExpenses = expenses?.filter((expense) => {
+    if (dateFilter === "all") return true;
+    
+    const now = new Date();
+    const expenseDate = new Date(expense.date);
+    
+    if (dateFilter === "thisMonth") {
+      return expenseDate.getMonth() === now.getMonth() && 
+             expenseDate.getFullYear() === now.getFullYear();
+    }
+    
+    if (dateFilter === "last3Months") {
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+      return expenseDate >= threeMonthsAgo;
+    }
+    
+    return true;
+  });
 
   if (!currentFamily) return null;
 
@@ -158,9 +188,10 @@ export function ExpensesPage() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="px-4 mb-4 overflow-x-auto">
-        <div className="flex gap-1 bg-base-200 p-1 rounded-xl">
+      {/* Tabs + Date Filter */}
+      <div className="px-4 mb-4 space-y-2">
+        {/* Type Tabs */}
+        <div className="flex gap-1 bg-base-200 p-1 rounded-xl overflow-x-auto">
           {(Object.entries(TYPE_CONFIG) as [ExpenseType, typeof TYPE_CONFIG[ExpenseType]][]).map(([type, config]) => {
             const isActive = activeTab === type;
             return (
@@ -178,6 +209,26 @@ export function ExpensesPage() {
               </button>
             );
           })}
+        </div>
+        
+        {/* Date Filter */}
+        <div className="flex items-center justify-between">
+          <div className="flex gap-1">
+            {(Object.entries(DATE_FILTER_CONFIG) as [DateFilter, { label: string }][]).map(([key, config]) => (
+              <button
+                key={key}
+                onClick={() => setDateFilter(key)}
+                className={`btn btn-xs ${dateFilter === key ? "btn-secondary" : "btn-ghost"}`}
+              >
+                {config.label}
+              </button>
+            ))}
+          </div>
+          {filteredExpenses && filteredExpenses.length > 0 && (
+            <span className="text-xs text-base-content/50">
+              {filteredExpenses.length} gasto{filteredExpenses.length !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
       </div>
 
@@ -235,12 +286,16 @@ export function ExpensesPage() {
 
       {/* Expenses List */}
       <div className="px-4">
-        {expenses === undefined ? (
+        {filteredExpenses === undefined ? (
           <SkeletonPageContent cards={3} />
-        ) : expenses.length === 0 ? (
+        ) : filteredExpenses.length === 0 ? (
           <EmptyState
             icon={DollarSign}
-            title={activeTab === "all" ? "Sin gastos" : `Sin gastos de tipo ${TYPE_CONFIG[activeTab].label.toLowerCase()}`}
+            title={
+              activeTab === "all" 
+                ? `Sin gastos ${DATE_FILTER_CONFIG[dateFilter].label.toLowerCase()}`
+                : `Sin gastos de ${TYPE_CONFIG[activeTab].label.toLowerCase()} ${DATE_FILTER_CONFIG[dateFilter].label.toLowerCase()}`
+            }
             description={activeTab === "subscription" ? "Registra tus suscripciones y pagos recurrentes" : "Registra tus gastos para llevar control"}
             action={
               <button
@@ -253,7 +308,7 @@ export function ExpensesPage() {
           />
         ) : (
           <div className="space-y-2 stagger-children">
-            {expenses.map((expense) => {
+            {filteredExpenses.map((expense) => {
               const config = CATEGORY_CONFIG[expense.category] || CATEGORY_CONFIG.other;
               const TypeIcon = TYPE_CONFIG[expense.type as ExpenseType]?.icon || DollarSign;
               return (
@@ -299,6 +354,17 @@ export function ExpensesPage() {
                 </div>
               );
             })}
+            
+            {/* Add More Button - always visible when there are expenses */}
+            {(activeTab === "all" || activeTab === "general") && (
+              <button
+                onClick={() => setShowNewExpense(true)}
+                className="btn btn-outline btn-primary btn-block btn-sm mt-4 gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Agregar otro gasto
+              </button>
+            )}
           </div>
         )}
       </div>
