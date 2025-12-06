@@ -291,3 +291,39 @@ export const cancelInvite = mutation({
     await ctx.db.delete(args.inviteId);
   },
 });
+
+// Join family by ID (for invite links)
+export const joinFamilyById = mutation({
+  args: { 
+    familyId: v.id("families"), 
+    userId: v.id("users") 
+  },
+  handler: async (ctx, args) => {
+    // Check if family exists
+    const family = await ctx.db.get(args.familyId);
+    if (!family) throw new Error("Familia no encontrada");
+
+    // Check if already a member
+    const existingMember = await ctx.db
+      .query("familyMembers")
+      .withIndex("by_family_user", (q) =>
+        q.eq("familyId", args.familyId).eq("userId", args.userId)
+      )
+      .first();
+
+    if (existingMember) {
+      // Already a member, just return the family
+      return { familyId: args.familyId, alreadyMember: true };
+    }
+
+    // Add as member
+    await ctx.db.insert("familyMembers", {
+      familyId: args.familyId,
+      userId: args.userId,
+      role: "member",
+      status: "active",
+    });
+
+    return { familyId: args.familyId, alreadyMember: false };
+  },
+});

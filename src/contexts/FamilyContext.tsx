@@ -4,9 +4,10 @@ import {
   useState,
   useMemo,
   useCallback,
+  useEffect,
 } from "react";
 import type { ReactNode } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useAuth } from "./AuthContext";
@@ -28,12 +29,16 @@ interface FamilyContextType {
 const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
 
 const CURRENT_FAMILY_KEY = "kovan_current_family";
+const PENDING_INVITE_KEY = "kovan_pending_invite";
 
 export function FamilyProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(() => {
     return localStorage.getItem(CURRENT_FAMILY_KEY);
   });
+  const [processingInvite, setProcessingInvite] = useState(false);
+
+  const joinFamily = useMutation(api.families.joinFamilyById);
 
   const familiesData = useQuery(
     api.families.getUserFamilies,
@@ -42,6 +47,37 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
 
   const families = useMemo(() => (familiesData ?? []) as Family[], [familiesData]);
   const isLoading = familiesData === undefined && user !== null;
+
+  // Process pending invite after login
+  useEffect(() => {
+    const processPendingInvite = async () => {
+      if (!user || processingInvite) return;
+      
+      const pendingInvite = localStorage.getItem(PENDING_INVITE_KEY);
+      if (!pendingInvite) return;
+
+      setProcessingInvite(true);
+      try {
+        const result = await joinFamily({
+          familyId: pendingInvite as Id<"families">,
+          userId: user._id,
+        });
+        
+        // Set as current family
+        if (result.familyId) {
+          localStorage.setItem(CURRENT_FAMILY_KEY, result.familyId);
+          setSelectedFamilyId(result.familyId);
+        }
+      } catch (error) {
+        console.error("Error joining family:", error);
+      } finally {
+        localStorage.removeItem(PENDING_INVITE_KEY);
+        setProcessingInvite(false);
+      }
+    };
+
+    processPendingInvite();
+  }, [user, joinFamily, processingInvite]);
 
   // Derive current family - prefer selected, fall back to first
   const currentFamily = useMemo(() => {

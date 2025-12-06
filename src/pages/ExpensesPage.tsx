@@ -92,13 +92,13 @@ export function ExpensesPage() {
             }
           />
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 stagger-children">
             {expenses.map((expense) => {
               const config = CATEGORY_CONFIG[expense.category as ExpenseCategory];
               return (
                 <div
                   key={expense._id}
-                  className={`card bg-gradient-to-r ${config.color} to-transparent border border-base-300`}
+                  className={`card bg-gradient-to-r ${config.color} to-transparent border border-base-300 animate-fade-in`}
                 >
                   <div className="card-body p-3">
                     <div className="flex items-center gap-3">

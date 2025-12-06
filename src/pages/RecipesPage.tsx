@@ -63,14 +63,14 @@ export function RecipesPage() {
             }
           />
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-fade-in">
             {favorites.length > 0 && (
               <div>
                 <h3 className="font-semibold text-sm mb-2 flex items-center gap-1">
                   <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
                   Favoritas
                 </h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 stagger-children">
                   {favorites.map((recipe) => (
                     <RecipeCard
                       key={recipe._id}
@@ -100,7 +100,7 @@ export function RecipesPage() {
                 {favorites.length > 0 && (
                   <h3 className="font-semibold text-sm mb-2">Todas las recetas</h3>
                 )}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 stagger-children">
                   {others.map((recipe) => (
                     <RecipeCard
                       key={recipe._id}

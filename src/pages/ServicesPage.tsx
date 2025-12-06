@@ -127,12 +127,12 @@ function ServicesTab({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 stagger-children">
       {services.map((service) => (
         <Link
           key={service._id}
           to={`/services/${service._id}`}
-          className="card bg-base-100 shadow-sm border border-base-300"
+          className="card bg-base-100 shadow-sm border border-base-300 animate-fade-in"
         >
           <div className="card-body p-4">
             <div className="flex items-center gap-3">
@@ -191,12 +191,12 @@ function VehiclesTab({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 stagger-children">
       {vehicles.map((vehicle) => (
         <Link
           key={vehicle._id}
           to={`/vehicles/${vehicle._id}`}
-          className="card bg-base-100 shadow-sm border border-base-300"
+          className="card bg-base-100 shadow-sm border border-base-300 animate-fade-in"
         >
           <div className="card-body p-4">
             <div className="flex items-center gap-3">

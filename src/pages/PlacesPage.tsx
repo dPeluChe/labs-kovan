@@ -125,14 +125,14 @@ export function PlacesPage() {
             description={filter === "pending" ? "¡Ya visitaste todos!" : "Aún no has visitado ninguno"}
           />
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 stagger-children">
             {filteredPlaces?.map((place) => {
               const config = CATEGORY_CONFIG[place.category as PlaceCategory];
               return (
                 <div
                   key={place._id}
                   onClick={() => setSelectedPlace(place)}
-                  className={`card bg-base-100 shadow-sm border cursor-pointer hover:shadow-md transition-shadow ${
+                  className={`card bg-base-100 shadow-sm border cursor-pointer hover:shadow-md transition-shadow animate-fade-in ${
                     place.visited ? "border-success/30" : "border-base-300"
                   }`}
                 >

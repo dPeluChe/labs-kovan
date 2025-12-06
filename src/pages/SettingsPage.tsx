@@ -5,6 +5,7 @@ import { api } from "../../convex/_generated/api";
 import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { useToast } from "../components/ui/Toast";
+import { Input } from "../components/ui/Input";
 import {
   ArrowLeft,
   LogOut,
@@ -21,6 +22,7 @@ import {
   Car,
   Check,
   RotateCcw,
+  Pen,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -47,6 +49,8 @@ export function SettingsPage() {
   const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editName, setEditName] = useState("");
 
   const savedNavOrder = useQuery(
     api.users.getNavOrder,
@@ -54,6 +58,7 @@ export function SettingsPage() {
   );
 
   const updateNavOrder = useMutation(api.users.updateNavOrder);
+  const updateUser = useMutation(api.users.updateUser);
 
   useEffect(() => {
     if (savedNavOrder) {
@@ -143,15 +148,22 @@ export function SettingsPage() {
         <div className="card bg-base-100 shadow-sm border border-base-300">
           <div className="card-body p-4">
             <div className="flex items-center gap-3">
-              <div className="avatar placeholder">
-                <div className="bg-primary/10 text-primary rounded-full w-12">
-                  <span className="text-xl">{user.name.charAt(0).toUpperCase()}</span>
-                </div>
+              <div className="w-12 h-12 rounded-full bg-base-200 flex items-center justify-center text-base-content/70 font-semibold text-xl">
+                {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold">{user.name}</h3>
                 <p className="text-sm text-base-content/60">{user.email}</p>
               </div>
+              <button 
+                onClick={() => {
+                  setEditName(user.name);
+                  setShowEditProfile(true);
+                }}
+                className="btn btn-ghost btn-sm"
+              >
+                <Pen className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -289,6 +301,66 @@ export function SettingsPage() {
           </div>
         </button>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg mb-4">Editar perfil</h3>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!editName.trim()) return;
+                await updateUser({ userId: user._id, name: editName.trim() });
+                success("Perfil actualizado");
+                setShowEditProfile(false);
+              }}
+              className="space-y-4"
+            >
+              <Input
+                label="Nombre"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Tu nombre"
+                autoFocus
+              />
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Email</span>
+                </label>
+                <input
+                  type="email"
+                  value={user.email}
+                  className="input input-bordered w-full bg-base-200"
+                  disabled
+                />
+                <label className="label">
+                  <span className="label-text-alt text-base-content/50">
+                    El email se usa para iniciar sesión y no puede cambiarse
+                  </span>
+                </label>
+              </div>
+              <div className="modal-action">
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => setShowEditProfile(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={!editName.trim()}
+                >
+                  Guardar
+                </button>
+              </div>
+            </form>
+          </div>
+          <div className="modal-backdrop" onClick={() => setShowEditProfile(false)} />
+        </div>
+      )}
     </div>
   );
 }

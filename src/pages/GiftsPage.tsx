@@ -177,7 +177,7 @@ function GiftEventCard({
   const summary = useQuery(api.gifts.getGiftEventSummary, { eventId: event._id });
 
   return (
-    <div className={`card bg-base-100 shadow-sm border ${event.isCompleted ? "border-success/30 opacity-75" : "border-base-300"}`}>
+    <div className={`card bg-base-100 shadow-sm border animate-fade-in ${event.isCompleted ? "border-success/30 opacity-75" : "border-base-300"}`}>
       <div className="card-body p-4">
         <div className="flex items-center gap-3">
           <Link to={`/gifts/${event._id}`} className="flex items-center gap-3 flex-1 min-w-0">

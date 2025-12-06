@@ -17,7 +17,12 @@ import {
   Shield,
   User,
   Clock,
+  Share2,
+  Copy,
+  Check,
+  Link,
 } from "lucide-react";
+import { useToast } from "../components/ui/Toast";
 
 export function FamilyPage() {
   const navigate = useNavigate();
@@ -107,20 +112,16 @@ export function FamilyPage() {
               description="Invita a tu familia"
             />
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 stagger-children">
               {members.filter((m): m is NonNullable<typeof m> => m !== null).map((member) => (
                 <div
                   key={member._id}
-                  className="card bg-base-100 shadow-sm border border-base-300"
+                  className="card bg-base-100 shadow-sm border border-base-300 animate-fade-in"
                 >
                   <div className="card-body p-3">
                     <div className="flex items-center gap-3">
-                      <div className="avatar placeholder">
-                        <div className="bg-primary/10 text-primary rounded-full w-10">
-                          <span className="text-lg">
-                            {member.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
+                      <div className="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-base-content/70 font-semibold">
+                        {member.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -208,6 +209,7 @@ export function FamilyPage() {
       {showInvite && currentFamily && (
         <InviteModal
           familyId={currentFamily._id}
+          familyName={currentFamily.name}
           userId={user._id}
           onClose={() => setShowInvite(false)}
         />
@@ -221,18 +223,63 @@ export function FamilyPage() {
 
 function InviteModal({
   familyId,
+  familyName,
   userId,
   onClose,
 }: {
   familyId: string;
+  familyName: string;
   userId: string;
   onClose: () => void;
 }) {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [copied, setCopied] = useState(false);
+  const { success } = useToast();
 
   const sendInvite = useMutation(api.families.sendInvite);
+
+  // Generate invite link
+  const baseUrl = window.location.origin;
+  const inviteLink = `${baseUrl}/?invite=${familyId}`;
+  const registerLink = `${baseUrl}/`;
+
+  const handleCopyLink = async (link: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      success(`Link copiado: ${type}`);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopied(true);
+      success(`Link copiado: ${type}`);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleShare = async (link: string, title: string) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title,
+          text: `Te invito a unirte a mi familia "${familyName}" en Kovan`,
+          url: link,
+        });
+      } catch {
+        // User cancelled or error
+      }
+    } else {
+      handleCopyLink(link, title);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -266,10 +313,75 @@ function InviteModal({
       <div className="modal-box">
         <h3 className="font-bold text-lg mb-4">Invitar a la familia</h3>
 
+        {/* Share Links */}
+        <div className="space-y-3 mb-6">
+          <p className="text-sm text-base-content/70">Comparte un link de invitación:</p>
+          
+          {/* Invite to this family */}
+          <div className="card bg-base-200 p-3">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <Link className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm">Unirse a "{familyName}"</p>
+                <p className="text-xs text-base-content/60 truncate">{inviteLink}</p>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => handleCopyLink(inviteLink, "Invitar a familia")}
+                  className="btn btn-ghost btn-sm btn-circle"
+                  title="Copiar link"
+                >
+                  {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={() => handleShare(inviteLink, "Unirse a mi familia")}
+                  className="btn btn-ghost btn-sm btn-circle"
+                  title="Compartir"
+                >
+                  <Share2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Invite to create their own family */}
+          <div className="card bg-base-200 p-3">
+            <div className="flex items-center gap-3">
+              <div className="bg-success/10 p-2 rounded-lg">
+                <Users className="w-5 h-5 text-success" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm">Crear su propia familia</p>
+                <p className="text-xs text-base-content/60 truncate">{registerLink}</p>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => handleCopyLink(registerLink, "Registrarse")}
+                  className="btn btn-ghost btn-sm btn-circle"
+                  title="Copiar link"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleShare(registerLink, "Únete a Kovan")}
+                  className="btn btn-ghost btn-sm btn-circle"
+                  title="Compartir"
+                >
+                  <Share2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="divider text-xs text-base-content/50">O invita por email</div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Email del usuario *</span>
+              <span className="label-text">Email del usuario</span>
             </label>
             <input
               type="email"
@@ -281,8 +393,7 @@ function InviteModal({
             />
             <label className="label">
               <span className="label-text-alt text-base-content/60">
-                Si el usuario ya existe, se agregará automáticamente.
-                Si no, recibirá la invitación al registrarse.
+                Si ya tiene cuenta, se agregará automáticamente.
               </span>
             </label>
           </div>
@@ -295,7 +406,7 @@ function InviteModal({
 
           <div className="modal-action">
             <button type="button" className="btn" onClick={onClose} disabled={isLoading}>
-              Cancelar
+              Cerrar
             </button>
             <button
               type="submit"

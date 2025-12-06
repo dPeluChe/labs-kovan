@@ -137,7 +137,7 @@ export function LibraryPage() {
             description="No hay libros con esos filtros"
           />
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 stagger-children">
             {/* Collections */}
             {Array.from(collections.entries())
               .sort((a, b) => a[0].localeCompare(b[0]))

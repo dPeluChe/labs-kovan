@@ -55,7 +55,7 @@ export function HealthPage() {
             }
           />
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 stagger-children">
             {profiles.map((profile) => (
               <ProfileCard key={profile._id} profile={profile} />
             ))}
@@ -89,7 +89,7 @@ function ProfileCard({
   return (
     <Link
       to={`/health/${profile._id}`}
-      className="card bg-base-100 shadow-sm border border-base-300"
+      className="card bg-base-100 shadow-sm border border-base-300 animate-fade-in"
     >
       <div className="card-body p-4">
         <div className="flex items-center gap-3">

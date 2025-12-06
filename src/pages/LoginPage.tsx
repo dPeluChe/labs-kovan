@@ -1,14 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Users } from "lucide-react";
+import type { Id } from "../../convex/_generated/dataModel";
 
 export function LoginPage() {
+  const [searchParams] = useSearchParams();
+  const inviteFamilyId = searchParams.get("invite");
+  
   const { login, isLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+
+  // Get family info if invite link
+  const inviteFamily = useQuery(
+    api.families.getFamily,
+    inviteFamilyId ? { familyId: inviteFamilyId as Id<"families"> } : "skip"
+  );
+
+  // Store invite in localStorage to process after login
+  useEffect(() => {
+    if (inviteFamilyId) {
+      localStorage.setItem("kovan_pending_invite", inviteFamilyId);
+    }
+  }, [inviteFamilyId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,13 +68,29 @@ export function LoginPage() {
           <div className="card-body">
             <div className="text-center mb-6">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce-in">
-                <span className="text-3xl">🏠</span>
+                <span className="text-3xl">{inviteFamily ? "👋" : "🏠"}</span>
               </div>
-              <h1 className="text-2xl font-bold">Bienvenido a Kovan</h1>
+              <h1 className="text-2xl font-bold">
+                {inviteFamily ? "¡Te invitaron!" : "Bienvenido a Kovan"}
+              </h1>
               <p className="text-base-content/60 text-sm mt-1">
-                Organiza tu vida familiar
+                {inviteFamily 
+                  ? `Únete a la familia "${inviteFamily.name}"`
+                  : "Organiza tu vida familiar"
+                }
               </p>
             </div>
+
+            {/* Invite banner */}
+            {inviteFamily && (
+              <div className="alert alert-info mb-4 animate-fade-in">
+                <Users className="w-5 h-5" />
+                <div>
+                  <p className="font-medium">Invitación a "{inviteFamily.name}"</p>
+                  <p className="text-xs opacity-80">Ingresa tus datos para unirte</p>
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="form-control">
