@@ -18,7 +18,8 @@ import { CalendarPage } from "./pages/CalendarPage";
 import { HealthPage } from "./pages/HealthPage";
 import { HealthProfilePage } from "./pages/HealthProfilePage";
 import { LibraryPage } from "./pages/LibraryPage";
-import { ServicesPage } from "./pages/ServicesPage";
+import { VehiclesPage } from "./pages/VehiclesPage";
+import { VehicleDetailPage } from "./pages/VehicleDetailPage";
 import { MorePage } from "./pages/MorePage";
 import { CalendarSettingsPage } from "./pages/CalendarSettingsPage";
 import { FamilyPage } from "./pages/FamilyPage";
@@ -59,7 +60,8 @@ function AppRoutes() {
         <Route path="/health" element={<HealthPage />} />
         <Route path="/health/:profileId" element={<HealthProfilePage />} />
         <Route path="/library" element={<LibraryPage />} />
-        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/vehicles" element={<VehiclesPage />} />
+        <Route path="/vehicles/:vehicleId" element={<VehicleDetailPage />} />
         <Route path="/more" element={<MorePage />} />
         <Route path="/family" element={<FamilyPage />} />
         <Route path="/expenses" element={<ExpensesPage />} />

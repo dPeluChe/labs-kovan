@@ -19,8 +19,8 @@ import type * as lib_utils from "../lib/utils.js";
 import type * as library from "../library.js";
 import type * as places from "../places.js";
 import type * as recipes from "../recipes.js";
-import type * as services from "../services.js";
 import type * as users from "../users.js";
+import type * as vehicles from "../vehicles.js";
 
 import type {
   ApiFromModules,
@@ -40,8 +40,8 @@ declare const fullApi: ApiFromModules<{
   library: typeof library;
   places: typeof places;
   recipes: typeof recipes;
-  services: typeof services;
   users: typeof users;
+  vehicles: typeof vehicles;
 }>;
 
 /**

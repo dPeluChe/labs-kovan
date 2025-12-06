@@ -25,7 +25,7 @@ const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string }
   expenses: { to: "/expenses", icon: DollarSign, label: "Gastos" },
   recipes: { to: "/recipes", icon: ChefHat, label: "Recetas" },
   library: { to: "/library", icon: Book, label: "Librería" },
-  services: { to: "/services", icon: Car, label: "Servicios" },
+  vehicles: { to: "/vehicles", icon: Car, label: "Autos" },
   more: { to: "/more", icon: MoreHorizontal, label: "Más" },
 };
 

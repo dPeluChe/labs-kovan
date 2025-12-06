@@ -241,10 +241,48 @@ export const updateGiftItem = mutation({
     ),
     assignedTo: v.optional(v.id("users")),
     notes: v.optional(v.string()),
+    // For creating expense when marking as bought
+    familyId: v.optional(v.id("families")),
+    paidBy: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
-    const { itemId, ...updates } = args;
+    const { itemId, familyId, paidBy, ...updates } = args;
+    
+    // Get current item to check status change
+    const currentItem = await ctx.db.get(itemId);
+    if (!currentItem) throw new Error("Item not found");
+    
+    // Update the item
     await ctx.db.patch(itemId, updates);
+    
+    // If status changed to "bought" and has price, create expense
+    if (
+      args.status === "bought" && 
+      currentItem.status !== "bought" && 
+      currentItem.priceEstimate && 
+      familyId
+    ) {
+      // Check if expense already exists for this item
+      const existingExpense = await ctx.db
+        .query("expenses")
+        .filter((q) => q.eq(q.field("giftItemId"), itemId))
+        .first();
+      
+      if (!existingExpense) {
+        await ctx.db.insert("expenses", {
+          familyId,
+          type: "gift",
+          category: "gifts",
+          description: `Regalo: ${currentItem.title}`,
+          amount: currentItem.priceEstimate,
+          date: Date.now(),
+          paidBy,
+          giftItemId: itemId,
+          giftEventId: currentItem.giftEventId,
+        });
+      }
+    }
+    
     return itemId;
   },
 });

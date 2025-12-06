@@ -107,24 +107,39 @@ export function HealthProfilePage() {
 
       {/* Tabs */}
       <div className="px-4 pt-4 bg-base-100 pb-2 sticky top-14 z-10">
-        <div className="tabs tabs-boxed bg-base-200 p-1 grid grid-cols-3">
+        <div className="flex gap-1 bg-base-200 p-1 rounded-xl">
           <button
-            className={`tab ${activeTab === "records" ? "tab-active" : ""}`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+              activeTab === "records" 
+                ? "bg-primary text-primary-content shadow-sm" 
+                : "text-base-content/60 hover:text-base-content hover:bg-base-300"
+            }`}
             onClick={() => setActiveTab("records")}
           >
-            <Stethoscope className="w-4 h-4 mr-1" /> Consultas
+            <Stethoscope className={`w-4 h-4 ${activeTab === "records" ? "" : "opacity-60"}`} /> 
+            <span className="hidden sm:inline">Consultas</span>
           </button>
           <button
-            className={`tab ${activeTab === "studies" ? "tab-active" : ""}`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+              activeTab === "studies" 
+                ? "bg-primary text-primary-content shadow-sm" 
+                : "text-base-content/60 hover:text-base-content hover:bg-base-300"
+            }`}
             onClick={() => setActiveTab("studies")}
           >
-            <TestTube className="w-4 h-4 mr-1" /> Estudios
+            <TestTube className={`w-4 h-4 ${activeTab === "studies" ? "" : "opacity-60"}`} /> 
+            <span className="hidden sm:inline">Estudios</span>
           </button>
           <button
-            className={`tab ${activeTab === "medications" ? "tab-active" : ""}`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+              activeTab === "medications" 
+                ? "bg-primary text-primary-content shadow-sm" 
+                : "text-base-content/60 hover:text-base-content hover:bg-base-300"
+            }`}
             onClick={() => setActiveTab("medications")}
           >
-            <Pill className="w-4 h-4 mr-1" /> Meds
+            <Pill className={`w-4 h-4 ${activeTab === "medications" ? "" : "opacity-60"}`} /> 
+            <span className="hidden sm:inline">Meds</span>
           </button>
         </div>
       </div>

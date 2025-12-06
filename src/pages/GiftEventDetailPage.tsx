@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useFamily } from "../contexts/FamilyContext";
+import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Input } from "../components/ui/Input";
@@ -35,6 +37,8 @@ type FilterType = "all" | "pending" | "bought" | "gifts";
 export function GiftEventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
+  const { currentFamily } = useFamily();
+  const { user } = useAuth();
   const [showAddRecipient, setShowAddRecipient] = useState(false);
   const [showEditEvent, setShowEditEvent] = useState(false);
   const [editingItem, setEditingItem] = useState<any | null>(null); // Item to edit or null
@@ -321,6 +325,8 @@ export function GiftEventDetailPage() {
                     key={recipient._id}
                     recipient={recipient}
                     items={items}
+                    familyId={currentFamily?._id}
+                    userId={user?._id}
                     onAddItem={() => setAddingToRecipient(recipient._id)}
                     onEditItem={(item) => setEditingItem(item)}
                     confirmDialog={confirmDialog}
@@ -397,12 +403,16 @@ export function GiftEventDetailPage() {
 function RecipientSection({
   recipient,
   items,
+  familyId,
+  userId,
   onAddItem,
   onEditItem,
   confirmDialog,
 }: {
   recipient: any;
   items: any[];
+  familyId?: Id<"families">;
+  userId?: Id<"users">;
   onAddItem: () => void;
   onEditItem: (item: any) => void;
   confirmDialog: (options: any) => Promise<boolean>;
@@ -517,7 +527,13 @@ function RecipientSection({
                     onClick={(e) => {
                       e.stopPropagation();
                       const newStatus = isBought ? "idea" : "bought";
-                      updateItem({ itemId: item._id, status: newStatus });
+                      updateItem({ 
+                        itemId: item._id, 
+                        status: newStatus,
+                        // Pass familyId and paidBy to create expense when marking as bought
+                        familyId: newStatus === "bought" ? familyId : undefined,
+                        paidBy: newStatus === "bought" ? userId : undefined,
+                      });
                     }}
                     className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
                       isBought 

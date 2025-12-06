@@ -144,36 +144,7 @@ export default defineSchema({
     .index("by_family", ["familyId"])
     .index("by_collection", ["familyId", "collectionName"]),
 
-  // ==================== SERVICES & VEHICLES ====================
-  services: defineTable({
-    familyId: v.id("families"),
-    type: v.union(
-      v.literal("electricity"),
-      v.literal("water"),
-      v.literal("internet"),
-      v.literal("rent"),
-      v.literal("gas"),
-      v.literal("other")
-    ),
-    name: v.string(),
-    billingCycle: v.union(
-      v.literal("monthly"),
-      v.literal("bimonthly"),
-      v.literal("annual"),
-      v.literal("other")
-    ),
-    dueDay: v.optional(v.string()),
-    notes: v.optional(v.string()),
-  }).index("by_family", ["familyId"]),
-
-  servicePayments: defineTable({
-    serviceId: v.id("services"),
-    periodLabel: v.string(),
-    amount: v.number(),
-    paidDate: v.number(),
-    paymentMethod: v.optional(v.string()),
-  }).index("by_service", ["serviceId"]),
-
+  // ==================== VEHICLES (AUTOS) ====================
   vehicles: defineTable({
     familyId: v.id("families"),
     name: v.string(),
@@ -181,6 +152,7 @@ export default defineSchema({
     brand: v.optional(v.string()),
     model: v.optional(v.string()),
     year: v.optional(v.number()),
+    color: v.optional(v.string()),
     notes: v.optional(v.string()),
   }).index("by_family", ["familyId"]),
 
@@ -190,17 +162,57 @@ export default defineSchema({
       v.literal("verification"),
       v.literal("service"),
       v.literal("insurance"),
+      v.literal("fuel"),
+      v.literal("repair"),
       v.literal("other")
     ),
     title: v.string(),
     date: v.number(),
-    amount: v.optional(v.number()),
+    nextDate: v.optional(v.number()), // Para recordatorios (próxima verificación, etc.)
+    odometer: v.optional(v.number()), // Kilometraje
+    amount: v.optional(v.number()), // Monto del gasto (también se registra en expenses)
     notes: v.optional(v.string()),
   }).index("by_vehicle", ["vehicleId"]),
 
-  // ==================== EXPENSES (GASTOS) ====================
+  // ==================== SUBSCRIPTIONS (SUSCRIPCIONES) ====================
+  subscriptions: defineTable({
+    familyId: v.id("families"),
+    name: v.string(), // "Netflix", "Luz CFE", "Spotify"
+    type: v.union(
+      v.literal("streaming"),   // Netflix, Spotify, Disney+
+      v.literal("utility"),     // Luz, Agua, Gas
+      v.literal("internet"),    // Internet, Teléfono
+      v.literal("insurance"),   // Seguros
+      v.literal("membership"),  // Gimnasio, Costco
+      v.literal("software"),    // Apps, servicios digitales
+      v.literal("other")
+    ),
+    amount: v.optional(v.number()),      // Monto estimado/fijo
+    billingCycle: v.union(
+      v.literal("monthly"),
+      v.literal("bimonthly"),
+      v.literal("quarterly"),
+      v.literal("annual"),
+      v.literal("variable")     // Para servicios como luz/agua
+    ),
+    dueDay: v.optional(v.number()),      // Día del mes
+    isActive: v.optional(v.boolean()),
+    notes: v.optional(v.string()),
+  }).index("by_family", ["familyId"]),
+
+  // ==================== EXPENSES (GASTOS UNIFICADO) ====================
   expenses: defineTable({
     familyId: v.id("families"),
+    
+    // Tipo principal del gasto
+    type: v.union(
+      v.literal("general"),      // Gasto puntual normal
+      v.literal("subscription"), // Pago de suscripción
+      v.literal("vehicle"),      // Gasto de auto
+      v.literal("gift")          // Gasto de regalo
+    ),
+    
+    // Categoría secundaria (para reportes y filtros)
     category: v.union(
       v.literal("food"),
       v.literal("transport"),
@@ -208,8 +220,22 @@ export default defineSchema({
       v.literal("utilities"),
       v.literal("health"),
       v.literal("shopping"),
+      v.literal("home"),
+      v.literal("education"),
+      v.literal("gifts"),
+      v.literal("vehicle"),
+      v.literal("subscription"),
       v.literal("other")
     ),
+    
+    // Relaciones opcionales (para conectar con otros módulos)
+    vehicleId: v.optional(v.id("vehicles")),
+    vehicleEventId: v.optional(v.id("vehicleEvents")),
+    subscriptionId: v.optional(v.id("subscriptions")),
+    giftItemId: v.optional(v.id("giftItems")),
+    giftEventId: v.optional(v.id("giftEvents")),
+    
+    // Datos del gasto
     description: v.string(),
     amount: v.number(),
     date: v.number(),
@@ -217,7 +243,11 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_family", ["familyId"])
-    .index("by_family_date", ["familyId", "date"]),
+    .index("by_family_date", ["familyId", "date"])
+    .index("by_family_type", ["familyId", "type"])
+    .index("by_vehicle", ["vehicleId"])
+    .index("by_subscription", ["subscriptionId"])
+    .index("by_gift_event", ["giftEventId"]),
 
   // ==================== RECIPES (RECETAS) ====================
   recipes: defineTable({

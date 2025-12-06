@@ -44,10 +44,10 @@ const menuItems = [
     color: "bg-blue-500/10 text-blue-600",
   },
   {
-    to: "/services",
+    to: "/vehicles",
     icon: Car,
-    label: "Servicios y Autos",
-    description: "Pagos y mantenimiento",
+    label: "Autos",
+    description: "Vehículos y mantenimiento",
     color: "bg-green-500/10 text-green-600",
   },
   {

@@ -29,8 +29,8 @@ export function DashboardPage() {
     currentFamily ? { familyId: currentFamily._id } : "skip"
   );
 
-  const servicesSummary = useQuery(
-    api.services.getServicesSummary,
+  const vehiclesSummary = useQuery(
+    api.vehicles.getVehiclesSummary,
     currentFamily ? { familyId: currentFamily._id } : "skip"
   );
 
@@ -63,7 +63,7 @@ export function DashboardPage() {
   const hasGifts = giftEvents && giftEvents.length > 0;
   const hasHealth = healthSummary && healthSummary.profileCount > 0;
   const hasLibrary = librarySummary && (librarySummary.owned > 0 || librarySummary.wishlist > 0);
-  const hasServices = servicesSummary && (servicesSummary.serviceCount > 0 || servicesSummary.vehicleCount > 0);
+  const hasVehicles = vehiclesSummary && vehiclesSummary.vehicleCount > 0;
   const hasCalendar = upcomingEvents && upcomingEvents.length > 0;
   const hasExpenses = expensesSummary && expensesSummary.countThisMonth > 0;
   const hasRecipes = recipesSummary && recipesSummary.total > 0;
@@ -76,7 +76,7 @@ export function DashboardPage() {
     recipesSummary === undefined ||
     placesSummary === undefined;
 
-  const hasAnyData = hasGifts || hasHealth || hasLibrary || hasServices || hasCalendar || hasExpenses || hasRecipes || hasPlaces;
+  const hasAnyData = hasGifts || hasHealth || hasLibrary || hasVehicles || hasCalendar || hasExpenses || hasRecipes || hasPlaces;
 
   return (
     <div className="pb-4">
@@ -287,31 +287,31 @@ export function DashboardPage() {
           </DashboardCard>
         )}
 
-        {/* Services Summary */}
-        {(hasServices || servicesSummary === undefined) && (
+        {/* Vehicles Summary */}
+        {(hasVehicles || vehiclesSummary === undefined) && (
           <DashboardCard
             icon={Car}
-            title="Servicios y autos"
-            to="/services"
+            title="Autos"
+            to="/vehicles"
             color="bg-green-500/10 text-green-600"
           >
-            {servicesSummary === undefined ? (
+            {vehiclesSummary === undefined ? (
               <div className="py-1"><SkeletonText lines={2} /></div>
             ) : (
               <div className="space-y-1">
                 <div className="flex gap-4 text-sm">
                   <div>
-                    <span className="font-semibold">{servicesSummary.serviceCount}</span>
-                    <span className="text-base-content/60 ml-1">servicios</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold">{servicesSummary.vehicleCount}</span>
+                    <span className="font-semibold">{vehiclesSummary.vehicleCount}</span>
                     <span className="text-base-content/60 ml-1">vehículos</span>
                   </div>
+                  <div>
+                    <span className="font-semibold">${vehiclesSummary.totalSpentThisMonth.toLocaleString()}</span>
+                    <span className="text-base-content/60 ml-1">este mes</span>
+                  </div>
                 </div>
-                {servicesSummary.upcomingVehicleEvents.length > 0 && (
+                {vehiclesSummary.upcomingEvents.length > 0 && (
                   <p className="text-xs text-warning">
-                    {servicesSummary.upcomingVehicleEvents.length} evento(s) próximo(s)
+                    {vehiclesSummary.upcomingEvents.length} evento(s) próximo(s)
                   </p>
                 )}
               </div>
@@ -339,7 +339,7 @@ export function DashboardPage() {
             hasRecipes={hasRecipes}
             hasHealth={hasHealth}
             hasLibrary={hasLibrary}
-            hasServices={hasServices}
+            hasVehicles={hasVehicles}
           />
         )}
       </div>
@@ -354,7 +354,7 @@ function QuickAddSection({
   hasRecipes,
   hasHealth,
   hasLibrary,
-  hasServices,
+  hasVehicles,
 }: {
   hasExpenses: boolean | undefined;
   hasGifts: boolean | undefined;
@@ -362,7 +362,7 @@ function QuickAddSection({
   hasRecipes: boolean | undefined;
   hasHealth: boolean | undefined;
   hasLibrary: boolean | undefined;
-  hasServices: boolean | undefined;
+  hasVehicles: boolean | undefined;
 }) {
   const emptyModules = [
     { show: !hasExpenses, to: "/expenses", icon: DollarSign, label: "Gastos", color: "text-emerald-600" },
@@ -371,7 +371,7 @@ function QuickAddSection({
     { show: !hasRecipes, to: "/recipes", icon: ChefHat, label: "Recetas", color: "text-amber-600" },
     { show: !hasHealth, to: "/health", icon: Heart, label: "Salud", color: "text-pink-600" },
     { show: !hasLibrary, to: "/library", icon: Book, label: "Librería", color: "text-blue-600" },
-    { show: !hasServices, to: "/services", icon: Car, label: "Servicios", color: "text-green-600" },
+    { show: !hasVehicles, to: "/vehicles", icon: Car, label: "Autos", color: "text-green-600" },
   ].filter((m) => m.show);
 
   if (emptyModules.length === 0) return null;
