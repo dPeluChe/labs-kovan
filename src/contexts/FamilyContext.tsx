@@ -24,6 +24,8 @@ interface FamilyContextType {
   currentFamily: Family | null;
   setCurrentFamily: (family: Family | null) => void;
   isLoading: boolean;
+  inviteError: string | null;
+  clearInviteError: () => void;
 }
 
 const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
@@ -37,6 +39,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     return localStorage.getItem(CURRENT_FAMILY_KEY);
   });
   const [processingInvite, setProcessingInvite] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
 
   const joinFamily = useMutation(api.families.joinFamilyById);
 
@@ -48,6 +51,8 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
   const families = useMemo(() => (familiesData ?? []) as Family[], [familiesData]);
   const isLoading = familiesData === undefined && user !== null;
 
+  const clearInviteError = useCallback(() => setInviteError(null), []);
+
   // Process pending invite after login
   useEffect(() => {
     const processPendingInvite = async () => {
@@ -57,6 +62,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       if (!pendingInvite) return;
 
       setProcessingInvite(true);
+      setInviteError(null);
       try {
         const result = await joinFamily({
           familyId: pendingInvite as Id<"families">,
@@ -70,6 +76,8 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
         }
       } catch (error) {
         console.error("Error joining family:", error);
+        const message = error instanceof Error ? error.message : "Error al unirse a la familia";
+        setInviteError(message);
       } finally {
         localStorage.removeItem(PENDING_INVITE_KEY);
         setProcessingInvite(false);
@@ -106,7 +114,9 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     currentFamily,
     setCurrentFamily,
     isLoading,
-  }), [families, currentFamily, setCurrentFamily, isLoading]);
+    inviteError,
+    clearInviteError,
+  }), [families, currentFamily, setCurrentFamily, isLoading, inviteError, clearInviteError]);
 
   return (
     <FamilyContext.Provider value={value}>

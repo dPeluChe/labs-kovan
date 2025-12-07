@@ -292,7 +292,7 @@ export const cancelInvite = mutation({
   },
 });
 
-// Join family by ID (for invite links)
+// Join family by ID (for invite links) - validates pending invite by email
 export const joinFamilyById = mutation({
   args: { 
     familyId: v.id("families"), 
@@ -302,6 +302,10 @@ export const joinFamilyById = mutation({
     // Check if family exists
     const family = await ctx.db.get(args.familyId);
     if (!family) throw new Error("Familia no encontrada");
+
+    // Get user to check email
+    const user = await ctx.db.get(args.userId);
+    if (!user) throw new Error("Usuario no encontrado");
 
     // Check if already a member
     const existingMember = await ctx.db
@@ -313,10 +317,27 @@ export const joinFamilyById = mutation({
 
     if (existingMember) {
       // Already a member, just return the family
-      return { familyId: args.familyId, alreadyMember: true };
+      return { familyId: args.familyId, alreadyMember: true, success: true };
     }
 
-    // Add as member
+    // Check if there's a pending invite for this email
+    const pendingInvite = await ctx.db
+      .query("familyInvites")
+      .withIndex("by_email", (q) => q.eq("email", user.email))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("familyId"), args.familyId),
+          q.eq(q.field("status"), "pending")
+        )
+      )
+      .first();
+
+    if (!pendingInvite) {
+      // No valid invite found - reject
+      throw new Error("No tienes una invitación válida para esta familia. Pide que te inviten usando tu email.");
+    }
+
+    // Valid invite found - add as member
     await ctx.db.insert("familyMembers", {
       familyId: args.familyId,
       userId: args.userId,
@@ -324,6 +345,9 @@ export const joinFamilyById = mutation({
       status: "active",
     });
 
-    return { familyId: args.familyId, alreadyMember: false };
+    // Mark invite as accepted
+    await ctx.db.patch(pendingInvite._id, { status: "accepted" });
+
+    return { familyId: args.familyId, alreadyMember: false, success: true };
   },
 });

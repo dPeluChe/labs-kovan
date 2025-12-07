@@ -173,6 +173,15 @@ export function GiftEventDetailPage() {
           </div>
         </div>
 
+        {/* Event Description/Notes - if any */}
+        {event.description && (
+          <div className="px-4 pb-2">
+            <div className="bg-base-200 border border-base-300 rounded-lg px-3 py-2">
+              <p className="text-sm text-base-content/70 whitespace-pre-wrap">{event.description}</p>
+            </div>
+          </div>
+        )}
+
         {/* Filter Tabs */}
         <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar">
           <button 
@@ -417,8 +426,32 @@ function RecipientSection({
   onEditItem: (item: any) => void;
   confirmDialog: (options: any) => Promise<boolean>;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(recipient.name);
+  const [editNotes, setEditNotes] = useState(recipient.notes || "");
   const deleteRecipient = useMutation(api.gifts.deleteGiftRecipient);
+  const updateRecipient = useMutation(api.gifts.updateGiftRecipient);
   const updateItem = useMutation(api.gifts.updateGiftItem);
+
+  const handleSave = async () => {
+    const updates: { name?: string; notes?: string } = {};
+    if (editName.trim() && editName.trim() !== recipient.name) {
+      updates.name = editName.trim();
+    }
+    if (editNotes !== (recipient.notes || "")) {
+      updates.notes = editNotes;
+    }
+    if (Object.keys(updates).length > 0) {
+      await updateRecipient({ recipientId: recipient._id, ...updates });
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditName(recipient.name);
+    setEditNotes(recipient.notes || "");
+    setIsEditing(false);
+  };
 
   // Stats for this recipient
   const total = items.length;
@@ -493,11 +526,41 @@ function RecipientSection({
             <button tabIndex={0} className="btn btn-ghost btn-xs btn-circle">
               <MoreVertical className="w-4 h-4" />
             </button>
-            <ul tabIndex={0} className="dropdown-content menu p-1 shadow-lg bg-base-100 rounded-lg w-36 z-50 border border-base-200 text-sm">
+            <ul tabIndex={0} className="dropdown-content menu p-1 shadow-lg bg-base-100 rounded-lg w-40 z-50 border border-base-200 text-sm">
+              <li><button onClick={() => setIsEditing(true)} className="py-1.5"><Edit2 className="w-3.5 h-3.5" /> Editar</button></li>
               <li><button onClick={handleDelete} className="text-error py-1.5"><Trash2 className="w-3.5 h-3.5" /> Eliminar</button></li>
             </ul>
           </div>
         </div>
+
+        {/* Notas del receptor - si existen */}
+        {recipient.notes && !isEditing && (
+          <p className="text-xs text-base-content/60 mt-1 italic px-1">📝 {recipient.notes}</p>
+        )}
+
+        {/* Modal de edición inline - mobile friendly */}
+        {isEditing && (
+          <div className="mt-2 p-3 bg-base-200 rounded-lg space-y-2">
+            <input
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="Nombre"
+              className="input input-sm input-bordered w-full"
+              autoFocus
+            />
+            <textarea
+              value={editNotes}
+              onChange={(e) => setEditNotes(e.target.value)}
+              placeholder="Notas (ej: alérgico a perfumes, talla M...)"
+              className="textarea textarea-bordered textarea-sm w-full h-16"
+            />
+            <div className="flex gap-2 justify-end">
+              <button onClick={handleCancelEdit} className="btn btn-ghost btn-xs">Cancelar</button>
+              <button onClick={handleSave} className="btn btn-primary btn-xs">Guardar</button>
+            </div>
+          </div>
+        )}
 
         {/* Regalos como chips/badges */}
         {items.length === 0 ? (
@@ -518,8 +581,8 @@ function RecipientSection({
                   onClick={() => onEditItem(item)}
                   className={`badge gap-1.5 cursor-pointer hover:shadow-sm transition-all ${
                     isBought 
-                      ? "badge-success badge-outline" 
-                      : "badge-ghost border border-base-300"
+                      ? "bg-success/20 text-success border border-success/30" 
+                      : "bg-base-200 text-base-content border border-base-300"
                   }`}
                 >
                   {/* Toggle comprado */}

@@ -6,12 +6,12 @@ import { PageLoader } from "../components/ui/LoadingSpinner";
 import { SkeletonText } from "../components/ui/Skeleton";
 import { 
   Gift, Heart, Book, Car, Calendar, 
-  DollarSign, ChefHat, MapPin, Star, Plus
+  DollarSign, ChefHat, MapPin, Star, Plus, AlertTriangle, X
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function DashboardPage() {
-  const { currentFamily } = useFamily();
+  const { currentFamily, inviteError, clearInviteError } = useFamily();
 
   // Existing queries
   const giftEvents = useQuery(
@@ -84,6 +84,22 @@ export function DashboardPage() {
         title={`¡Hola! ${currentFamily.emoji || "🏠"}`}
         subtitle={currentFamily.name}
       />
+
+      {/* Invite Error Banner */}
+      {inviteError && (
+        <div className="px-4 mb-4">
+          <div className="alert alert-error shadow-lg">
+            <AlertTriangle className="w-5 h-5" />
+            <div className="flex-1">
+              <p className="font-medium">Error al unirse a la familia</p>
+              <p className="text-sm opacity-80">{inviteError}</p>
+            </div>
+            <button onClick={clearInviteError} className="btn btn-ghost btn-sm btn-circle">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="px-4 space-y-4 stagger-children">
         {/* Calendar Events - always show */}
