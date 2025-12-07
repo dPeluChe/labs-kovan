@@ -1,17 +1,15 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useFamily } from "../contexts/FamilyContext";
-import { ArrowLeft } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 const EMOJIS = ["🏠", "🏡", "🏢", "❤️", "👨‍👩‍👧‍👦", "🐕", "🌟", "🌈"];
 
 export function FamilySetupPage() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { setCurrentFamily } = useFamily();
+  const { user, logout } = useAuth();
+  const { setCurrentFamily, clearInviteError } = useFamily();
   const createFamily = useMutation(api.families.createFamily);
 
   const [name, setName] = useState("");
@@ -51,13 +49,16 @@ export function FamilySetupPage() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-base-200">
       <div className="card bg-base-100 shadow-xl w-full max-w-sm">
         <div className="card-body">
-          {/* Cancel button */}
+          {/* Logout button - allows user to restart flow */}
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              clearInviteError();
+              logout();
+            }}
             className="btn btn-ghost btn-sm btn-circle absolute top-4 left-4"
-            title="Cancelar"
+            title="Cerrar sesión"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <LogOut className="w-4 h-4" />
           </button>
           <div className="text-center mb-4">
             <span className="text-5xl">{emoji}</span>
@@ -111,11 +112,14 @@ export function FamilySetupPage() {
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => navigate(-1)}
+                onClick={() => {
+                  clearInviteError();
+                  logout();
+                }}
                 className="btn btn-ghost flex-1"
                 disabled={isLoading}
               >
-                Cancelar
+                Cerrar sesión
               </button>
               <button
                 type="submit"
