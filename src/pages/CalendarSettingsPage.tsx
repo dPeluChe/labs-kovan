@@ -5,7 +5,7 @@ import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
-import { useConfirmModal } from "../components/ui/ConfirmModal";
+import { useConfirmModal } from "../hooks/useConfirmModal";
 import { ArrowLeft, Calendar, Trash2, Check } from "lucide-react";
 
 export function CalendarSettingsPage() {

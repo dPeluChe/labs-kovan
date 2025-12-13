@@ -58,12 +58,14 @@ export const createFamily = mutation({
   args: {
     name: v.string(),
     emoji: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
     const familyId = await ctx.db.insert("families", {
       name: args.name,
       emoji: args.emoji,
+      imageUrl: args.imageUrl,
     });
 
     // Add creator as owner
@@ -83,6 +85,7 @@ export const updateFamily = mutation({
     familyId: v.id("families"),
     name: v.optional(v.string()),
     emoji: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { familyId, ...updates } = args;

@@ -19,6 +19,7 @@ export default defineSchema({
   families: defineTable({
     name: v.string(),
     emoji: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
   }),
 
   familyMembers: defineTable({
@@ -97,6 +98,7 @@ export default defineSchema({
     relation: v.string(),
     birthDate: v.optional(v.number()),
     notes: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
   }).index("by_family", ["familyId"]),
 
   medicalRecords: defineTable({
@@ -113,6 +115,7 @@ export default defineSchema({
     clinicName: v.optional(v.string()),
     attachments: v.optional(v.array(v.string())),
     attachmentStorageIds: v.optional(v.array(v.id("_storage"))),
+    imageUrl: v.optional(v.string()),
   }).index("by_person", ["personId"]),
 
   medications: defineTable({
@@ -125,24 +128,40 @@ export default defineSchema({
   }).index("by_person", ["personId"]),
 
   // ==================== LIBRARY ====================
-  books: defineTable({
+  // ==================== COLLECTIONS (Old Library) ====================
+  collections: defineTable({
     familyId: v.id("families"),
-    type: v.union(v.literal("book"), v.literal("manga"), v.literal("comic")),
+    type: v.union(
+      v.literal("book"),
+      v.literal("manga"),
+      v.literal("comic"),
+      v.literal("board_game"),
+      v.literal("video_game"),
+      v.literal("collectible"),
+      v.literal("other")
+    ),
     title: v.string(),
-    author: v.optional(v.string()),
-    volumeNumber: v.optional(v.number()),
-    collectionName: v.optional(v.string()),
+    creator: v.optional(v.string()), // Author, Designer, Developer
+    series: v.optional(v.string()), // Collection name, Saga
+    volumeOrVersion: v.optional(v.string()), // Vol 1, 2nd Edition, etc.
     owned: v.boolean(),
     status: v.union(
-      v.literal("pending"),
-      v.literal("reading"),
-      v.literal("finished")
+      v.literal("wishlist"),
+      v.literal("owned_unread"), // Or unplayed
+      v.literal("in_progress"),
+      v.literal("finished"), // Read / Played
+      v.literal("abandoned")
     ),
     location: v.optional(v.string()),
+    rating: v.optional(v.number()),
     notes: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
+    addedBy: v.id("users"),
   })
     .index("by_family", ["familyId"])
-    .index("by_collection", ["familyId", "collectionName"]),
+    .index("by_family_type", ["familyId", "type"])
+    .index("by_series", ["familyId", "series"]),
 
   // ==================== VEHICLES (AUTOS) ====================
   vehicles: defineTable({
@@ -154,6 +173,7 @@ export default defineSchema({
     year: v.optional(v.number()),
     color: v.optional(v.string()),
     notes: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
   }).index("by_family", ["familyId"]),
 
   vehicleEvents: defineTable({
@@ -248,6 +268,30 @@ export default defineSchema({
     .index("by_vehicle", ["vehicleId"])
     .index("by_subscription", ["subscriptionId"])
     .index("by_gift_event", ["giftEventId"]),
+
+  // ==================== LOANS (PRÉSTAMOS) ====================
+  loans: defineTable({
+    familyId: v.id("families"),
+    type: v.union(v.literal("lent"), v.literal("borrowed")), // lent=Presté (Asset), borrowed=Me prestaron (Liability)
+    personName: v.string(), // Quién (Externo o texto libre)
+    amount: v.number(), // Monto original
+    balance: v.number(), // Saldo pendiente
+    currency: v.optional(v.string()),
+    date: v.number(), // Fecha del préstamo
+    dueDate: v.optional(v.number()), // Fecha límite
+    status: v.union(v.literal("active"), v.literal("settled"), v.literal("defaulted")),
+    notes: v.optional(v.string()),
+    relatedExpenseId: v.optional(v.id("expenses")),
+    createdBy: v.id("users"),
+  }).index("by_family", ["familyId"]),
+
+  loanPayments: defineTable({
+    loanId: v.id("loans"),
+    amount: v.number(),
+    date: v.number(),
+    notes: v.optional(v.string()),
+    registeredBy: v.id("users"),
+  }).index("by_loan", ["loanId"]),
 
   // ==================== RECIPES (RECETAS) ====================
   recipes: defineTable({

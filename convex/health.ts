@@ -27,6 +27,7 @@ export const createPersonProfile = mutation({
     relation: v.string(),
     birthDate: v.optional(v.number()),
     notes: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("personProfiles", args);
@@ -40,6 +41,7 @@ export const updatePersonProfile = mutation({
     relation: v.optional(v.string()),
     birthDate: v.optional(v.number()),
     notes: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { personId, ...updates } = args;
@@ -97,6 +99,7 @@ export const createMedicalRecord = mutation({
     date: v.number(),
     doctorName: v.optional(v.string()),
     clinicName: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("medicalRecords", args);
@@ -118,6 +121,7 @@ export const updateMedicalRecord = mutation({
     date: v.optional(v.number()),
     doctorName: v.optional(v.string()),
     clinicName: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { recordId, ...updates } = args;

@@ -6,9 +6,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { SkeletonPageContent } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
-import { useConfirmModal } from "../components/ui/ConfirmModal";
+import { useConfirmModal } from "../hooks/useConfirmModal";
 import { MapPin, Plus, Trash2, Check, ExternalLink, Star, ChevronRight, X, FileText, Instagram, Map } from "lucide-react";
-import type { Id } from "../../convex/_generated/dataModel";
+import type { Id, Doc } from "../../convex/_generated/dataModel";
 
 type PlaceCategory = "restaurant" | "cafe" | "travel" | "activity" | "other";
 
@@ -24,7 +24,7 @@ export function PlacesPage() {
   const { currentFamily } = useFamily();
   const { user } = useAuth();
   const [showNewPlace, setShowNewPlace] = useState(false);
-  const [selectedPlace, setSelectedPlace] = useState<any | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<Doc<"places"> | null>(null);
   const [filter, setFilter] = useState<"all" | "pending" | "visited">("all");
   const { confirm, ConfirmModal } = useConfirmModal();
 
@@ -52,14 +52,14 @@ export function PlacesPage() {
 
   if (!currentFamily || !user) return null;
 
-  const filteredPlaces = places?.filter((p) => {
+  const filteredPlaces = places?.filter((p: Doc<"places">) => {
     if (filter === "pending") return !p.visited;
     if (filter === "visited") return p.visited;
     return true;
   });
 
-  const pendingCount = places?.filter((p) => !p.visited).length || 0;
-  const visitedCount = places?.filter((p) => p.visited).length || 0;
+  const pendingCount = places?.filter((p: Doc<"places">) => !p.visited).length || 0;
+  const visitedCount = places?.filter((p: Doc<"places">) => p.visited).length || 0;
 
   return (
     <div className="pb-4">
@@ -126,15 +126,14 @@ export function PlacesPage() {
           />
         ) : (
           <div className="space-y-2 stagger-children">
-            {filteredPlaces?.map((place) => {
+            {filteredPlaces?.map((place: Doc<"places">) => {
               const config = CATEGORY_CONFIG[place.category as PlaceCategory];
               return (
                 <div
                   key={place._id}
                   onClick={() => setSelectedPlace(place)}
-                  className={`card bg-base-100 shadow-sm border cursor-pointer hover:shadow-md transition-shadow animate-fade-in ${
-                    place.visited ? "border-success/30" : "border-base-300"
-                  }`}
+                  className={`card bg-base-100 shadow-sm border cursor-pointer hover:shadow-md transition-shadow animate-fade-in ${place.visited ? "border-success/30" : "border-base-300"
+                    }`}
                 >
                   <div className="card-body p-3">
                     <div className="flex items-start gap-3">
@@ -144,15 +143,14 @@ export function PlacesPage() {
                           e.stopPropagation();
                           toggleVisited({ placeId: place._id });
                         }}
-                        className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                          place.visited
-                            ? "bg-success border-success text-white"
-                            : "border-base-300 hover:border-success"
-                        }`}
+                        className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${place.visited
+                          ? "bg-success border-success text-white"
+                          : "border-base-300 hover:border-success"
+                          }`}
                       >
                         {place.visited ? <Check className="w-4 h-4" /> : <span className="text-lg">{config.icon}</span>}
                       </button>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className={`font-semibold truncate ${place.visited ? "line-through text-base-content/50" : ""}`}>
@@ -175,9 +173,8 @@ export function PlacesPage() {
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-3 h-3 ${
-                                  i < place.rating! ? "text-amber-500 fill-amber-500" : "text-base-300"
-                                }`}
+                                className={`w-3 h-3 ${i < place.rating! ? "text-amber-500 fill-amber-500" : "text-base-300"
+                                  }`}
                               />
                             ))}
                           </div>
@@ -190,7 +187,7 @@ export function PlacesPage() {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="flex items-center gap-1">
                         {place.url && (
                           <a
@@ -393,7 +390,7 @@ function PlaceDetailModal({
   onClose,
   onDelete,
 }: {
-  place: any;
+  place: Doc<"places">;
   onClose: () => void;
   onDelete: () => void;
 }) {
@@ -482,11 +479,10 @@ function PlaceDetailModal({
                 className={`${isEditing ? "cursor-pointer" : "cursor-default"}`}
               >
                 <Star
-                  className={`w-6 h-6 ${
-                    star <= (isEditing ? editData.rating : (place.rating || 0))
-                      ? "text-amber-500 fill-amber-500"
-                      : "text-base-300"
-                  }`}
+                  className={`w-6 h-6 ${star <= (isEditing ? editData.rating : (place.rating || 0))
+                    ? "text-amber-500 fill-amber-500"
+                    : "text-base-300"
+                    }`}
                 />
               </button>
             ))}

@@ -5,7 +5,8 @@ import { api } from "../../convex/_generated/api";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
 import { DateInput } from "../components/ui/DateInput";
-import { useConfirmModal } from "../components/ui/ConfirmModal";
+import { useConfirmModal } from "../hooks/useConfirmModal";
+import type { ConfirmOptions } from "../hooks/useConfirmModal";
 import { Input } from "../components/ui/Input";
 import { ImageUpload } from "../components/ui/ImageUpload";
 import {
@@ -24,7 +25,7 @@ import {
   ChevronDown,
   ChevronUp
 } from "lucide-react";
-import type { Id } from "../../convex/_generated/dataModel";
+import type { Id, Doc } from "../../convex/_generated/dataModel";
 
 type Tab = "records" | "medications" | "studies";
 
@@ -35,8 +36,8 @@ export function HealthProfilePage() {
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [showAddMedication, setShowAddMedication] = useState(false);
   const [showAddStudy, setShowAddStudy] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
-  const [selectedStudy, setSelectedStudy] = useState<any | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<Doc<"medicalRecords"> | null>(null);
+  const [selectedStudy, setSelectedStudy] = useState<Doc<"medicalStudies"> | null>(null);
   const { confirm, ConfirmModal } = useConfirmModal();
 
   const profile = useQuery(
@@ -77,7 +78,7 @@ export function HealthProfilePage() {
       variant: "danger",
       icon: "trash",
     });
-    
+
     if (confirmed) {
       await deleteProfile({ personId: profileId as Id<"personProfiles"> });
       navigate("/health");
@@ -109,36 +110,33 @@ export function HealthProfilePage() {
       <div className="px-4 pt-4 bg-base-100 pb-2 sticky top-14 z-10">
         <div className="flex gap-1 bg-base-200 p-1 rounded-xl">
           <button
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-              activeTab === "records" 
-                ? "bg-primary text-primary-content shadow-sm" 
-                : "text-base-content/60 hover:text-base-content hover:bg-base-300"
-            }`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${activeTab === "records"
+              ? "bg-primary text-primary-content shadow-sm"
+              : "text-base-content/60 hover:text-base-content hover:bg-base-300"
+              }`}
             onClick={() => setActiveTab("records")}
           >
-            <Stethoscope className={`w-4 h-4 ${activeTab === "records" ? "" : "opacity-60"}`} /> 
+            <Stethoscope className={`w-4 h-4 ${activeTab === "records" ? "" : "opacity-60"}`} />
             <span className="hidden sm:inline">Consultas</span>
           </button>
           <button
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-              activeTab === "studies" 
-                ? "bg-primary text-primary-content shadow-sm" 
-                : "text-base-content/60 hover:text-base-content hover:bg-base-300"
-            }`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${activeTab === "studies"
+              ? "bg-primary text-primary-content shadow-sm"
+              : "text-base-content/60 hover:text-base-content hover:bg-base-300"
+              }`}
             onClick={() => setActiveTab("studies")}
           >
-            <TestTube className={`w-4 h-4 ${activeTab === "studies" ? "" : "opacity-60"}`} /> 
+            <TestTube className={`w-4 h-4 ${activeTab === "studies" ? "" : "opacity-60"}`} />
             <span className="hidden sm:inline">Estudios</span>
           </button>
           <button
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-              activeTab === "medications" 
-                ? "bg-primary text-primary-content shadow-sm" 
-                : "text-base-content/60 hover:text-base-content hover:bg-base-300"
-            }`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${activeTab === "medications"
+              ? "bg-primary text-primary-content shadow-sm"
+              : "text-base-content/60 hover:text-base-content hover:bg-base-300"
+              }`}
             onClick={() => setActiveTab("medications")}
           >
-            <Pill className={`w-4 h-4 ${activeTab === "medications" ? "" : "opacity-60"}`} /> 
+            <Pill className={`w-4 h-4 ${activeTab === "medications" ? "" : "opacity-60"}`} />
             <span className="hidden sm:inline">Meds</span>
           </button>
         </div>
@@ -152,7 +150,7 @@ export function HealthProfilePage() {
             onSelect={setSelectedRecord}
           />
         )}
-        
+
         {activeTab === "studies" && (
           <StudiesTab
             studies={studies}
@@ -207,7 +205,7 @@ export function HealthProfilePage() {
           <div className="modal-backdrop" onClick={() => setShowAddMedication(false)} />
         </div>
       )}
-      
+
       {/* Record Detail Modal */}
       {selectedRecord && (
         <RecordDetailModal
@@ -237,9 +235,9 @@ function RecordsTab({
   onAdd,
   onSelect,
 }: {
-  records: any[] | undefined;
+  records: Doc<"medicalRecords">[] | undefined;
   onAdd: () => void;
-  onSelect: (record: any) => void;
+  onSelect: (record: Doc<"medicalRecords">) => void;
 }) {
   if (records === undefined) return <PageLoader />;
 
@@ -303,9 +301,9 @@ function StudiesTab({
   onAdd,
   onSelect,
 }: {
-  studies: any[] | undefined;
+  studies: Doc<"medicalStudies">[] | undefined;
   onAdd: () => void;
-  onSelect: (study: any) => void;
+  onSelect: (study: Doc<"medicalStudies">) => void;
 }) {
   if (studies === undefined) return <PageLoader />;
 
@@ -354,7 +352,7 @@ function StudiesTab({
                   {/* Results Preview - show first 3 */}
                   {study.results.length > 0 && (
                     <div className="bg-base-200/50 rounded-lg p-2 space-y-1 mt-2">
-                      {study.results.slice(0, 3).map((result: any, idx: number) => (
+                      {study.results.slice(0, 3).map((result, idx) => (
                         <div key={idx} className="flex justify-between text-sm border-b border-base-200 last:border-0 pb-1 last:pb-0">
                           <span className="text-base-content/70">{result.parameter}</span>
                           <div className="flex items-center gap-2">
@@ -384,16 +382,16 @@ function MedicationsTab({
   medications,
   onAdd,
 }: {
-  medications: any[] | undefined;
+  medications: Doc<"medications">[] | undefined;
   onAdd: () => void;
 }) {
   const deleteMedication = useMutation(api.health.deleteMedication);
   const [showHistory, setShowHistory] = useState(false);
+  const [now] = useState(() => Date.now());
 
   if (medications === undefined) return <PageLoader />;
-
-  const active = medications.filter((m) => m.isActive);
-  const past = medications.filter((m) => !m.isActive);
+  const active = medications.filter((m) => !m.endDate || m.endDate > now);
+  const past = medications.filter((m) => m.endDate && m.endDate <= now);
 
   return (
     <>
@@ -424,7 +422,7 @@ function MedicationsTab({
         {/* History Toggle */}
         {past.length > 0 && (
           <div>
-            <button 
+            <button
               onClick={() => setShowHistory(!showHistory)}
               className="flex items-center gap-2 text-sm font-medium text-base-content/60 hover:text-base-content transition-colors w-full"
             >
@@ -432,7 +430,7 @@ function MedicationsTab({
               Historial ({past.length})
               {showHistory ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
             </button>
-            
+
             {showHistory && (
               <div className="mt-3 space-y-2 animate-slide-down">
                 {past.map((med) => (
@@ -452,7 +450,7 @@ function MedicationCard({
   onDelete,
   isPast
 }: {
-  medication: any;
+  medication: Doc<"medications">;
   onDelete: () => void;
   isPast?: boolean;
 }) {
@@ -579,7 +577,7 @@ function AddStudyModal({
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [laboratory, setLaboratory] = useState("");
   const [storageId, setStorageId] = useState<Id<"_storage"> | null>(null);
-  const [results, setResults] = useState<Array<{parameter: string, value: string, unit: string, status: string}>>([]);
+  const [results, setResults] = useState<Array<{ parameter: string, value: string, unit: string, status: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const createStudy = useMutation(api.health.createStudy);
@@ -687,13 +685,13 @@ function AddStudyModal({
       </div>
 
       <div className="divider text-xs">Archivo adjunto</div>
-      
+
       <ImageUpload
         label="Foto del resultado"
         value={storageId ?? undefined}
         onChange={(id) => setStorageId(id)}
       />
-      
+
       <div className="modal-action">
         <button type="button" className="btn" onClick={onClose}>Cancelar</button>
         <button type="submit" className="btn btn-primary" disabled={isLoading || !title.trim()}>
@@ -795,9 +793,9 @@ function RecordDetailModal({
   onClose,
   confirm,
 }: {
-  record: any;
+  record: Doc<"medicalRecords">;
   onClose: () => void;
-  confirm: (options: any) => Promise<boolean>;
+  confirm: (options: ConfirmOptions) => Promise<boolean>;
 }) {
   const deleteRecord = useMutation(api.health.deleteMedicalRecord);
 
@@ -882,9 +880,9 @@ function StudyDetailModal({
   onClose,
   confirm,
 }: {
-  study: any;
+  study: Doc<"medicalStudies">;
   onClose: () => void;
-  confirm: (options: any) => Promise<boolean>;
+  confirm: (options: ConfirmOptions) => Promise<boolean>;
 }) {
   const deleteStudy = useMutation(api.health.deleteStudy);
 
@@ -951,7 +949,7 @@ function StudyDetailModal({
                   </tr>
                 </thead>
                 <tbody>
-                  {study.results.map((result: any, idx: number) => (
+                  {study.results.map((result, idx: number) => (
                     <tr key={idx}>
                       <td>{result.parameter}</td>
                       <td className="text-right font-medium">{result.value}</td>

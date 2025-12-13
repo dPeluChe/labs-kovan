@@ -17,17 +17,18 @@ import { GiftEventDetailPage } from "./pages/GiftEventDetailPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { HealthPage } from "./pages/HealthPage";
 import { HealthProfilePage } from "./pages/HealthProfilePage";
-import { LibraryPage } from "./pages/LibraryPage";
+import { CollectionsPage } from "./pages/CollectionsPage";
 import { VehiclesPage } from "./pages/VehiclesPage";
 import { VehicleDetailPage } from "./pages/VehicleDetailPage";
 import { MorePage } from "./pages/MorePage";
 import { CalendarSettingsPage } from "./pages/CalendarSettingsPage";
 import { FamilyPage } from "./pages/FamilyPage";
-import { ExpensesPage } from "./pages/ExpensesPage";
+import { FinancesPage } from "./pages/FinancesPage";
 import { RecipesPage } from "./pages/RecipesPage";
 import { PlacesPage } from "./pages/PlacesPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ContactsPage } from "./pages/ContactsPage";
+import { ActivitiesPage } from "./pages/ActivitiesPage";
 
 function AppRoutes() {
   const { user, isLoading: authLoading } = useAuth();
@@ -59,14 +60,15 @@ function AppRoutes() {
         <Route path="/settings/calendar" element={<CalendarSettingsPage />} />
         <Route path="/health" element={<HealthPage />} />
         <Route path="/health/:profileId" element={<HealthProfilePage />} />
-        <Route path="/library" element={<LibraryPage />} />
+        <Route path="/collections" element={<CollectionsPage />} />
         <Route path="/vehicles" element={<VehiclesPage />} />
         <Route path="/vehicles/:vehicleId" element={<VehicleDetailPage />} />
         <Route path="/more" element={<MorePage />} />
         <Route path="/family" element={<FamilyPage />} />
-        <Route path="/expenses" element={<ExpensesPage />} />
+        <Route path="/finances" element={<FinancesPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/places" element={<PlacesPage />} />
+        <Route path="/activities" element={<ActivitiesPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/contacts" element={<ContactsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

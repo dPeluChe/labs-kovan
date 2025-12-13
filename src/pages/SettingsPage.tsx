@@ -45,7 +45,7 @@ export function SettingsPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { success } = useToast();
-  
+
   const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
@@ -61,9 +61,10 @@ export function SettingsPage() {
   const updateUser = useMutation(api.users.updateUser);
 
   useEffect(() => {
-    if (savedNavOrder) {
+    if (savedNavOrder && JSON.stringify(savedNavOrder) !== JSON.stringify(navOrder)) {
       setNavOrder(savedNavOrder);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedNavOrder]);
 
   if (!user) return <PageLoader />;
@@ -155,7 +156,7 @@ export function SettingsPage() {
                 <h3 className="font-semibold">{user.name}</h3>
                 <p className="text-sm text-base-content/60">{user.email}</p>
               </div>
-              <button 
+              <button
                 onClick={() => {
                   setEditName(user.name);
                   setShowEditProfile(true);
@@ -177,7 +178,7 @@ export function SettingsPage() {
               Restablecer
             </button>
           </div>
-          
+
           <p className="text-sm text-base-content/60 mb-3">
             Arrastra para reordenar. Los primeros 4 aparecen en la barra inferior.
           </p>
@@ -195,11 +196,10 @@ export function SettingsPage() {
                   onDragStart={() => handleDragStart(id)}
                   onDragOver={(e) => handleDragOver(e, id)}
                   onDragEnd={handleDragEnd}
-                  className={`flex items-center gap-3 p-3 rounded-xl border bg-base-100 cursor-move transition-all ${
-                    draggedItem === id
-                      ? "opacity-50 scale-95 border-primary"
-                      : "border-base-300 hover:border-primary/50"
-                  }`}
+                  className={`flex items-center gap-3 p-3 rounded-xl border bg-base-100 cursor-move transition-all ${draggedItem === id
+                    ? "opacity-50 scale-95 border-primary"
+                    : "border-base-300 hover:border-primary/50"
+                    }`}
                 >
                   <GripVertical className="w-4 h-4 text-base-content/40" />
                   <div className="bg-primary/10 p-2 rounded-lg">
@@ -250,11 +250,10 @@ export function SettingsPage() {
                     onDragStart={() => handleDragStart(id)}
                     onDragOver={(e) => handleDragOver(e, id)}
                     onDragEnd={handleDragEnd}
-                    className={`flex items-center gap-3 p-3 rounded-xl border bg-base-100 cursor-move transition-all ${
-                      draggedItem === id
-                        ? "opacity-50 scale-95 border-primary"
-                        : "border-base-300 hover:border-primary/50"
-                    }`}
+                    className={`flex items-center gap-3 p-3 rounded-xl border bg-base-100 cursor-move transition-all ${draggedItem === id
+                      ? "opacity-50 scale-95 border-primary"
+                      : "border-base-300 hover:border-primary/50"
+                      }`}
                   >
                     <GripVertical className="w-4 h-4 text-base-content/40" />
                     <div className="bg-base-200 p-2 rounded-lg">
@@ -348,6 +347,7 @@ export function SettingsPage() {
                 >
                   Cancelar
                 </button>
+
                 <button
                   type="submit"
                   className="btn btn-primary"
@@ -359,8 +359,9 @@ export function SettingsPage() {
             </form>
           </div>
           <div className="modal-backdrop" onClick={() => setShowEditProfile(false)} />
-        </div>
-      )}
-    </div>
+        </div >
+      )
+      }
+    </div >
   );
 }

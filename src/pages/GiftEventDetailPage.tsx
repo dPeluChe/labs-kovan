@@ -7,7 +7,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Input } from "../components/ui/Input";
-import { useConfirmModal } from "../components/ui/ConfirmModal";
+import { useConfirmModal } from "../hooks/useConfirmModal";
+import type { ConfirmOptions } from "../hooks/useConfirmModal";
 import {
   ArrowLeft,
   Plus,
@@ -21,7 +22,7 @@ import {
   Package,
   UserPlus
 } from "lucide-react";
-import type { Id } from "../../convex/_generated/dataModel";
+import type { Id, Doc } from "../../convex/_generated/dataModel";
 
 const STATUS_CONFIG = {
   idea: { label: "Idea", color: "badge-ghost", icon: "💡", bg: "bg-base-200" },
@@ -41,7 +42,7 @@ export function GiftEventDetailPage() {
   const { user } = useAuth();
   const [showAddRecipient, setShowAddRecipient] = useState(false);
   const [showEditEvent, setShowEditEvent] = useState(false);
-  const [editingItem, setEditingItem] = useState<any | null>(null); // Item to edit or null
+  const [editingItem, setEditingItem] = useState<Doc<"giftItems"> | null>(null); // Item to edit or null
   const [addingToRecipient, setAddingToRecipient] = useState<Id<"giftRecipients"> | null>(null);
   const [addingToPool, setAddingToPool] = useState(false); // For unassigned gifts
   const [filter, setFilter] = useState<FilterType>("all");
@@ -68,16 +69,16 @@ export function GiftEventDetailPage() {
   // Filter logic - for recipient view
   const filteredData = useMemo(() => {
     if (!recipientsWithItems || filter === "gifts") return [];
-    
-    return recipientsWithItems.map(({ recipient, items }) => {
-      const filteredItems = items.filter(item => {
+
+    return recipientsWithItems.map(({ recipient, items }: { recipient: Doc<"giftRecipients">, items: Doc<"giftItems">[] }) => {
+      const filteredItems = items.filter((item: Doc<"giftItems">) => {
         const isBought = ["bought", "wrapped", "delivered"].includes(item.status);
         if (filter === "pending") return !isBought;
         if (filter === "bought") return isBought;
         return true;
       });
       return { recipient, items: filteredItems, totalItems: items.length };
-    }).filter(group => {
+    }).filter((group: { items: Doc<"giftItems">[] }) => {
       // For "bought" filter, only show recipients that have bought items
       if (filter === "bought") return group.items.length > 0;
       // For "pending", only show recipients with pending items
@@ -90,14 +91,14 @@ export function GiftEventDetailPage() {
   // Flat list of all gifts for "gifts" view
   const allGifts = useMemo(() => {
     if (!recipientsWithItems) return [];
-    const gifts: Array<{ item: any; recipientName: string; recipientId: string }> = [];
-    recipientsWithItems.forEach(({ recipient, items }) => {
-      items.forEach(item => {
+    const gifts: Array<{ item: Doc<"giftItems">; recipientName: string; recipientId: string }> = [];
+    recipientsWithItems.forEach(({ recipient, items }: { recipient: Doc<"giftRecipients">, items: Doc<"giftItems">[] }) => {
+      items.forEach((item: Doc<"giftItems">) => {
         gifts.push({ item, recipientName: recipient.name, recipientId: recipient._id });
       });
     });
     // Add unassigned gifts
-    unassignedGifts?.forEach(item => {
+    unassignedGifts?.forEach((item: Doc<"giftItems">) => {
       gifts.push({ item, recipientName: "Sin asignar", recipientId: "" });
     });
     return gifts;
@@ -107,9 +108,9 @@ export function GiftEventDetailPage() {
     if (!recipientsWithItems) return { total: 0, bought: 0, pending: 0 };
     let total = 0;
     let bought = 0;
-    recipientsWithItems.forEach(({ items }) => {
+    recipientsWithItems.forEach(({ items }: { items: Doc<"giftItems">[] }) => {
       total += items.length;
-      bought += items.filter(i => ["bought", "wrapped", "delivered"].includes(i.status)).length;
+      bought += items.filter((i: Doc<"giftItems">) => ["bought", "wrapped", "delivered"].includes(i.status)).length;
     });
     return { total, bought, pending: total - bought };
   }, [recipientsWithItems]);
@@ -130,7 +131,7 @@ export function GiftEventDetailPage() {
       variant: "danger",
       icon: "trash",
     });
-    
+
     if (confirmed) {
       await deleteEvent({ eventId: eventId as Id<"giftEvents"> });
       navigate("/gifts");
@@ -184,25 +185,25 @@ export function GiftEventDetailPage() {
 
         {/* Filter Tabs */}
         <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar">
-          <button 
+          <button
             onClick={() => setFilter("all")}
             className={`btn btn-xs rounded-full ${filter === "all" ? "btn-neutral" : "btn-ghost"}`}
           >
             Personas
           </button>
-          <button 
+          <button
             onClick={() => setFilter("gifts")}
             className={`btn btn-xs rounded-full ${filter === "gifts" ? "btn-primary" : "btn-ghost"}`}
           >
             Regalos ({stats.total})
           </button>
-          <button 
+          <button
             onClick={() => setFilter("pending")}
             className={`btn btn-xs rounded-full ${filter === "pending" ? "btn-warning" : "btn-ghost"}`}
           >
             Pendientes ({stats.pending})
           </button>
-          <button 
+          <button
             onClick={() => setFilter("bought")}
             className={`btn btn-xs rounded-full ${filter === "bought" ? "btn-success text-white" : "btn-ghost"}`}
           >
@@ -230,7 +231,7 @@ export function GiftEventDetailPage() {
                     <span className="text-sm font-medium text-warning">Sin asignar ({unassignedGifts.length})</span>
                   </div>
                   <div className="space-y-1.5">
-                    {unassignedGifts.map((item) => {
+                    {unassignedGifts.map((item: Doc<"giftItems">) => {
                       const statusConfig = STATUS_CONFIG[item.status as GiftStatus];
                       return (
                         <div
@@ -308,11 +309,11 @@ export function GiftEventDetailPage() {
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-1.5 mt-2">
-                    {unassignedGifts.map((item) => (
+                    {unassignedGifts.map((item: Doc<"giftItems">) => (
                       <UnassignedGiftItem
                         key={item._id}
                         item={item}
-                        recipients={recipientsWithItems?.map(r => r.recipient) || []}
+                        recipients={recipientsWithItems?.map((r: { recipient: Doc<"giftRecipients"> }) => r.recipient) || []}
                         onEdit={() => setEditingItem(item)}
                         confirmDialog={confirmDialog}
                       />
@@ -329,7 +330,7 @@ export function GiftEventDetailPage() {
               </div>
             ) : (
               <div className="space-y-3 stagger-children">
-                {filteredData.map(({ recipient, items }) => (
+                {filteredData.map(({ recipient, items }: { recipient: Doc<"giftRecipients">, items: Doc<"giftItems">[] }) => (
                   <RecipientSection
                     key={recipient._id}
                     recipient={recipient}
@@ -380,7 +381,7 @@ export function GiftEventDetailPage() {
             <GiftItemForm
               eventId={eventId as Id<"giftEvents">}
               recipientId={addingToPool ? undefined : (addingToRecipient || editingItem?.giftRecipientId)}
-              initialData={editingItem}
+              initialData={editingItem || undefined}
               onClose={() => { setAddingToRecipient(null); setEditingItem(null); setAddingToPool(false); }}
               confirmDialog={confirmDialog}
             />
@@ -402,7 +403,7 @@ export function GiftEventDetailPage() {
           <div className="modal-backdrop" onClick={() => setShowEditEvent(false)} />
         </div>
       )}
-      
+
       {/* Confirm Modal */}
       <ConfirmModal />
     </div>
@@ -418,13 +419,13 @@ function RecipientSection({
   onEditItem,
   confirmDialog,
 }: {
-  recipient: any;
-  items: any[];
+  recipient: Doc<"giftRecipients">;
+  items: Doc<"giftItems">[];
   familyId?: Id<"families">;
   userId?: Id<"users">;
   onAddItem: () => void;
-  onEditItem: (item: any) => void;
-  confirmDialog: (options: any) => Promise<boolean>;
+  onEditItem: (item: Doc<"giftItems">) => void;
+  confirmDialog: (options: ConfirmOptions) => Promise<boolean>;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(recipient.name);
@@ -457,14 +458,14 @@ function RecipientSection({
   const total = items.length;
   const boughtCount = items.filter(i => ["bought", "wrapped", "delivered"].includes(i.status)).length;
   const hasIdeas = items.some(i => i.status === "idea" || i.status === "to_buy");
-  
+
   // Semáforo: verde = todo comprado, amarillo = tiene ideas/pendientes, gris = vacío
-  const statusColor = total === 0 
-    ? "bg-base-300" 
-    : boughtCount === total 
-      ? "bg-success" 
-      : hasIdeas 
-        ? "bg-warning" 
+  const statusColor = total === 0
+    ? "bg-base-300"
+    : boughtCount === total
+      ? "bg-success"
+      : hasIdeas
+        ? "bg-warning"
         : "bg-base-300";
 
   const handleDelete = async () => {
@@ -476,7 +477,7 @@ function RecipientSection({
       variant: "danger",
       icon: "trash",
     });
-    
+
     if (confirmed) {
       await deleteRecipient({ recipientId: recipient._id });
     }
@@ -495,25 +496,24 @@ function RecipientSection({
             {/* Indicador semáforo */}
             <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-base-100 ${statusColor}`} />
           </div>
-          
+
           {/* Nombre + contador */}
           <div className="flex-1 min-w-0 flex items-center gap-2">
             <h3 className="font-semibold truncate">{recipient.name}</h3>
             {total > 0 && (
-              <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                boughtCount === total 
-                  ? "bg-success/20 text-success" 
-                  : hasIdeas 
-                    ? "bg-warning/20 text-warning" 
-                    : "bg-base-200 text-base-content/50"
-              }`}>
+              <span className={`text-xs px-1.5 py-0.5 rounded-full ${boughtCount === total
+                ? "bg-success/20 text-success"
+                : hasIdeas
+                  ? "bg-warning/20 text-warning"
+                  : "bg-base-200 text-base-content/50"
+                }`}>
                 {boughtCount}/{total}
               </span>
             )}
           </div>
 
           {/* Botón agregar inline */}
-          <button 
+          <button
             onClick={onAddItem}
             className="btn btn-ghost btn-xs btn-circle"
             title="Agregar regalo"
@@ -564,8 +564,8 @@ function RecipientSection({
 
         {/* Regalos como chips/badges */}
         {items.length === 0 ? (
-          <button 
-            onClick={onAddItem} 
+          <button
+            onClick={onAddItem}
             className="btn btn-ghost btn-xs text-base-content/40 gap-1 mt-1"
           >
             <Gift className="w-3 h-3" /> Agregar primer regalo
@@ -574,51 +574,49 @@ function RecipientSection({
           <div className="flex flex-wrap gap-1.5 mt-2">
             {items.map((item) => {
               const isBought = ["bought", "wrapped", "delivered"].includes(item.status);
-              
+
               return (
                 <div
                   key={item._id}
                   onClick={() => onEditItem(item)}
-                  className={`badge gap-1.5 cursor-pointer hover:shadow-sm transition-all ${
-                    isBought 
-                      ? "bg-success/20 text-success border border-success/30" 
-                      : "bg-base-200 text-base-content border border-base-300"
-                  }`}
+                  className={`badge gap-1.5 cursor-pointer hover:shadow-sm transition-all ${isBought
+                    ? "bg-success/20 text-success border border-success/30"
+                    : "bg-base-200 text-base-content border border-base-300"
+                    }`}
                 >
                   {/* Toggle comprado */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       const newStatus = isBought ? "idea" : "bought";
-                      updateItem({ 
-                        itemId: item._id, 
+                      updateItem({
+                        itemId: item._id,
                         status: newStatus,
                         // Pass familyId and paidBy to create expense when marking as bought
                         familyId: newStatus === "bought" ? familyId : undefined,
                         paidBy: newStatus === "bought" ? userId : undefined,
                       });
                     }}
-                    className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                      isBought 
-                        ? "bg-success border-success text-white" 
-                        : "border-base-300 hover:border-success"
-                    }`}
+                    className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${isBought
+                      ? "bg-success border-success text-white"
+                      : "border-base-300 hover:border-success"
+                      }`}
                   >
                     {isBought && <CheckCircle2 className="w-2.5 h-2.5" />}
                   </button>
-                  
+
                   <span className={`text-xs ${isBought ? "line-through opacity-60" : ""}`}>
                     {item.title}
                   </span>
-                  
+
                   {item.priceEstimate && (
                     <span className="text-[10px] opacity-50">${item.priceEstimate}</span>
                   )}
-                  
+
                   {item.url && (
-                    <a 
-                      href={item.url} 
-                      target="_blank" 
+                    <a
+                      href={item.url}
+                      target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
                       className="opacity-40 hover:opacity-100"
@@ -645,14 +643,14 @@ function GiftItemForm({
 }: {
   eventId: Id<"giftEvents">;
   recipientId?: Id<"giftRecipients">;
-  initialData?: any;
+  initialData?: Doc<"giftItems">;
   onClose: () => void;
-  confirmDialog: (options: any) => Promise<boolean>;
+  confirmDialog: (options: ConfirmOptions) => Promise<boolean>;
 }) {
   const createItem = useMutation(api.gifts.createGiftItem);
   const updateItem = useMutation(api.gifts.updateGiftItem);
   const deleteItem = useMutation(api.gifts.deleteGiftItem);
-  
+
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
     url: initialData?.url || "",
@@ -684,7 +682,7 @@ function GiftItemForm({
           title: formData.title.trim(),
           url: formData.url.trim() || undefined,
           priceEstimate: formData.priceEstimate ? parseFloat(formData.priceEstimate) : undefined,
-          status: formData.status as any,
+          status: formData.status,
           notes: formData.notes.trim() || undefined,
         });
       }
@@ -703,8 +701,8 @@ function GiftItemForm({
       variant: "danger",
       icon: "trash",
     });
-    
-    if (confirmed) {
+
+    if (confirmed && initialData) {
       await deleteItem({ itemId: initialData._id });
       onClose();
     }
@@ -719,7 +717,7 @@ function GiftItemForm({
         placeholder="Ej: Lego Star Wars"
         autoFocus
       />
-      
+
       <Input
         label="URL Link"
         value={formData.url}
@@ -737,13 +735,13 @@ function GiftItemForm({
           type="number"
           step="0.01"
         />
-        
+
         <div className="form-control w-full">
           <label className="label"><span className="label-text font-medium">Estado</span></label>
           <select
             className="select select-bordered w-full"
             value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value as GiftStatus })}
           >
             {Object.entries(STATUS_CONFIG).map(([key, config]) => (
               <option key={key} value={key}>{config.icon} {config.label}</option>
@@ -833,10 +831,10 @@ function UnassignedGiftItem({
   onEdit,
   confirmDialog,
 }: {
-  item: any;
-  recipients: any[];
+  item: Doc<"giftItems">;
+  recipients: Doc<"giftRecipients">[];
   onEdit: () => void;
-  confirmDialog: (options: any) => Promise<boolean>;
+  confirmDialog: (options: ConfirmOptions) => Promise<boolean>;
 }) {
   const assignItem = useMutation(api.gifts.assignGiftItem);
   const deleteItem = useMutation(api.gifts.deleteGiftItem);
@@ -865,7 +863,7 @@ function UnassignedGiftItem({
           <p className="text-xs text-base-content/60">${item.priceEstimate}</p>
         )}
       </div>
-      
+
       {/* Assign Dropdown */}
       <div className="dropdown dropdown-end">
         <button tabIndex={0} className="btn btn-ghost btn-xs gap-1">
@@ -881,7 +879,7 @@ function UnassignedGiftItem({
           ))}
         </ul>
       </div>
-      
+
       <button onClick={onEdit} className="btn btn-ghost btn-xs btn-circle">
         <Edit2 className="w-3 h-3" />
       </button>

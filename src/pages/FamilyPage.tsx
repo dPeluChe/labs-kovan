@@ -6,7 +6,7 @@ import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
-import { useConfirmModal } from "../components/ui/ConfirmModal";
+import { useConfirmModal } from "../hooks/useConfirmModal";
 import {
   ArrowLeft,
   Users,

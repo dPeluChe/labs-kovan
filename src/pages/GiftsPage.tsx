@@ -8,16 +8,16 @@ import { PageLoader } from "../components/ui/LoadingSpinner";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Gift, Plus, ChevronRight, CheckCircle2, Edit2, Trash2, MoreVertical } from "lucide-react";
-import { useConfirmModal } from "../components/ui/ConfirmModal";
+import { useConfirmModal } from "../hooks/useConfirmModal";
 import { DateInput } from "../components/ui/DateInput";
 import { Link } from "react-router-dom";
-import type { Id } from "../../convex/_generated/dataModel";
+import type { Id, Doc } from "../../convex/_generated/dataModel";
 
 export function GiftsPage() {
   const { currentFamily } = useFamily();
   const { user } = useAuth();
   const [showNewEventModal, setShowNewEventModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<any | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Doc<"giftEvents"> | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
   const { confirm, ConfirmModal } = useConfirmModal();
 
@@ -31,8 +31,8 @@ export function GiftsPage() {
 
   if (!currentFamily) return <PageLoader />;
 
-  const activeEvents = events?.filter(e => !e.isCompleted) || [];
-  const completedEvents = events?.filter(e => e.isCompleted) || [];
+  const activeEvents = events?.filter((e: Doc<"giftEvents">) => !e.isCompleted) || [];
+  const completedEvents = events?.filter((e: Doc<"giftEvents">) => e.isCompleted) || [];
   const displayedEvents = showCompleted ? completedEvents : activeEvents;
 
   return (
@@ -99,7 +99,7 @@ export function GiftsPage() {
               />
             ) : (
               <div className="space-y-3 stagger-children">
-                {displayedEvents.map((event) => (
+                {displayedEvents.map((event: Doc<"giftEvents">) => (
                   <GiftEventCard
                     key={event._id}
                     event={event}
@@ -169,7 +169,7 @@ function GiftEventCard({
   onDelete,
   onToggleComplete,
 }: {
-  event: { _id: Id<"giftEvents">; name: string; date?: number; description?: string; isCompleted?: boolean };
+  event: Doc<"giftEvents">;
   onEdit: () => void;
   onDelete: () => void;
   onToggleComplete: () => void;
@@ -221,7 +221,7 @@ function GiftEventCard({
             </div>
             <ChevronRight className="w-5 h-5 text-base-content/40" />
           </Link>
-          
+
           {/* Actions Dropdown */}
           <div className="dropdown dropdown-end">
             <button tabIndex={0} className="btn btn-ghost btn-sm btn-circle" onClick={(e) => e.stopPropagation()}>
@@ -347,7 +347,7 @@ function EditEventForm({
   event,
   onClose,
 }: {
-  event: { _id: Id<"giftEvents">; name: string; date?: number; description?: string };
+  event: Doc<"giftEvents">;
   onClose: () => void;
 }) {
   const [name, setName] = useState(event.name);

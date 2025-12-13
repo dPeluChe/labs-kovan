@@ -29,6 +29,7 @@ export const createVehicle = mutation({
     year: v.optional(v.number()),
     color: v.optional(v.string()),
     notes: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("vehicles", args);
@@ -45,6 +46,7 @@ export const updateVehicle = mutation({
     year: v.optional(v.number()),
     color: v.optional(v.string()),
     notes: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { vehicleId, ...updates } = args;

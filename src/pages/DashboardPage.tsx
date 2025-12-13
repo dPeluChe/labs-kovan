@@ -4,8 +4,8 @@ import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { SkeletonText } from "../components/ui/Skeleton";
-import { 
-  Gift, Heart, Book, Car, Calendar, 
+import {
+  Gift, Heart, Book, Car, Calendar,
   DollarSign, ChefHat, MapPin, Star, Plus, AlertTriangle, X
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -25,7 +25,7 @@ export function DashboardPage() {
   );
 
   const librarySummary = useQuery(
-    api.library.getLibrarySummary,
+    api.collections.getCollectionSummary,
     currentFamily ? { familyId: currentFamily._id } : "skip"
   );
 
@@ -69,8 +69,8 @@ export function DashboardPage() {
   const hasRecipes = recipesSummary && recipesSummary.total > 0;
   const hasPlaces = placesSummary && placesSummary.total > 0;
 
-  const isLoading = 
-    giftEvents === undefined || 
+  const isLoading =
+    giftEvents === undefined ||
     healthSummary === undefined ||
     expensesSummary === undefined ||
     recipesSummary === undefined ||

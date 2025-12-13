@@ -6,7 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { SkeletonGrid } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
-import { useConfirmModal } from "../components/ui/ConfirmModal";
+import { useConfirmModal } from "../hooks/useConfirmModal";
 import { ChefHat, Plus, Trash2, Heart, ExternalLink, Star } from "lucide-react";
 import type { Id } from "../../convex/_generated/dataModel";
 

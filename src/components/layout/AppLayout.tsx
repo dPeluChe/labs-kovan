@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { Header } from "./Header";
 import { BottomNav } from "./BottomNav";
+import { AgentChat } from "../agent/AgentChat";
 
 export function AppLayout() {
   return (
@@ -10,6 +11,7 @@ export function AppLayout() {
         <Outlet />
       </main>
       <BottomNav />
+      <AgentChat />
     </div>
   );
 }

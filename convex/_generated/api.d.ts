@@ -8,7 +8,10 @@
  * @module
  */
 
+import type * as agent from "../agent.js";
 import type * as calendar from "../calendar.js";
+import type * as cloudinary from "../cloudinary.js";
+import type * as collections from "../collections.js";
 import type * as contacts from "../contacts.js";
 import type * as expenses from "../expenses.js";
 import type * as families from "../families.js";
@@ -16,7 +19,7 @@ import type * as files from "../files.js";
 import type * as gifts from "../gifts.js";
 import type * as health from "../health.js";
 import type * as lib_utils from "../lib/utils.js";
-import type * as library from "../library.js";
+import type * as loans from "../loans.js";
 import type * as places from "../places.js";
 import type * as recipes from "../recipes.js";
 import type * as users from "../users.js";
@@ -29,7 +32,10 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  agent: typeof agent;
   calendar: typeof calendar;
+  cloudinary: typeof cloudinary;
+  collections: typeof collections;
   contacts: typeof contacts;
   expenses: typeof expenses;
   families: typeof families;
@@ -37,7 +43,7 @@ declare const fullApi: ApiFromModules<{
   gifts: typeof gifts;
   health: typeof health;
   "lib/utils": typeof lib_utils;
-  library: typeof library;
+  loans: typeof loans;
   places: typeof places;
   recipes: typeof recipes;
   users: typeof users;
