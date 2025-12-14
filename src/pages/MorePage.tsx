@@ -13,9 +13,17 @@ import {
   MapPin,
   Contact,
   Dices,
+  Bot,
 } from "lucide-react";
 
 const menuItems = [
+  {
+    to: "/agent",
+    icon: Bot,
+    label: "Kovan",
+    description: "Asistente inteligente con IA",
+    color: "bg-purple-500/10 text-purple-600",
+  },
   {
     to: "/finances",
     icon: DollarSign,

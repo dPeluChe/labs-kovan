@@ -32,6 +32,16 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_family_user", ["familyId", "userId"]),
 
+  // ==================== AGENT CONVERSATIONS ====================
+  agentConversations: defineTable({
+    userId: v.id("users"),
+    role: v.union(v.literal("user"), v.literal("assistant")),
+    content: v.string(),
+    timestamp: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_timestamp", ["userId", "timestamp"]),
+
   // ==================== GIFT LISTS ====================
   giftEvents: defineTable({
     familyId: v.id("families"),
@@ -223,7 +233,7 @@ export default defineSchema({
   // ==================== EXPENSES (GASTOS UNIFICADO) ====================
   expenses: defineTable({
     familyId: v.id("families"),
-    
+
     // Tipo principal del gasto
     type: v.union(
       v.literal("general"),      // Gasto puntual normal
@@ -231,7 +241,7 @@ export default defineSchema({
       v.literal("vehicle"),      // Gasto de auto
       v.literal("gift")          // Gasto de regalo
     ),
-    
+
     // Categoría secundaria (para reportes y filtros)
     category: v.union(
       v.literal("food"),
@@ -247,14 +257,14 @@ export default defineSchema({
       v.literal("subscription"),
       v.literal("other")
     ),
-    
+
     // Relaciones opcionales (para conectar con otros módulos)
     vehicleId: v.optional(v.id("vehicles")),
     vehicleEventId: v.optional(v.id("vehicleEvents")),
     subscriptionId: v.optional(v.id("subscriptions")),
     giftItemId: v.optional(v.id("giftItems")),
     giftEventId: v.optional(v.id("giftEvents")),
-    
+
     // Datos del gasto
     description: v.string(),
     amount: v.number(),

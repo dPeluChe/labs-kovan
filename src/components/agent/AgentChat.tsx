@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { useAction } from "convex/react";
+import { Bot, Send, X, Trash2, Sparkles } from "lucide-react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../contexts/AuthContext";
-import { Bot, Send, X, Sparkles } from "lucide-react";
 
 interface Message {
     role: "user" | "assistant";
@@ -10,14 +10,33 @@ interface Message {
 }
 
 export function AgentChat() {
+    const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    const { user } = useAuth(); // Get authenticated user for userId
     const sendMessage = useAction(api.agent.sendMessage);
+    const saveMessageMutation = useMutation(api.agentConversations.saveMessage);
+    const clearConversationMutation = useMutation(api.agentConversations.clearConversation);
+    const conversationHistory = useQuery(
+        api.agentConversations.getConversationHistory,
+        user ? { userId: user._id } : "skip"
+    );
+
+    // Load conversation history on mount
+    useEffect(() => {
+        if (conversationHistory) {
+            const loadedMessages = conversationHistory
+                .reverse()
+                .map((msg: { role: "user" | "assistant"; content: string }) => ({
+                    role: msg.role,
+                    content: msg.content
+                }));
+            setMessages(loadedMessages);
+        }
+    }, [conversationHistory]);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -25,17 +44,29 @@ export function AgentChat() {
         }
     }, [messages, isOpen]);
 
+    const handleClearConversation = async () => {
+        if (!user || !confirm('¿Borrar todo el historial del chat?')) return;
+
+        try {
+            await clearConversationMutation({ userId: user._id });
+            setMessages([]);
+        } catch (error) {
+            console.error("Error clearing conversation:", error);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
 
         const userMsg = input.trim();
         setInput("");
-        setMessages(prev => [...prev, { role: "user", content: userMsg }]);
+        const newUserMessage = { role: "user" as const, content: userMsg };
+        setMessages(prev => [...prev, newUserMessage]);
         setIsLoading(true);
 
         try {
-            // Convert to Vercel AI SDK format if needed, simplistic maps for now
+            // Convert to Vercel AI SDK format if needed
             const history = messages.map(m => ({ role: m.role, content: m.content }));
             history.push({ role: "user", content: userMsg });
 
@@ -45,15 +76,32 @@ export function AgentChat() {
                 return;
             }
 
+            // Save user message
+            await saveMessageMutation({ userId: user._id, role: "user", content: userMsg });
+
             const response = await sendMessage({
                 messages: history,
                 userId: user._id
             });
 
-            setMessages(prev => [...prev, { role: "assistant", content: String(response) }]);
+            const assistantMsg = String(response);
+            setMessages(prev => [...prev, { role: "assistant", content: assistantMsg }]);
+
+            // Save assistant message
+            await saveMessageMutation({ userId: user._id, role: "assistant", content: assistantMsg });
         } catch (error) {
-            console.error(error);
-            setMessages(prev => [...prev, { role: "assistant", content: "Lo siento, hubo un error al procesar tu solicitud." }]);
+            console.error("Agent error:", error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const errorMsg = `❌ Error: ${errorMessage}\n\nPor favor intenta de nuevo o reformula tu pregunta.`;
+            setMessages(prev => [...prev, {
+                role: "assistant",
+                content: errorMsg
+            }]);
+
+            // Save error message 
+            if (user) {
+                await saveMessageMutation({ userId: user._id, role: "assistant", content: errorMsg });
+            }
         } finally {
             setIsLoading(false);
         }
@@ -85,9 +133,18 @@ export function AgentChat() {
                                 </span>
                             </div>
                         </div>
-                        <button onClick={() => setIsOpen(false)} className="btn btn-ghost btn-sm btn-circle text-primary-content">
-                            <X className="w-6 h-6" />
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleClearConversation}
+                                className="btn btn-ghost btn-sm btn-circle text-primary-content"
+                                title="Borrar conversación"
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </button>
+                            <button onClick={() => setIsOpen(false)} className="btn btn-ghost btn-sm btn-circle text-primary-content">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Messages */}

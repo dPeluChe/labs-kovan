@@ -9,6 +9,7 @@
  */
 
 import type * as agent from "../agent.js";
+import type * as agentConversations from "../agentConversations.js";
 import type * as calendar from "../calendar.js";
 import type * as cloudinary from "../cloudinary.js";
 import type * as collections from "../collections.js";
@@ -18,6 +19,7 @@ import type * as families from "../families.js";
 import type * as files from "../files.js";
 import type * as gifts from "../gifts.js";
 import type * as health from "../health.js";
+import type * as lib_agent_fuzzyMatch from "../lib/agent/fuzzyMatch.js";
 import type * as lib_agent_index from "../lib/agent/index.js";
 import type * as lib_utils from "../lib/utils.js";
 import type * as loans from "../loans.js";
@@ -34,6 +36,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   agent: typeof agent;
+  agentConversations: typeof agentConversations;
   calendar: typeof calendar;
   cloudinary: typeof cloudinary;
   collections: typeof collections;
@@ -43,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   gifts: typeof gifts;
   health: typeof health;
+  "lib/agent/fuzzyMatch": typeof lib_agent_fuzzyMatch;
   "lib/agent/index": typeof lib_agent_index;
   "lib/utils": typeof lib_utils;
   loans: typeof loans;

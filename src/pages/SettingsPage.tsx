@@ -23,30 +23,40 @@ import {
   Check,
   RotateCcw,
   Pen,
+  Bot,
+  Contact,
+  Dices,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 // All available nav items
 const ALL_NAV_ITEMS: { id: string; icon: LucideIcon; label: string }[] = [
   { id: "home", icon: Home, label: "Inicio" },
+  { id: "agent", icon: Bot, label: "Kovan" },
   { id: "gifts", icon: Gift, label: "Regalos" },
   { id: "places", icon: MapPin, label: "Lugares" },
   { id: "health", icon: Heart, label: "Salud" },
   { id: "calendar", icon: Calendar, label: "Calendario" },
-  { id: "expenses", icon: DollarSign, label: "Gastos" },
+  { id: "finances", icon: DollarSign, label: "Finanzas" },
   { id: "recipes", icon: ChefHat, label: "Recetas" },
+  { id: "collections", icon: Book, label: "Colecciones" },
+  { id: "vehicles", icon: Car, label: "Autos" },
+  { id: "contacts", icon: Contact, label: "Directorio" },
+  { id: "activities", icon: Dices, label: "Juegos" },
+  // Legacy mappings for backward compatibility
+  { id: "expenses", icon: DollarSign, label: "Gastos" },
   { id: "library", icon: Book, label: "Librería" },
   { id: "services", icon: Car, label: "Servicios" },
 ];
 
-const DEFAULT_NAV_ORDER = ["home", "gifts", "places", "health", "more"];
+const DEFAULT_NAV_ORDER = ["home", "agent", "finances", "places"];
 
 export function SettingsPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { success } = useToast();
 
-  const [navOrder, setNavOrder] = useState<string[]>(DEFAULT_NAV_ORDER);
+  const [navOrder, setNavOrder] = useState<string[]>(["home", "agent", "finances", "places"]);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -61,10 +71,35 @@ export function SettingsPage() {
   const updateUser = useMutation(api.users.updateUser);
 
   useEffect(() => {
-    if (savedNavOrder && JSON.stringify(savedNavOrder) !== JSON.stringify(navOrder)) {
-      setNavOrder(savedNavOrder);
+    if (savedNavOrder) {
+      // Get all available item IDs (excluding legacy ones and 'more')
+      const allAvailableIds = ALL_NAV_ITEMS
+        .filter(item => !['expenses', 'library', 'services'].includes(item.id))
+        .map(item => item.id);
+
+      // Start with saved order
+      const mergedOrder = [...savedNavOrder];
+
+      // Add any new items that aren't in the saved order
+      allAvailableIds.forEach(id => {
+        if (!mergedOrder.includes(id)) {
+          mergedOrder.push(id);
+        }
+      });
+
+      // Remove any legacy or invalid items
+      const cleanedOrder = mergedOrder.filter(id =>
+        allAvailableIds.includes(id) || id === 'more'
+      );
+
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNavOrder(cleanedOrder);
+
+      // If we added new items, mark as changed so user can save
+      if (cleanedOrder.length !== savedNavOrder.length) {
+        setHasChanges(true);
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedNavOrder]);
 
   if (!user) return <PageLoader />;

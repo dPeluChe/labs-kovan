@@ -13,6 +13,7 @@ import {
   ChefHat,
   Book,
   Car,
+  Bot,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -21,6 +22,7 @@ const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string; 
   gifts: { to: "/gifts", icon: Gift, label: "Regalos" },
   calendar: { to: "/calendar", icon: Calendar, label: "Calendario" },
   health: { to: "/health", icon: Heart, label: "Salud" },
+  agent: { to: "/agent", icon: Bot, label: "Kovan", color: "bg-purple-500/10 text-purple-600" },
   places: { to: "/places", icon: MapPin, label: "Lugares" },
   finances: {
     to: "/finances",
@@ -41,7 +43,7 @@ const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string; 
   more: { to: "/more", icon: MoreHorizontal, label: "Más" },
 };
 
-const DEFAULT_NAV_ORDER = ["home", "gifts", "places", "health"];
+const DEFAULT_NAV_ORDER = ["home", "agent", "finances", "places"];
 
 export function BottomNav() {
   const { user } = useAuth();
