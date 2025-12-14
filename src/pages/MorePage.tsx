@@ -12,6 +12,7 @@ import {
   ChefHat,
   MapPin,
   Contact,
+  Gamepad2,
 } from "lucide-react";
 
 const menuItems = [
@@ -42,6 +43,13 @@ const menuItems = [
     label: "Colecciones",
     description: "Libros, mangas, juegos y más",
     color: "bg-blue-500/10 text-blue-600",
+  },
+  {
+    to: "/collections?type=video_game",
+    icon: Gamepad2,
+    label: "Juegos",
+    description: "Videojuegos y juegos de mesa",
+    color: "bg-purple-500/10 text-purple-600",
   },
   {
     to: "/vehicles",

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
@@ -37,7 +38,9 @@ export function CollectionsPage() {
   const { currentFamily } = useFamily();
   const [showNewItem, setShowNewItem] = useState(false);
   const { confirm, ConfirmModal } = useConfirmModal();
-  const [filterType, setFilterType] = useState<CollectionType>("all");
+  const [searchParams] = useSearchParams();
+  const initialType = (searchParams.get("type") as CollectionType) || "all";
+  const [filterType, setFilterType] = useState<CollectionType>(initialType);
 
   const items = useQuery(
     api.collections.getCollections,
