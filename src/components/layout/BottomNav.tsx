@@ -16,15 +16,27 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string }> = {
+const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string; description?: string; color?: string }> = {
   home: { to: "/", icon: Home, label: "Inicio" },
   gifts: { to: "/gifts", icon: Gift, label: "Regalos" },
   calendar: { to: "/calendar", icon: Calendar, label: "Calendario" },
   health: { to: "/health", icon: Heart, label: "Salud" },
   places: { to: "/places", icon: MapPin, label: "Lugares" },
-  expenses: { to: "/expenses", icon: DollarSign, label: "Gastos" },
+  finances: {
+    to: "/finances",
+    icon: DollarSign,
+    label: "Finanzas",
+    description: "Control de gastos familiares",
+    color: "bg-emerald-500/10 text-emerald-600",
+  },
   recipes: { to: "/recipes", icon: ChefHat, label: "Recetas" },
-  library: { to: "/library", icon: Book, label: "Librería" },
+  collections: {
+    to: "/collections",
+    icon: Book,
+    label: "Colecciones",
+    description: "Libros, mangas, juegos y más",
+    color: "bg-blue-500/10 text-blue-600",
+  },
   vehicles: { to: "/vehicles", icon: Car, label: "Autos" },
   more: { to: "/more", icon: MoreHorizontal, label: "Más" },
 };
@@ -33,14 +45,20 @@ const DEFAULT_NAV_ORDER = ["home", "gifts", "places", "health"];
 
 export function BottomNav() {
   const { user } = useAuth();
-  
+
   const savedNavOrder = useQuery(
     api.users.getNavOrder,
     user ? { userId: user._id } : "skip"
   );
 
   // Use saved order or default
-  const navOrder = savedNavOrder ?? DEFAULT_NAV_ORDER;
+  // Map legacy keys to new keys
+  const rawNavOrder = savedNavOrder ?? DEFAULT_NAV_ORDER;
+  const navOrder = rawNavOrder.map(key => {
+    if (key === "library") return "collections";
+    if (key === "expenses") return "finances";
+    return key;
+  });
   const mainItems = navOrder.slice(0, 4);
 
   return (
@@ -50,16 +68,15 @@ export function BottomNav() {
           const config = NAV_CONFIG[id];
           if (!config) return null;
           const Icon = config.icon;
-          
+
           return (
             <NavLink
               key={id}
               to={config.to}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-w-[64px] rounded-xl transition-all duration-200 ${
-                  isActive 
-                    ? "text-primary scale-105" 
-                    : "text-base-content/60 hover:text-base-content hover:bg-base-content/5 active:scale-95"
+                `flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-w-[64px] rounded-xl transition-all duration-200 ${isActive
+                  ? "text-primary scale-105"
+                  : "text-base-content/60 hover:text-base-content hover:bg-base-content/5 active:scale-95"
                 }`
               }
             >
@@ -68,15 +85,14 @@ export function BottomNav() {
             </NavLink>
           );
         })}
-        
+
         {/* Fixed "More" button */}
         <NavLink
           to="/more"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-w-[64px] rounded-xl transition-all duration-200 ${
-              isActive 
-                ? "text-primary scale-105" 
-                : "text-base-content/60 hover:text-base-content hover:bg-base-content/5 active:scale-95"
+            `flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-w-[64px] rounded-xl transition-all duration-200 ${isActive
+              ? "text-primary scale-105"
+              : "text-base-content/60 hover:text-base-content hover:bg-base-content/5 active:scale-95"
             }`
           }
         >

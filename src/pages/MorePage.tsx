@@ -16,9 +16,9 @@ import {
 
 const menuItems = [
   {
-    to: "/expenses",
+    to: "/finances",
     icon: DollarSign,
-    label: "Gastos",
+    label: "Finanzas",
     description: "Control de gastos familiares",
     color: "bg-emerald-500/10 text-emerald-600",
   },
@@ -37,10 +37,10 @@ const menuItems = [
     color: "bg-rose-500/10 text-rose-600",
   },
   {
-    to: "/library",
+    to: "/collections",
     icon: Book,
-    label: "Librería",
-    description: "Libros, mangas y cómics",
+    label: "Colecciones",
+    description: "Libros, mangas, juegos y más",
     color: "bg-blue-500/10 text-blue-600",
   },
   {
