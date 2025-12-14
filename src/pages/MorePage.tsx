@@ -12,7 +12,7 @@ import {
   ChefHat,
   MapPin,
   Contact,
-  Gamepad2,
+  Dices,
 } from "lucide-react";
 
 const menuItems = [
@@ -45,10 +45,10 @@ const menuItems = [
     color: "bg-blue-500/10 text-blue-600",
   },
   {
-    to: "/collections?type=video_game",
-    icon: Gamepad2,
+    to: "/activities",
+    icon: Dices,
     label: "Juegos",
-    description: "Videojuegos y juegos de mesa",
+    description: "Ruleta, dados y dinámicas",
     color: "bg-purple-500/10 text-purple-600",
   },
   {

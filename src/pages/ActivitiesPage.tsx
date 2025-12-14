@@ -3,7 +3,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
-import { Dices, Users, Trophy, CircleDot, Plus } from "lucide-react";
+import { Dices, Trophy, CircleDot, Plus, Ship } from "lucide-react";
 import type { Doc } from "../../convex/_generated/dataModel";
 
 export function ActivitiesPage() {
@@ -54,10 +54,10 @@ export function ActivitiesPage() {
                         >
                             <div className="card-body p-4 flex flex-col items-center text-center gap-3 opacity-50">
                                 <div className="w-12 h-12 rounded-full bg-base-content/5 flex items-center justify-center">
-                                    <Users className="w-6 h-6" />
+                                    <Ship className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold">Adivina Quién</h3>
+                                    <h3 className="font-bold">Batalla Naval</h3>
                                     <p className="text-xs text-base-content/60">Próximamente</p>
                                 </div>
                             </div>

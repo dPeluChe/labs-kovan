@@ -11,8 +11,11 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.46",
+    "@langchain/core": "^1.1.5",
+    "@langchain/google-genai": "^2.1.0",
     "ai": "^5.0.113",
     "convex": "^1.30.0",
+    "langchain": "^1.2.0",
     "lucide-react": "^0.556.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

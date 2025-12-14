@@ -39,7 +39,7 @@ export function AgentChat() {
 
             const response = await sendMessage({ messages: history });
 
-            setMessages(prev => [...prev, { role: "assistant", content: response }]);
+            setMessages(prev => [...prev, { role: "assistant", content: String(response) }]);
         } catch (error) {
             console.error(error);
             setMessages(prev => [...prev, { role: "assistant", content: "Lo siento, hubo un error al procesar tu solicitud." }]);
