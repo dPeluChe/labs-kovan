@@ -18,6 +18,7 @@ import type * as families from "../families.js";
 import type * as files from "../files.js";
 import type * as gifts from "../gifts.js";
 import type * as health from "../health.js";
+import type * as lib_agent_index from "../lib/agent/index.js";
 import type * as lib_utils from "../lib/utils.js";
 import type * as loans from "../loans.js";
 import type * as places from "../places.js";
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   gifts: typeof gifts;
   health: typeof health;
+  "lib/agent/index": typeof lib_agent_index;
   "lib/utils": typeof lib_utils;
   loans: typeof loans;
   places: typeof places;

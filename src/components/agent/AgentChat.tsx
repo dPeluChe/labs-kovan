@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useAuth } from "../../contexts/AuthContext";
 import { Bot, Send, X, Sparkles } from "lucide-react";
 
 interface Message {
@@ -15,6 +16,7 @@ export function AgentChat() {
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
+    const { user } = useAuth(); // Get authenticated user for userId
     const sendMessage = useAction(api.agent.sendMessage);
 
     useEffect(() => {
@@ -37,7 +39,16 @@ export function AgentChat() {
             const history = messages.map(m => ({ role: m.role, content: m.content }));
             history.push({ role: "user", content: userMsg });
 
-            const response = await sendMessage({ messages: history });
+            if (!user) {
+                setMessages(prev => [...prev, { role: "assistant", content: "No se ha encontrado un usuario activo. Por favor recarga la página." }]);
+                setIsLoading(false);
+                return;
+            }
+
+            const response = await sendMessage({
+                messages: history,
+                userId: user._id
+            });
 
             setMessages(prev => [...prev, { role: "assistant", content: String(response) }]);
         } catch (error) {
@@ -96,9 +107,13 @@ export function AgentChat() {
 
                         {messages.map((msg, i) => (
                             <div key={i} className={`chat ${msg.role === "user" ? "chat-end" : "chat-start"}`}>
-                                <div className="chat-image avatar placeholder">
-                                    <div className={`w-8 rounded-full ${msg.role === "user" ? "bg-secondary text-secondary-content" : "bg-primary text-primary-content"}`}>
-                                        {msg.role === "user" ? <span>Yo</span> : <Bot className="w-5 h-5" />}
+                                <div className="chat-image avatar">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${msg.role === "user" ? "bg-secondary text-secondary-content" : "bg-primary text-primary-content"}`}>
+                                        {msg.role === "user" ? (
+                                            <span className="text-sm font-bold">U</span>
+                                        ) : (
+                                            <Bot className="w-5 h-5" />
+                                        )}
                                     </div>
                                 </div>
                                 <div className={`chat-bubble ${msg.role === "user" ? "chat-bubble-secondary" : "chat-bubble-primary"}`}>
