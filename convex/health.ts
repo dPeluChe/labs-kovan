@@ -25,6 +25,7 @@ export const createPersonProfile = mutation({
     type: v.union(v.literal("human"), v.literal("pet")),
     name: v.string(),
     relation: v.string(),
+    nickname: v.optional(v.string()), // Apodo (opcional)
     birthDate: v.optional(v.number()),
     notes: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
@@ -39,6 +40,7 @@ export const updatePersonProfile = mutation({
     personId: v.id("personProfiles"),
     name: v.optional(v.string()),
     relation: v.optional(v.string()),
+    nickname: v.optional(v.string()), // Apodo (opcional)
     birthDate: v.optional(v.number()),
     notes: v.optional(v.string()),
     imageUrl: v.optional(v.string()),

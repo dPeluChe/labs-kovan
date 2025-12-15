@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ConvexProvider } from "convex/react";
 import { convex } from "./lib/convex";
@@ -17,6 +18,8 @@ import { GiftEventDetailPage } from "./pages/GiftEventDetailPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { HealthPage } from "./pages/HealthPage";
 import { HealthProfilePage } from "./pages/HealthProfilePage";
+import { PetsPage } from "./pages/PetsPage";
+import { PetProfilePage } from "./pages/PetProfilePage";
 import { CollectionsPage } from "./pages/CollectionsPage";
 import { VehiclesPage } from "./pages/VehiclesPage";
 import { VehicleDetailPage } from "./pages/VehicleDetailPage";
@@ -68,6 +71,8 @@ function AppRoutes() {
         <Route path="/settings/calendar" element={<CalendarSettingsPage />} />
         <Route path="/health" element={<HealthPage />} />
         <Route path="/health/:profileId" element={<HealthProfilePage />} />
+        <Route path="/pets" element={<PetsPage />} />
+        <Route path="/pets/:profileId" element={<PetProfilePage />} />
         <Route path="/collections" element={<CollectionsPage />} />
         <Route path="/vehicles" element={<VehiclesPage />} />
         <Route path="/vehicles/:vehicleId" element={<VehicleDetailPage />} />

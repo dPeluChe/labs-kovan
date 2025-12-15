@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -11,6 +12,7 @@ import { Gift, Plus, ChevronRight, CheckCircle2, Edit2, Trash2, MoreVertical } f
 import { useConfirmModal } from "../hooks/useConfirmModal";
 import { DateInput } from "../components/ui/DateInput";
 import { Link } from "react-router-dom";
+import { EditEventForm } from "../components/gifts/EditEventForm";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 
 export function GiftsPage() {
@@ -337,96 +339,6 @@ function NewEventForm({
           disabled={isLoading || !name.trim()}
         >
           {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Crear"}
-        </button>
-      </div>
-    </form>
-  );
-}
-
-function EditEventForm({
-  event,
-  onClose,
-}: {
-  event: Doc<"giftEvents">;
-  onClose: () => void;
-}) {
-  const [name, setName] = useState(event.name);
-  const [date, setDate] = useState(
-    event.date ? new Date(event.date).toISOString().split("T")[0] : ""
-  );
-  const [description, setDescription] = useState(event.description || "");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const updateEvent = useMutation(api.gifts.updateGiftEvent);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-
-    setIsLoading(true);
-    try {
-      await updateEvent({
-        eventId: event._id,
-        name: name.trim(),
-        date: date ? new Date(date).getTime() : undefined,
-        description: description.trim() || undefined,
-      });
-      onClose();
-    } catch (error) {
-      console.error("Error updating event:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="form-control">
-        <label className="label">
-          <span className="label-text">Nombre del evento *</span>
-        </label>
-        <input
-          type="text"
-          placeholder="Ej: Navidad 2025, Cumple de mamá"
-          className="input input-bordered w-full"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          disabled={isLoading}
-          autoFocus
-        />
-      </div>
-
-      <DateInput
-        label="Fecha (opcional)"
-        value={date}
-        onChange={setDate}
-        disabled={isLoading}
-      />
-
-      <div className="form-control">
-        <label className="label">
-          <span className="label-text">Descripción (opcional)</span>
-        </label>
-        <textarea
-          placeholder="Notas adicionales..."
-          className="textarea textarea-bordered w-full"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          disabled={isLoading}
-          rows={3}
-        />
-      </div>
-
-      <div className="flex justify-end gap-2 pt-2">
-        <button type="button" className="btn" onClick={onClose} disabled={isLoading}>
-          Cancelar
-        </button>
-        <button
-          type="submit"
-          className="btn btn-primary"
-          disabled={isLoading || !name.trim()}
-        >
-          {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
         </button>
       </div>
     </form>

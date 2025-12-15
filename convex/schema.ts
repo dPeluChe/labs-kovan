@@ -1,3 +1,4 @@
+
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
@@ -106,6 +107,7 @@ export default defineSchema({
     type: v.union(v.literal("human"), v.literal("pet")),
     name: v.string(),
     relation: v.string(),
+    nickname: v.optional(v.string()), // Apodo (opcional)
     birthDate: v.optional(v.number()),
     notes: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
@@ -136,6 +138,20 @@ export default defineSchema({
     endDate: v.optional(v.number()),
     notes: v.optional(v.string()),
   }).index("by_person", ["personId"]),
+
+  petNutrition: defineTable({
+    personId: v.id("personProfiles"),
+    brand: v.string(),
+    productName: v.optional(v.string()), // e.g., "Puppy Large Breed"
+    type: v.union(v.literal("food"), v.literal("treats"), v.literal("supplement"), v.literal("other")),
+    amount: v.optional(v.number()), // Cost
+    weight: v.optional(v.string()), // e.g., "15kg"
+    purchaseDate: v.number(),
+    store: v.optional(v.string()), // Where it was bought
+    notes: v.optional(v.string()),
+    addedBy: v.optional(v.id("users")),
+  }).index("by_person", ["personId"])
+    .index("by_person_date", ["personId", "purchaseDate"]),
 
   // ==================== LIBRARY ====================
   // ==================== COLLECTIONS (Old Library) ====================

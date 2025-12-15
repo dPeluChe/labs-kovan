@@ -1,3 +1,4 @@
+
 import { api } from "../../_generated/api";
 import type { ToolDefinition, ToolContext } from "./tools.types";
 
@@ -72,7 +73,8 @@ export async function handleAddToCollection(context: ToolContext, args: Record<s
         title,
         creator,
         owned: true,
-        status: "wishlist"
+        status: "wishlist",
+        addedBy: context.userId
     });
 
     return { success: true, message: `Agregado a la colección: ${title}` };

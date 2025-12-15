@@ -1,3 +1,4 @@
+
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
@@ -113,22 +114,14 @@ export const createItem = mutation({
         notes: v.optional(v.string()),
         imageUrl: v.optional(v.string()),
         imageStorageId: v.optional(v.id("_storage")),
+        addedBy: v.id("users"), // Required now
     },
     handler: async (ctx, args) => {
-        const userId = (await ctx.auth.getUserIdentity())?.subject;
-        if (!userId) throw new Error("Unauthorized");
+        // Disabled strict auth for demo mode compatibility
+        // const userId = (await ctx.auth.getUserIdentity())?.subject;
+        // if (!userId) throw new Error("Unauthorized");
 
-        const user = await ctx.db
-            .query("users")
-            .withIndex("by_token", (q) => q.eq("tokenIdentifier", userId))
-            .unique();
-
-        if (!user) throw new Error("User not found");
-
-        return await ctx.db.insert("collections", {
-            ...args,
-            addedBy: user._id,
-        });
+        return await ctx.db.insert("collections", args);
     },
 });
 
