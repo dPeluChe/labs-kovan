@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
-import { Moon, Sun, Users } from "lucide-react";
+import { Moon, Sun, Users, Home } from "lucide-react";
 import type { Id } from "../../convex/_generated/dataModel";
 
 export function LoginPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const inviteFamilyId = searchParams.get("invite");
-  
+
   const { login, isLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [name, setName] = useState("");
@@ -53,54 +54,74 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-base-200 to-base-300">
-      <div className="flex justify-end p-4">
-        <button
-          onClick={toggleTheme}
-          className="btn btn-ghost btn-circle"
-          aria-label="Toggle theme"
-        >
-          {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-        </button>
+
+      {/* Desktop Advice Banner */}
+      <div className="hidden lg:flex bg-primary/10 text-primary px-4 py-2 text-sm justify-center items-center gap-2 animate-slide-down">
+        <span className="font-bold">💡 Tip:</span> Kovan está diseñada para ser tu aliado en gestión familiar. Para la mejor experiencia, instálala en tu celular.
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="card bg-base-100 shadow-2xl w-full max-w-sm animate-scale-in">
-          <div className="card-body">
-            <div className="text-center mb-6">
-              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce-in">
-                <span className="text-3xl">{inviteFamily ? "👋" : "🏠"}</span>
+      <div className="flex justify-between items-center p-4">
+        {/* Logo/Brand for mobile reassurance */}
+        <div className="flex items-center gap-2 lg:hidden opacity-50">
+          <span className="font-bold text-sm tracking-widest uppercase">Kovan</span>
+        </div>
+
+        <div className="flex gap-2 ml-auto">
+          <button
+            onClick={() => navigate('/')}
+            className="btn btn-ghost btn-circle bg-base-100/50 backdrop-blur-sm"
+            aria-label="Back to home"
+          >
+            <Home className="w-5 h-5" />
+          </button>
+          <button
+            onClick={toggleTheme}
+            className="btn btn-ghost btn-circle bg-base-100/50 backdrop-blur-sm"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8">
+        <div className="card bg-base-100 shadow-2xl w-full max-w-sm animate-scale-in border border-base-content/5">
+          <div className="card-body p-6 sm:p-8">
+            <div className="text-center mb-8">
+              <div className="bg-primary/10 w-20 h-20 rounded-3xl rotate-3 flex items-center justify-center mx-auto mb-6 animate-bounce-in shadow-lg shadow-primary/20">
+                <span className="text-4xl filter drop-shadow-sm">{inviteFamily ? "👋" : "🏠"}</span>
               </div>
-              <h1 className="text-2xl font-bold">
-                {inviteFamily ? "¡Te invitaron!" : "Bienvenido a Kovan"}
+              <h1 className="text-2xl font-bold mb-2">
+                {inviteFamily ? "¡Te invitaron!" : "Bienvenido a Casa"}
               </h1>
-              <p className="text-base-content/60 text-sm mt-1">
-                {inviteFamily 
+              <p className="text-base-content/60 text-sm">
+                {inviteFamily
                   ? `Únete a la familia "${inviteFamily.name}"`
-                  : "Organiza tu vida familiar"
+                  : "Tu hogar digital te espera"
                 }
               </p>
             </div>
 
             {/* Invite banner */}
             {inviteFamily && (
-              <div className="alert alert-info mb-4 animate-fade-in">
+              <div className="alert alert-info mb-6 animate-fade-in shadow-sm">
                 <Users className="w-5 h-5" />
                 <div>
-                  <p className="font-medium">Invitación a "{inviteFamily.name}"</p>
-                  <p className="text-xs opacity-80">Ingresa tus datos para unirte</p>
+                  <p className="font-bold text-sm">Invitación a "{inviteFamily.name}"</p>
+                  <p className="text-xs opacity-90">Ingresa tus datos para unirte</p>
                 </div>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Nombre</span>
+                <label className="label pt-0">
+                  <span className="label-text font-bold text-xs uppercase tracking-wide opacity-70">Nombre</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="Tu nombre"
-                  className="input input-bordered w-full focus:input-primary transition-all"
+                  placeholder="¿Cómo te decimos?"
+                  className="input input-lg input-bordered w-full focus:input-primary rounded-2xl bg-base-200/50 focus:bg-base-100 transition-all font-medium placeholder:font-normal placeholder:opacity-50"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isLoading}
@@ -110,13 +131,13 @@ export function LoginPage() {
               </div>
 
               <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Email</span>
+                <label className="label pt-0">
+                  <span className="label-text font-bold text-xs uppercase tracking-wide opacity-70">Email</span>
                 </label>
                 <input
                   type="email"
-                  placeholder="tu@email.com"
-                  className="input input-bordered w-full focus:input-primary transition-all"
+                  placeholder="correo@ejemplo.com"
+                  className="input input-lg input-bordered w-full focus:input-primary rounded-2xl bg-base-200/50 focus:bg-base-100 transition-all font-medium placeholder:font-normal placeholder:opacity-50"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
@@ -125,25 +146,30 @@ export function LoginPage() {
               </div>
 
               {error && (
-                <div className="alert alert-error text-sm py-2 animate-shake">
+                <div className="alert alert-error text-sm py-3 rounded-2xl animate-shake shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   <span>{error}</span>
                 </div>
               )}
 
               <button
                 type="submit"
-                className="btn btn-primary w-full btn-lg mt-2 shadow-lg shadow-primary/20"
+                className="btn btn-primary w-full btn-lg rounded-2xl shadow-xl shadow-primary/30 mt-4 hover:scale-[1.02] active:scale-[0.98] transition-transform"
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <span className="loading loading-spinner loading-sm" />
+                  <span className="loading loading-spinner loading-md" />
                 ) : (
-                  "Entrar a casa"
+                  "Abrir la Puerta"
                 )}
               </button>
             </form>
           </div>
         </div>
+
+        <p className="mt-8 text-center text-xs text-base-content/40">
+          Labs Kovan v1.0 BETA
+        </p>
       </div>
     </div>
   );

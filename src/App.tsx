@@ -30,6 +30,7 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { ContactsPage } from "./pages/ContactsPage";
 import { ActivitiesPage } from "./pages/ActivitiesPage";
 import AgentPage from "./pages/AgentPage";
+import { LandingPage } from "./pages/LandingPage";
 
 function AppRoutes() {
   const { user, isLoading: authLoading } = useAuth();
@@ -40,7 +41,13 @@ function AppRoutes() {
   }
 
   if (!user) {
-    return <LoginPage />;
+    return (
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
   }
 
   if (familyLoading) {

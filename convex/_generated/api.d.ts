@@ -16,6 +16,7 @@ import type * as collections from "../collections.js";
 import type * as contacts from "../contacts.js";
 import type * as expenses from "../expenses.js";
 import type * as families from "../families.js";
+import type * as featureRequests from "../featureRequests.js";
 import type * as files from "../files.js";
 import type * as gifts from "../gifts.js";
 import type * as health from "../health.js";
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   contacts: typeof contacts;
   expenses: typeof expenses;
   families: typeof families;
+  featureRequests: typeof featureRequests;
   files: typeof files;
   gifts: typeof gifts;
   health: typeof health;

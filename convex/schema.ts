@@ -392,4 +392,20 @@ export default defineSchema({
     fileUrl: v.optional(v.string()), // For storing PDF/image
     fileStorageId: v.optional(v.id("_storage")),
   }).index("by_person", ["personId"]),
+
+  // ==================== FEATURE REQUESTS ====================
+  featureRequests: defineTable({
+    title: v.string(),
+    description: v.string(),
+    email: v.optional(v.string()), // Optional contact email
+    category: v.optional(v.string()),
+    status: v.union(
+      v.literal("new"),
+      v.literal("reviewed"),
+      v.literal("planned"),
+      v.literal("completed"),
+      v.literal("rejected")
+    ),
+    createdAt: v.number(),
+  }).index("by_status", ["status"]),
 });
