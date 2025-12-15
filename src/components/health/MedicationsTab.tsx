@@ -1,10 +1,10 @@
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Plus, Pill, Trash2, Clock, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Pill, Clock, ChevronUp, ChevronDown, PauseCircle, StopCircle } from "lucide-react";
 import { PageLoader } from "../ui/LoadingSpinner";
 import type { Doc } from "../../../convex/_generated/dataModel";
+import { MedicationDetailModal } from "./modals/MedicationDetailModal";
+import { useConfirmModal } from "../../hooks/useConfirmModal";
 
 export function MedicationsTab({
     medications,
@@ -13,13 +13,23 @@ export function MedicationsTab({
     medications: Doc<"medications">[] | undefined;
     onAdd: () => void;
 }) {
-    const deleteMedication = useMutation(api.health.deleteMedication);
+    const [selectedMedication, setSelectedMedication] = useState<Doc<"medications"> | null>(null);
     const [showHistory, setShowHistory] = useState(false);
+    const { confirm, ConfirmModal } = useConfirmModal();
     const [now] = useState(() => Date.now());
 
     if (medications === undefined) return <PageLoader />;
-    const active = medications.filter((m) => !m.endDate || m.endDate > now);
-    const past = medications.filter((m) => m.endDate && m.endDate <= now);
+
+    // Helper to determine if active
+    const isActive = (m: Doc<"medications">) => {
+        if (m.status === "active") return true;
+        if (m.status === "paused" || m.status === "completed") return false;
+        // Fallback to legacy date logic
+        return !m.endDate || m.endDate > now;
+    };
+
+    const active = medications.filter(isActive);
+    const past = medications.filter((m) => !isActive(m));
 
     return (
         <>
@@ -41,7 +51,11 @@ export function MedicationsTab({
                     ) : (
                         <div className="space-y-2">
                             {active.map((med) => (
-                                <MedicationCard key={med._id} medication={med} onDelete={() => deleteMedication({ medicationId: med._id })} />
+                                <MedicationCard
+                                    key={med._id}
+                                    medication={med}
+                                    onClick={() => setSelectedMedication(med)}
+                                />
                             ))}
                         </div>
                     )}
@@ -62,41 +76,59 @@ export function MedicationsTab({
                         {showHistory && (
                             <div className="mt-3 space-y-2 animate-slide-down">
                                 {past.map((med) => (
-                                    <MedicationCard key={med._id} medication={med} onDelete={() => deleteMedication({ medicationId: med._id })} isPast />
+                                    <MedicationCard
+                                        key={med._id}
+                                        medication={med}
+                                        onClick={() => setSelectedMedication(med)}
+                                        isPast
+                                    />
                                 ))}
                             </div>
                         )}
                     </div>
                 )}
             </div>
+
+            {selectedMedication && (
+                <MedicationDetailModal
+                    medication={selectedMedication}
+                    onClose={() => setSelectedMedication(null)}
+                    confirm={confirm}
+                />
+            )}
+            <ConfirmModal />
         </>
     );
 }
 
 function MedicationCard({
     medication,
-    onDelete,
+    onClick,
     isPast
 }: {
     medication: Doc<"medications">;
-    onDelete: () => void;
+    onClick: () => void;
     isPast?: boolean;
 }) {
     return (
-        <div className={`card bg-base-100 shadow-sm border ${isPast ? "border-base-200 opacity-75" : "border-success/30"}`}>
+        <div
+            onClick={onClick}
+            className={`card bg-base-100 shadow-sm border card-interactive ${isPast ? "border-base-200 opacity-75" : "border-success/30"} cursor-pointer hover:bg-base-200/50 transition-colors`}
+        >
             <div className="card-body p-3">
                 <div className="flex justify-between items-start">
-                    <div>
-                        <h4 className={`font-semibold text-sm ${isPast ? "text-base-content/70" : ""}`}>{medication.name}</h4>
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                            <h4 className={`font-semibold text-sm ${isPast ? "text-base-content/70" : ""}`}>{medication.name}</h4>
+                            {medication.status === "paused" && <PauseCircle className="w-3 h-3 text-warning" />}
+                            {medication.status === "completed" && <StopCircle className="w-3 h-3 text-base-content/40" />}
+                        </div>
                         <p className="text-xs text-base-content/70">{medication.dosage}</p>
                         <p className="text-xs text-base-content/50 mt-1">
                             {new Date(medication.startDate).toLocaleDateString("es-MX")}
-                            {medication.endDate && ` - ${new Date(medication.endDate).toLocaleDateString("es-MX")}`}
+                            {!medication.endDate ? " - Indefinido" : ` - ${new Date(medication.endDate).toLocaleDateString("es-MX")}`}
                         </p>
                     </div>
-                    <button onClick={onDelete} className="btn btn-ghost btn-xs btn-circle text-base-content/30 hover:text-error">
-                        <Trash2 className="w-3 h-3" />
-                    </button>
                 </div>
             </div>
         </div>

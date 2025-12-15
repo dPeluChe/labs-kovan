@@ -14,8 +14,11 @@ import {
   Cat,
   TestTube,
   ShoppingBag,
+  Pencil,
+  CakeIcon
 } from "lucide-react";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
+import { ShiftingTabs } from "../components/ui/ShiftingTabs";
 
 // Components
 import { RecordsTab } from "../components/health/RecordsTab";
@@ -30,6 +33,7 @@ import { AddMedicationModal } from "../components/health/modals/AddMedicationMod
 import { AddNutritionModal } from "../components/health/modals/AddNutritionModal";
 import { RecordDetailModal } from "../components/health/modals/RecordDetailModal";
 import { StudyDetailModal } from "../components/health/modals/StudyDetailModal";
+import { EditProfileModal } from "../components/health/modals/EditProfileModal";
 
 type Tab = "records" | "medications" | "studies" | "nutrition";
 
@@ -43,6 +47,7 @@ export function HealthProfilePage() {
   const [showAddMedication, setShowAddMedication] = useState(false);
   const [showAddStudy, setShowAddStudy] = useState(false);
   const [showAddNutrition, setShowAddNutrition] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   const [selectedRecord, setSelectedRecord] = useState<Doc<"medicalRecords"> | null>(null);
   const [selectedStudy, setSelectedStudy] = useState<Doc<"medicalStudies"> | null>(null);
@@ -71,11 +76,12 @@ export function HealthProfilePage() {
 
   const deleteProfile = useMutation(api.health.deletePersonProfile);
 
+
   if (!profileId) return null;
   if (profile === undefined) return <PageLoader />;
   if (profile === null) {
     navigate("/health");
-    return null;
+    return null; // or navigate
   }
 
   const handleDelete = async () => {
@@ -94,7 +100,25 @@ export function HealthProfilePage() {
     }
   };
 
+  const calculateAge = (birthDate: number) => {
+    const now = new Date();
+    const birth = new Date(birthDate);
+    const diff = now.getTime() - birth.getTime();
+    const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+    const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
+
+    if (years > 0) return `${years} años${months > 0 ? ` ${months} meses` : ''}`;
+    return `${months} meses`;
+  };
+
   const Icon = profile.type === "pet" ? Cat : User;
+
+  const tabs = [
+    { id: "records", icon: Stethoscope, label: "Consultas" },
+    { id: "studies", icon: TestTube, label: "Estudios" },
+    { id: "medications", icon: Pill, label: "Meds" },
+    ...(profile.type === "pet" ? [{ id: "nutrition", icon: ShoppingBag, label: "Alimentación" }] : [])
+  ];
 
   return (
     <div className="pb-20">
@@ -107,9 +131,28 @@ export function HealthProfilePage() {
           <Icon className={`w-5 h-5 ${profile.type === "pet" ? "text-orange-600" : "text-pink-600"}`} />
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-bold truncate">{profile.name}</h1>
-          <p className="text-sm text-base-content/60">{profile.relation}</p>
+          <div className="flex items-end gap-2">
+            <h1 className="text-lg font-bold truncate leading-none">{profile.name}</h1>
+            {profile.nickname && (
+              <span className="text-xs text-base-content/60 italic leading-none mb-0.5">"{profile.nickname}"</span>
+            )}
+          </div>
+          <div className="flex items-center text-sm text-base-content/60 gap-2">
+            <span>{profile.relation}</span>
+            {profile.birthDate && (
+              <>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <CakeIcon className="w-3 h-3" />
+                  {calculateAge(profile.birthDate)}
+                </span>
+              </>
+            )}
+          </div>
         </div>
+        <button onClick={() => setShowEditProfile(true)} className="btn btn-ghost btn-sm btn-circle">
+          <Pencil className="w-4 h-4" />
+        </button>
         <button onClick={handleDelete} className="btn btn-ghost btn-sm btn-circle text-error">
           <Trash2 className="w-4 h-4" />
         </button>
@@ -117,34 +160,11 @@ export function HealthProfilePage() {
 
       {/* Tabs */}
       <div className="px-4 pt-4 bg-base-100 pb-2 sticky top-14 z-10 overflow-x-auto">
-        <div className="flex gap-1 bg-base-200 p-1 rounded-xl min-w-max sm:min-w-0">
-          <TabButton
-            active={activeTab === "records"}
-            onClick={() => setActiveTab("records")}
-            icon={Stethoscope}
-            label="Consultas"
-          />
-          <TabButton
-            active={activeTab === "studies"}
-            onClick={() => setActiveTab("studies")}
-            icon={TestTube}
-            label="Estudios"
-          />
-          <TabButton
-            active={activeTab === "medications"}
-            onClick={() => setActiveTab("medications")}
-            icon={Pill}
-            label="Meds"
-          />
-          {profile.type === "pet" && (
-            <TabButton
-              active={activeTab === "nutrition"}
-              onClick={() => setActiveTab("nutrition")}
-              icon={ShoppingBag}
-              label="Alimentación"
-            />
-          )}
-        </div>
+        <ShiftingTabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onChange={(id) => setActiveTab(id as Tab)}
+        />
       </div>
 
       <div className="px-4 py-2">
@@ -181,56 +201,39 @@ export function HealthProfilePage() {
       </div>
 
       {/* MODALS */}
+      {showEditProfile && (
+        <EditProfileModal
+          profile={profile}
+          onClose={() => setShowEditProfile(false)}
+        />
+      )}
+
       {showAddRecord && (
-        <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-lg mb-4">Nueva consulta</h3>
-            <AddRecordModal
-              personId={profileId as Id<"personProfiles">}
-              onClose={() => setShowAddRecord(false)}
-            />
-          </div>
-          <div className="modal-backdrop" onClick={() => setShowAddRecord(false)} />
-        </div>
+        <AddRecordModal
+          personId={profileId as Id<"personProfiles">}
+          onClose={() => setShowAddRecord(false)}
+        />
       )}
 
       {showAddStudy && (
-        <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-lg mb-4">Nuevo estudio</h3>
-            <AddStudyModal
-              personId={profileId as Id<"personProfiles">}
-              onClose={() => setShowAddStudy(false)}
-            />
-          </div>
-          <div className="modal-backdrop" onClick={() => setShowAddStudy(false)} />
-        </div>
+        <AddStudyModal
+          personId={profileId as Id<"personProfiles">}
+          onClose={() => setShowAddStudy(false)}
+        />
       )}
 
       {showAddMedication && (
-        <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-lg mb-4">Nueva medicación</h3>
-            <AddMedicationModal
-              personId={profileId as Id<"personProfiles">}
-              onClose={() => setShowAddMedication(false)}
-            />
-          </div>
-          <div className="modal-backdrop" onClick={() => setShowAddMedication(false)} />
-        </div>
+        <AddMedicationModal
+          personId={profileId as Id<"personProfiles">}
+          onClose={() => setShowAddMedication(false)}
+        />
       )}
 
       {showAddNutrition && (
-        <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-lg mb-4">Registrar alimentación</h3>
-            <AddNutritionModal
-              personId={profileId as Id<"personProfiles">}
-              onClose={() => setShowAddNutrition(false)}
-            />
-          </div>
-          <div className="modal-backdrop" onClick={() => setShowAddNutrition(false)} />
-        </div>
+        <AddNutritionModal
+          personId={profileId as Id<"personProfiles">}
+          onClose={() => setShowAddNutrition(false)}
+        />
       )}
 
       {/* Record Detail Modal */}
@@ -254,21 +257,5 @@ export function HealthProfilePage() {
       {/* Confirm Modal */}
       <ConfirmModal />
     </div>
-  );
-}
-
-function TabButton({ active, onClick, icon: Icon, label }: { active: boolean; onClick: () => void; icon: React.ElementType; label: string }) {
-  return (
-    <button
-      className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${active
-        ? "bg-primary text-primary-content shadow-sm"
-        : "text-base-content/60 hover:text-base-content hover:bg-base-300"
-        }`}
-      onClick={onClick}
-    >
-      <Icon className={`w-4 h-4 ${active ? "" : "opacity-60"}`} />
-      <span className="hidden sm:inline">{label}</span>
-      {/* Show text on mobile if active? maybe not to save space */}
-    </button>
   );
 }

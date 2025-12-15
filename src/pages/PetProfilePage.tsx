@@ -208,42 +208,24 @@ export function PetProfilePage() {
             )}
 
             {showAddRecord && (
-                <div className="modal modal-open">
-                    <div className="modal-box max-h-[90vh] overflow-y-auto">
-                        <h3 className="font-bold text-lg mb-4">Nueva consulta</h3>
-                        <AddRecordModal
-                            personId={profileId as Id<"personProfiles">}
-                            onClose={() => setShowAddRecord(false)}
-                        />
-                    </div>
-                    <div className="modal-backdrop" onClick={() => setShowAddRecord(false)} />
-                </div>
+                <AddRecordModal
+                    personId={profileId as Id<"personProfiles">}
+                    onClose={() => setShowAddRecord(false)}
+                />
             )}
 
             {showAddStudy && (
-                <div className="modal modal-open">
-                    <div className="modal-box max-h-[90vh] overflow-y-auto">
-                        <h3 className="font-bold text-lg mb-4">Nuevo estudio</h3>
-                        <AddStudyModal
-                            personId={profileId as Id<"personProfiles">}
-                            onClose={() => setShowAddStudy(false)}
-                        />
-                    </div>
-                    <div className="modal-backdrop" onClick={() => setShowAddStudy(false)} />
-                </div>
+                <AddStudyModal
+                    personId={profileId as Id<"personProfiles">}
+                    onClose={() => setShowAddStudy(false)}
+                />
             )}
 
             {showAddMedication && (
-                <div className="modal modal-open">
-                    <div className="modal-box max-h-[90vh] overflow-y-auto">
-                        <h3 className="font-bold text-lg mb-4">Nueva medicación</h3>
-                        <AddMedicationModal
-                            personId={profileId as Id<"personProfiles">}
-                            onClose={() => setShowAddMedication(false)}
-                        />
-                    </div>
-                    <div className="modal-backdrop" onClick={() => setShowAddMedication(false)} />
-                </div>
+                <AddMedicationModal
+                    personId={profileId as Id<"personProfiles">}
+                    onClose={() => setShowAddMedication(false)}
+                />
             )}
 
             {showAddNutrition && (

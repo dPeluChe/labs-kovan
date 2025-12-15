@@ -1,3 +1,4 @@
+
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
@@ -159,7 +160,11 @@ export const getActiveMedications = query({
       .withIndex("by_person", (q) => q.eq("personId", args.personId))
       .collect();
 
-    return meds.filter((med) => !med.endDate || med.endDate > now);
+    return meds.filter((med) => {
+      const isActiveStatus = med.status === "active" || !med.status;
+      const dateValid = !med.endDate || med.endDate > now;
+      return isActiveStatus && dateValid;
+    });
   },
 });
 
@@ -170,10 +175,14 @@ export const createMedication = mutation({
     dosage: v.string(),
     startDate: v.number(),
     endDate: v.optional(v.number()),
+    status: v.optional(v.union(v.literal("active"), v.literal("completed"), v.literal("paused"))),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("medications", args);
+    return await ctx.db.insert("medications", {
+      ...args,
+      status: args.status || "active",
+    });
   },
 });
 
@@ -184,6 +193,7 @@ export const updateMedication = mutation({
     dosage: v.optional(v.string()),
     startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
+    status: v.optional(v.union(v.literal("active"), v.literal("completed"), v.literal("paused"))),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -210,10 +220,15 @@ export const getAllMedications = query({
       .collect();
 
     const now = Date.now();
-    return meds.map((med) => ({
-      ...med,
-      isActive: !med.endDate || med.endDate > now,
-    }));
+    return meds.map((med) => {
+      const isActiveStatus = med.status === "active" || !med.status; // Default to active if undefined
+      const dateValid = !med.endDate || med.endDate > now;
+      return {
+        ...med,
+        status: med.status || (dateValid ? "active" : "completed"), // Backfill for UI
+        isActive: isActiveStatus && dateValid,
+      };
+    });
   },
 });
 
@@ -307,7 +322,11 @@ export const getHealthSummary = query({
         .collect();
 
       for (const med of meds) {
-        if (!med.endDate || med.endDate > now) {
+        // Updated logic for summary: check status if exists, else date
+        const isActiveStatus = med.status === "active" || !med.status;
+        const dateValid = !med.endDate || med.endDate > now;
+
+        if (isActiveStatus && dateValid) {
           activeMedications.push({ personName: profile.name, medication: med });
         }
       }

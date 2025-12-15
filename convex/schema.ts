@@ -136,6 +136,7 @@ export default defineSchema({
     dosage: v.string(),
     startDate: v.number(),
     endDate: v.optional(v.number()),
+    status: v.optional(v.union(v.literal("active"), v.literal("completed"), v.literal("paused"))),
     notes: v.optional(v.string()),
   }).index("by_person", ["personId"]),
 
