@@ -4,6 +4,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Input } from "../../ui/Input";
 import { DateInput } from "../../ui/DateInput";
+import { TextArea } from "../../ui/TextArea";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
 
@@ -138,17 +139,14 @@ export function AddNutritionModal({
                     />
                 </div>
 
-                <div className="form-control">
-                    <label className="label"><span className="label-text">Notas</span></label>
-                    <textarea
-                        className="textarea textarea-bordered w-full"
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Observaciones..."
-                        rows={2}
-                        disabled={isLoading}
-                    />
-                </div>
+                <TextArea
+                    label="Notas"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Observaciones..."
+                    rows={2}
+                    disabled={isLoading}
+                />
 
                 <div className="modal-action">
                     <button type="button" className="btn" onClick={onClose} disabled={isLoading}>Cancelar</button>

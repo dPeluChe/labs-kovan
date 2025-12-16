@@ -4,6 +4,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Input } from "../../ui/Input";
 import { DateInput } from "../../ui/DateInput";
+import { TextArea } from "../../ui/TextArea";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
 
@@ -31,7 +32,7 @@ export function AddMedicationModal({
         } else if (status === "completed" && !endDate) {
             setEndDate(new Date().toISOString().split("T")[0]);
         }
-    }, [status]);
+    }, [status, endDate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -114,15 +115,13 @@ export function AddMedicationModal({
                     {status !== "completed" && <div className="hidden sm:block"></div>}
                 </div>
 
-                <div className="form-control">
-                    <label className="label"><span className="label-text">Notas</span></label>
-                    <textarea
-                        className="textarea textarea-bordered h-24 w-full"
-                        placeholder="Indicaciones adicionales..."
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                    />
-                </div>
+                <TextArea
+                    label="Notas"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Indicaciones adicionales..."
+                    className="h-24"
+                />
 
                 <div className="modal-action">
                     <button type="button" className="btn" onClick={onClose}>

@@ -4,7 +4,7 @@ import type { Doc } from "../../../convex/_generated/dataModel";
 
 interface GiftEventHeaderProps {
     event: Doc<"giftEvents">;
-    stats: { total: number; bought: number };
+    stats: { total: number; bought: number; approxCost: number };
     onBack: () => void;
     onEdit: () => void;
     onAddGiftPool: () => void;
@@ -42,6 +42,8 @@ export function GiftEventHeader({
                         <span>{stats.total} regalos</span>
                         <span>•</span>
                         <span className="text-success">{stats.bought} listos</span>
+                        <span>•</span>
+                        <span className="text-base-content/60">${stats.approxCost.toLocaleString()} aprox</span>
                     </div>
                 </div>
                 <div className="dropdown dropdown-end">

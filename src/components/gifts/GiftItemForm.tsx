@@ -7,6 +7,8 @@ import { STATUS_CONFIG, type GiftStatus } from "./GiftConstants";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import type { ConfirmOptions } from "../../hooks/useConfirmModal";
 
+import { TextArea } from "../ui/TextArea";
+
 export function GiftItemForm({
     eventId,
     recipientId,
@@ -127,16 +129,14 @@ export function GiftItemForm({
                 </div>
             </div>
 
-            <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Notas</span></label>
-                <textarea
-                    className="textarea textarea-bordered h-20"
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    placeholder="Talla, color, detalles..."
-                    disabled={isLoading}
-                ></textarea>
-            </div>
+            <TextArea
+                label="Notas"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Talla, color, detalles..."
+                className="h-20"
+                disabled={isLoading}
+            />
 
             <div className="modal-action justify-between items-center mt-6">
                 {initialData ? (

@@ -5,6 +5,8 @@ import { api } from "../../../convex/_generated/api";
 import { Input } from "../ui/Input";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
+import { TextArea } from "../ui/TextArea";
+
 export function EditEventForm({
     event,
     onClose,
@@ -61,17 +63,14 @@ export function EditEventForm({
                 />
             </div>
 
-            <div className="form-control">
-                <label className="label"><span className="label-text">Descripción (opcional)</span></label>
-                <textarea
-                    className="textarea textarea-bordered w-full"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Notas adicionales..."
-                    rows={3}
-                    disabled={isLoading}
-                />
-            </div>
+            <TextArea
+                label="Descripción (opcional)"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Notas adicionales..."
+                rows={3}
+                disabled={isLoading}
+            />
 
             <div className="modal-action">
                 <button type="button" className="btn" onClick={onClose} disabled={isLoading}>Cancelar</button>

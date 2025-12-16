@@ -18,6 +18,7 @@ import { AddRecipientForm } from "../components/gifts/AddRecipientForm";
 import { EditEventForm } from "../components/gifts/EditEventForm";
 import { UnassignedGiftItem } from "../components/gifts/UnassignedGiftItem";
 import { STATUS_CONFIG, type GiftStatus, sortGifts } from "../components/gifts/GiftConstants";
+import { MobileModal } from "../components/ui/MobileModal";
 
 const STATUS_ICONS = STATUS_CONFIG; // Alias for compatibility if needed
 
@@ -77,7 +78,28 @@ export function GiftEventDetailPage() {
         if (filter === "bought") return group.items.length > 0;
         if (filter === "pending") return group.items.length > 0;
         return true;
+      })
+      .sort((a, b) => {
+        // Sort by "Incomplete" first (people who exemplify "personas sin regalo" or pending gifts)
+        // Incomplete = Has 0 items OR has pending items
+        // Complete = Has items AND all are bought
+        const isBought = (status: string) => ["bought", "wrapped", "delivered"].includes(status);
+
+        const isCompleteA = a.items.length > 0 && a.items.every(i => isBought(i.status));
+        const isCompleteB = b.items.length > 0 && b.items.every(i => isBought(i.status));
+
+        if (isCompleteA !== isCompleteB) {
+          // If A is complete (true) and B is incomplete (false), B comes first.
+          // true > false in sort? 
+          // We want A (complete) > B (incomplete) ? No, we want Incomplete first.
+          // false (incomplete) < true (complete).
+          return isCompleteA ? 1 : -1;
+        }
+
+        // Alphabetical
+        return a.recipient.name.localeCompare(b.recipient.name);
       });
+
   }, [recipientsWithItems, filter]);
 
   // Computed: Flat list of all gifts
@@ -102,15 +124,29 @@ export function GiftEventDetailPage() {
 
   // Computed: Stats
   const stats = useMemo(() => {
-    if (!recipientsWithItems) return { total: 0, bought: 0, pending: 0 };
+    if (!recipientsWithItems) return { total: 0, bought: 0, pending: 0, approxCost: 0 };
     let total = 0;
     let bought = 0;
+    let approxCost = 0;
+
     recipientsWithItems.forEach(({ items }: { items: Doc<"giftItems">[] }) => {
       total += items.length;
       bought += items.filter((i: Doc<"giftItems">) => ["bought", "wrapped", "delivered"].includes(i.status)).length;
+      items.forEach((i) => {
+        if (i.priceEstimate) approxCost += i.priceEstimate;
+      });
     });
-    return { total, bought, pending: total - bought };
-  }, [recipientsWithItems]);
+
+    if (unassignedGifts) {
+      unassignedGifts.forEach((i: Doc<"giftItems">) => {
+        total += 1;
+        if (["bought", "wrapped", "delivered"].includes(i.status)) bought += 1;
+        if (i.priceEstimate) approxCost += i.priceEstimate;
+      });
+    }
+
+    return { total, bought, pending: total - bought, approxCost };
+  }, [recipientsWithItems, unassignedGifts]);
 
   if (!eventId) return null;
   if (event === undefined || recipientsWithItems === undefined) return <PageLoader />;
@@ -293,48 +329,42 @@ export function GiftEventDetailPage() {
       </div>
 
       {/* MODALS */}
-      {showAddRecipient && (
-        <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-lg mb-4">Agregar receptor</h3>
-            <AddRecipientForm
-              eventId={eventId as Id<"giftEvents">}
-              onClose={() => setShowAddRecipient(false)}
-            />
-          </div>
-          <div className="modal-backdrop" onClick={() => setShowAddRecipient(false)} />
-        </div>
-      )}
+      <MobileModal
+        isOpen={showAddRecipient}
+        onClose={() => setShowAddRecipient(false)}
+        title="Agregar receptor"
+      >
+        <AddRecipientForm
+          eventId={eventId as Id<"giftEvents">}
+          onClose={() => setShowAddRecipient(false)}
+        />
+      </MobileModal>
 
-      {(addingToRecipient !== null || editingItem !== null || addingToPool) && (
-        <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-lg mb-4">
-              {editingItem ? "Editar regalo" : addingToPool ? "Agregar regalo al pool" : "Nuevo regalo"}
-            </h3>
-            <GiftItemForm
-              eventId={eventId as Id<"giftEvents">}
-              recipientId={addingToPool ? undefined : (addingToRecipient || editingItem?.giftRecipientId)}
-              initialData={editingItem || undefined}
-              onClose={() => { setAddingToRecipient(null); setEditingItem(null); setAddingToPool(false); }}
-              confirmDialog={confirmDialog}
-            />
-          </div>
-          <div className="modal-backdrop" onClick={() => { setAddingToRecipient(null); setEditingItem(null); setAddingToPool(false); }} />
-        </div>
-      )}
+      <MobileModal
+        isOpen={addingToRecipient !== null || editingItem !== null || addingToPool}
+        onClose={() => { setAddingToRecipient(null); setEditingItem(null); setAddingToPool(false); }}
+        title={editingItem ? "Editar regalo" : addingToPool ? "Agregar regalo al pool" : "Nuevo regalo"}
+      >
+        <GiftItemForm
+          eventId={eventId as Id<"giftEvents">}
+          recipientId={addingToPool ? undefined : (addingToRecipient || editingItem?.giftRecipientId)}
+          initialData={editingItem || undefined}
+          onClose={() => { setAddingToRecipient(null); setEditingItem(null); setAddingToPool(false); }}
+          confirmDialog={confirmDialog}
+        />
+      </MobileModal>
 
-      {showEditEvent && event && (
-        <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-lg mb-4">Editar evento</h3>
-            <EditEventForm
-              event={event}
-              onClose={() => setShowEditEvent(false)}
-            />
-          </div>
-          <div className="modal-backdrop" onClick={() => setShowEditEvent(false)} />
-        </div>
+      {event && (
+        <MobileModal
+          isOpen={showEditEvent}
+          onClose={() => setShowEditEvent(false)}
+          title="Editar evento"
+        >
+          <EditEventForm
+            event={event}
+            onClose={() => setShowEditEvent(false)}
+          />
+        </MobileModal>
       )}
 
       {/* Confirm Modal */}

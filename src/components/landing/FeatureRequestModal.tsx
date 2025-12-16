@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import { Sparkles, Send, X, Lightbulb } from 'lucide-react';
 import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
+import { TextArea } from '../ui/TextArea';
 
 interface FeatureRequestModalProps {
     isOpen: boolean;
@@ -121,19 +123,15 @@ export const FeatureRequestModal: React.FC<FeatureRequestModalProps> = ({ isOpen
                                 />
                             </div>
 
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text font-medium">Descripción</span>
-                                </label>
-                                <textarea
-                                    className="textarea textarea-bordered h-24 rounded-xl focus:textarea-primary bg-base-200/50 w-full"
-                                    placeholder="Cuéntanos más detalles sobre cómo esto ayudaría a tu familia..."
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    required
-                                    disabled={isSubmitting}
-                                ></textarea>
-                            </div>
+                            <TextArea
+                                label="Descripción"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                placeholder="Cuéntanos más detalles sobre cómo esto ayudaría a tu familia..."
+                                className="h-24 rounded-xl bg-base-200/50"
+                                required
+                                disabled={isSubmitting}
+                            />
 
                             <div className="form-control">
                                 <label className="label">

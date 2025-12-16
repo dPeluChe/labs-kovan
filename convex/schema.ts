@@ -335,8 +335,17 @@ export default defineSchema({
   }).index("by_family", ["familyId"]),
 
   // ==================== PLACES (LUGARES) ====================
+  // ==================== PLACES (LUGARES) ====================
+  placeLists: defineTable({
+    familyId: v.id("families"),
+    name: v.string(), // e.g. "GDL", "Japón 2025", "Fin de semana"
+    icon: v.optional(v.string()),
+    description: v.optional(v.string()),
+  }).index("by_family", ["familyId"]),
+
   places: defineTable({
     familyId: v.id("families"),
+    listId: v.optional(v.id("placeLists")), // Link to a group/list
     name: v.string(),
     url: v.optional(v.string()), // Post/red social/recomendación
     mapsUrl: v.optional(v.string()), // Google Maps URL
@@ -351,11 +360,51 @@ export default defineSchema({
       v.literal("activity"),
       v.literal("other")
     ),
+    // Cached status for quick access, but detailed history is in placeVisits
     visited: v.optional(v.boolean()),
-    rating: v.optional(v.number()), // 1-5
-    notes: v.optional(v.string()),
+    rating: v.optional(v.number()), // 1-5 (Current/Latest rating)
+    notes: v.optional(v.string()), // General notes
     addedBy: v.id("users"),
+  })
+    .index("by_family", ["familyId"])
+    .index("by_list", ["listId"]),
+
+  placeVisits: defineTable({
+    placeId: v.id("places"),
+    familyId: v.id("families"),
+    visitDate: v.number(),
+    rating: v.optional(v.number()),
+    notes: v.optional(v.string()), // Review/Bitácora
+    images: v.optional(v.array(v.string())),
+    visitType: v.optional(v.string()), // e.g., "Casual", "Date", "Celebration"
+    visitedBy: v.id("users"),
+  })
+    .index("by_place", ["placeId"])
+    .index("by_family", ["familyId"]),
+
+  // ==================== TRIPS (VIAJES) ====================
+  trips: defineTable({
+    familyId: v.id("families"),
+    name: v.string(), // "Japón 2025"
+    destination: v.optional(v.string()),
+    startDate: v.number(),
+    endDate: v.number(),
+    status: v.union(v.literal("planning"), v.literal("confirmed"), v.literal("active"), v.literal("completed")),
+    budget: v.optional(v.number()),
+    coverImage: v.optional(v.string()),
   }).index("by_family", ["familyId"]),
+
+  tripPlans: defineTable({
+    tripId: v.id("trips"),
+    dayDate: v.number(), // Specific date or day index
+    order: v.number(), // Order within the day
+    placeId: v.optional(v.id("places")), // Optional link to a saved spot
+    activity: v.string(), // "Breakfast at...", "Visit Museum"
+    notes: v.optional(v.string()),
+    isCompleted: v.boolean(),
+  })
+    .index("by_trip", ["tripId"])
+    .index("by_trip_date", ["tripId", "dayDate"]),
 
   // ==================== FAMILY INVITES ====================
   familyInvites: defineTable({

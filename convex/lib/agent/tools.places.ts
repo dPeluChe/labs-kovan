@@ -43,7 +43,6 @@ export async function handleAddPlace(context: ToolContext, args: Record<string, 
         address,
         highlight,
         notes,
-        addedBy: context.userId
     });
 
     return { success: true, message: `Lugar guardado: ${name} en ${category}.` };

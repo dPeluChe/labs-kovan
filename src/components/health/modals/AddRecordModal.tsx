@@ -4,6 +4,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Input } from "../../ui/Input";
 import { DateInput } from "../../ui/DateInput";
+import { TextArea } from "../../ui/TextArea";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
 
@@ -65,16 +66,13 @@ export function AddRecordModal({
                     onChange={setDate}
                 />
 
-                <div className="form-control">
-                    <label className="label"><span className="label-text">Descripción</span></label>
-                    <textarea
-                        className="textarea textarea-bordered w-full"
-                        placeholder="Notas, resultados, observaciones..."
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        rows={3}
-                    />
-                </div>
+                <TextArea
+                    label="Descripción"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Notas, resultados, observaciones..."
+                    rows={3}
+                />
 
                 <div className="grid grid-cols-2 gap-2">
                     <Input

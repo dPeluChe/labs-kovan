@@ -2,9 +2,11 @@
 import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
+import { type ConfirmOptions } from "../../../hooks/useConfirmModal";
 import { MobileModal } from "../../ui/MobileModal";
 import { Input } from "../../ui/Input";
 import { DateInput } from "../../ui/DateInput";
+import { TextArea } from "../../ui/TextArea";
 import { Trash2, Pill, CheckCircle, PauseCircle, StopCircle, Clock } from "lucide-react";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 
@@ -15,7 +17,7 @@ export function MedicationDetailModal({
 }: {
     medication: Doc<"medications">;
     onClose: () => void;
-    confirm: (options: any) => Promise<boolean>;
+    confirm: (options: ConfirmOptions) => Promise<boolean>;
 }) {
     const updateMedication = useMutation(api.health.updateMedication);
     const deleteMedication = useMutation(api.health.deleteMedication);
@@ -40,7 +42,7 @@ export function MedicationDetailModal({
         } else if (status === "completed" && !endDate) {
             setEndDate(new Date().toISOString().split("T")[0]); // Default to today if completed
         }
-    }, [status]);
+    }, [status, endDate]);
 
     const handleDelete = async () => {
         const confirmed = await confirm({
@@ -145,9 +147,7 @@ export function MedicationDetailModal({
                             value={startDate}
                             onChange={setStartDate}
                         />
-                        {/* Show end date only if completed, or allow user to see it if previously set? 
-                            User logic: "si esta activo no tenemos fecha de fin... si esta pausado... suspendido... terminado si debe tener fecha"
-                        */}
+                        {/* Show end date only if completed */}
                         {status === "completed" && (
                             <DateInput
                                 label="Fecha fin"
@@ -158,15 +158,13 @@ export function MedicationDetailModal({
                         {status !== "completed" && <div className="hidden sm:block"></div>}
                     </div>
 
-                    <div className="form-control">
-                        <label className="label"><span className="label-text">Notas</span></label>
-                        <textarea
-                            className="textarea textarea-bordered h-24 w-full"
-                            placeholder="Indicaciones adicionales..."
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                        />
-                    </div>
+                    <TextArea
+                        label="Notas"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Indicaciones adicionales..."
+                        className="h-24"
+                    />
 
                     <div className="modal-action">
                         <button type="button" className="btn" onClick={() => setIsEditing(false)}>Cancelar</button>
@@ -181,19 +179,7 @@ export function MedicationDetailModal({
         <MobileModal
             isOpen={true}
             onClose={onClose}
-            title={
-                // The MobileModal title accepts a string only in my implementation?
-                // Let's check MobileModal definition. It accepts `string` in `title: string`.
-                // I will convert it to string for titleprop and render custom header content inside if needed, OR update MobileModal to accept ReactNode.
-                // MobileModal was defined earlier as `title: string`. 
-                // I will revert to string and put badge inside content or update MobileModal.
-                // Let's assume for now I should just pass string "Detalle de Medicación" and render badge in body to avoid breaking types.
-                // WAIT, User said: "ajustaria solamente que a la derecha de "detalle de medicamento" venga el status "activo""
-                // I need to update MobileModal to accept ReactNode for title or just render it below.
-                // To minimize risk, I will render it at top of body. But user asked for it in title.
-                // I'll check MobileModal.tsx later. For now, I'll pass simple string and put a nice header inside the modal body top.
-                "Detalle de Medicación"
-            }
+            title="Detalle de Medicación"
         >
             <div className="space-y-6">
                 {/* Header inside body to support custom layout requested */}
