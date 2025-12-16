@@ -22,6 +22,7 @@ export function EditTripModal({ trip, onClose }: EditTripModalProps) {
     const [endDate, setEndDate] = useState(trip.endDate ? new Date(trip.endDate).toISOString().split('T')[0] : "");
     const [budget, setBudget] = useState(trip.budget ? trip.budget.toString() : "");
     const [description, setDescription] = useState(trip.description || "");
+    const [status, setStatus] = useState(trip.status);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -36,6 +37,7 @@ export function EditTripModal({ trip, onClose }: EditTripModalProps) {
                 destination: destination.trim() || undefined,
                 startDate: startDate ? new Date(startDate).getTime() : undefined,
                 endDate: endDate ? new Date(endDate).getTime() : undefined,
+                status: status as "planning" | "confirmed" | "active" | "completed",
                 budget: budget ? parseFloat(budget) : undefined,
                 description: description.trim() || undefined,
             });
@@ -90,6 +92,20 @@ export function EditTripModal({ trip, onClose }: EditTripModalProps) {
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
                 />
+
+                <div className="form-control">
+                    <label className="label"><span className="label-text">Estado del viaje</span></label>
+                    <select
+                        className="select select-bordered w-full"
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value as "planning" | "confirmed" | "active" | "completed")}
+                    >
+                        <option value="planning">Planeando</option>
+                        <option value="confirmed">Confirmado</option>
+                        <option value="active">En curso</option>
+                        <option value="completed">Completado</option>
+                    </select>
+                </div>
 
                 <div className="modal-action">
                     <button type="button" className="btn" onClick={onClose}>Cancelar</button>

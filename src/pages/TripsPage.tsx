@@ -19,6 +19,14 @@ export function TripsPage() {
     const familyId = currentFamily?._id;
     const trips = useQuery(api.trips.getTrips, familyId ? { familyId } : "skip");
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
+
+    // Filter Logic
+    const filteredTrips = trips?.filter(t => {
+        const isCompleted = t.status === "completed";
+        if (filter === "upcoming") return !isCompleted;
+        return isCompleted;
+    });
 
     if (trips === undefined) return <PageLoader />;
 
@@ -37,24 +45,45 @@ export function TripsPage() {
                 }
             />
 
+            <div className="px-4 mb-4">
+                <div role="tablist" className="tabs tabs-boxed bg-base-200/50 p-1 w-fit">
+                    <a
+                        role="tab"
+                        className={`tab ${filter === 'upcoming' ? 'tab-active bg-base-100 shadow-sm transition-all' : ''}`}
+                        onClick={() => setFilter('upcoming')}
+                    >
+                        Próximos
+                    </a>
+                    <a
+                        role="tab"
+                        className={`tab ${filter === 'past' ? 'tab-active bg-base-100 shadow-sm transition-all' : ''}`}
+                        onClick={() => setFilter('past')}
+                    >
+                        Historial
+                    </a>
+                </div>
+            </div>
+
             <div className="px-4">
-                {trips.length === 0 ? (
+                {filteredTrips?.length === 0 ? (
                     <EmptyState
                         icon={Plane}
-                        title="Sin viajes planeados"
-                        description="Crea tu primer viaje para empezar a organizar tu itinerario."
+                        title={filter === 'upcoming' ? "Sin viajes próximos" : "Sin historial"}
+                        description={filter === 'upcoming' ? "Crea tu primer viaje para empezar a organizar tu itinerario." : "Tus viajes completados aparecerán aquí."}
                         action={
-                            <button
-                                onClick={() => setIsCreateOpen(true)}
-                                className="btn btn-primary"
-                            >
-                                Crear viaje
-                            </button>
+                            filter === 'upcoming' ? (
+                                <button
+                                    onClick={() => setIsCreateOpen(true)}
+                                    className="btn btn-primary"
+                                >
+                                    Crear viaje
+                                </button>
+                            ) : null
                         }
                     />
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {trips.map((trip) => (
+                        {filteredTrips?.map((trip) => (
                             <Link key={trip._id} to={`/trips/${trip._id}`}>
                                 <motion.div
                                     whileTap={{ scale: 0.98 }}
@@ -67,8 +96,8 @@ export function TripsPage() {
                                         ) : (
                                             <Plane className="w-12 h-12 text-white/50" />
                                         )}
-                                        <div className="absolute top-2 right-2 badge badge-sm bg-black/30 text-white border-0 backdrop-blur-md uppercase text-[10px] font-bold tracking-wider">
-                                            {trip.status === 'planning' ? 'Planeando' : trip.status}
+                                        <div className={`absolute top-2 right-2 badge badge-sm ${trip.status === 'completed' ? 'badge-ghost bg-base-100/50' : 'bg-black/30 text-white'} border-0 backdrop-blur-md uppercase text-[10px] font-bold tracking-wider`}>
+                                            {trip.status === 'planning' ? 'Planeando' : trip.status === 'completed' ? 'Completado' : trip.status}
                                         </div>
                                     </div>
 
@@ -94,6 +123,7 @@ export function TripsPage() {
                                                     </div>
 
                                                     {(() => {
+                                                        if (trip.status === 'completed') return null;
                                                         const now = new Date();
                                                         now.setHours(0, 0, 0, 0);
                                                         const startDate = new Date(trip.startDate);
@@ -101,7 +131,7 @@ export function TripsPage() {
                                                         const diffTime = startDate.getTime() - now.getTime();
                                                         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                                                        if (diffDays < 0) return null; // Or show 'Pasado'
+                                                        if (diffDays < 0) return null;
                                                         if (diffDays === 0) return <span className="text-xs font-bold text-success animate-pulse">¡Hoy comienza!</span>;
                                                         if (diffDays === 1) return <span className="text-xs font-bold text-warning">¡Mañana!</span>;
                                                         return <span className="text-xs font-medium text-primary">Faltan {diffDays} días</span>;

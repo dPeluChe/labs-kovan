@@ -9,6 +9,8 @@ interface DateInputProps {
   disabled?: boolean;
   required?: boolean;
   className?: string;
+  min?: string;
+  max?: string;
 }
 
 export function DateInput({
@@ -19,6 +21,8 @@ export function DateInput({
   disabled = false,
   required = false,
   className = "",
+  min,
+  max,
 }: DateInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -52,9 +56,8 @@ export function DateInput({
       )}
       <div
         onClick={handleContainerClick}
-        className={`relative flex items-center input input-bordered w-full cursor-pointer ${
-          disabled ? "opacity-50 cursor-not-allowed" : "hover:border-primary"
-        }`}
+        className={`relative flex items-center input input-bordered w-full cursor-pointer ${disabled ? "opacity-50 cursor-not-allowed" : "hover:border-primary"
+          }`}
       >
         <Calendar className="w-4 h-4 text-base-content/50 mr-2 flex-shrink-0" />
         <span className={`flex-1 ${value ? "" : "text-base-content/40"}`}>
@@ -66,6 +69,8 @@ export function DateInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
+          min={min}
+          max={max}
           className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
           style={{ colorScheme: "dark light" }}
         />

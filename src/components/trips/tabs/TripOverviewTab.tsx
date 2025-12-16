@@ -36,8 +36,39 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
     const importantBookings = bookings?.filter(b => b.type === "flight" || b.type === "hotel")
         .sort((a, b) => (a.startDate || 0) - (b.startDate || 0)) || [];
 
+    // Agenda Logic
+    const todayTimestamp = new Date().setHours(0, 0, 0, 0);
+
+    // Find plans for today
+    let agendaTitle = "Agenda de Hoy";
+    let agendaDateDisplay = new Date(todayTimestamp).toLocaleDateString("es-MX", { weekday: 'long', day: 'numeric', month: 'long' });
+    let agendaPlans = plans?.filter(p => p.dayDate === todayTimestamp) || [];
+
+    // If no plans today, find next scheduled day
+    if (agendaPlans.length === 0 && plans && plans.length > 0) {
+        // Sort plans by date
+        const sortedPlans = [...plans].sort((a, b) => (a.dayDate || 0) - (b.dayDate || 0));
+        // Find first plan in future (or today if I messed up logic, but we checked today equality above)
+        // Actually we want nearest future date.
+        const nextPlan = sortedPlans.find(p => (p.dayDate || 0) > todayTimestamp);
+
+        if (nextPlan && nextPlan.dayDate) {
+            const nextDate = nextPlan.dayDate;
+            agendaPlans = plans.filter(p => p.dayDate === nextDate);
+            agendaTitle = "Próxima Agenda";
+            agendaDateDisplay = new Date(nextDate).toLocaleDateString("es-MX", { weekday: 'long', day: 'numeric', month: 'long' });
+        } else if (sortedPlans.length > 0) {
+            // Fallback: Show first day of trip if everything is in past? Or just last day?
+            // Maybe show "Primer día" if trip hasn't started.
+            // Let's just show top 3 upcoming or nothing.
+        }
+    }
+
+    // Check if trip is completed or far past?
+    // User wants "Activities of the day".
+
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             {/* Countdown / Welcome Card */}
             <div className={`card overflow-hidden shadow-md text-white border-0 relative ${daysToGo > 0 ? "bg-gradient-to-br from-indigo-500 to-purple-600" : "bg-gradient-to-br from-emerald-500 to-teal-600"
                 }`}>
@@ -70,7 +101,52 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
                 </div>
             </div>
 
-            {/* Quick Stats Grid */}
+            {/* Agenda Section (Primary) */}
+            <div className="space-y-2">
+                <div className="flex justify-between items-end px-1">
+                    <div>
+                        <h3 className="font-bold text-lg leading-none">{agendaTitle}</h3>
+                        <p className="text-xs text-base-content/60 capitalize">{agendaDateDisplay}</p>
+                    </div>
+                    <button onClick={() => onChangeTab("itinerary")} className="btn btn-xs btn-ghost text-primary">
+                        Ver todo <ArrowRight className="w-3 h-3 ml-1" />
+                    </button>
+                </div>
+
+                <div className="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
+                    {agendaPlans.length > 0 ? (
+                        <div className="divide-y divide-base-200">
+                            {agendaPlans.map(plan => (
+                                <div key={plan._id} className="p-3 flex gap-3 items-start hover:bg-base-50 transition-colors">
+                                    <div className="w-12 pt-1 flex flex-col items-center shrink-0">
+                                        <span className="font-mono text-xs font-bold text-base-content/70">
+                                            {plan.time || "--:--"}
+                                        </span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className={`font-medium text-sm ${plan.isCompleted ? 'line-through text-base-content/50' : ''}`}>
+                                            {plan.activity}
+                                        </div>
+                                        {plan.notes && (
+                                            <p className="text-xs text-base-content/60 truncate">{plan.notes}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="p-6 text-center text-base-content/50">
+                            <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">No hay actividades programadas para este periodo.</p>
+                            <button onClick={() => onChangeTab("itinerary")} className="btn btn-sm btn-outline btn-primary mt-3">
+                                Planear Itinerario
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Secondary Stats Grid */}
             <div className="grid grid-cols-2 gap-3">
                 <div
                     onClick={() => onChangeTab("finances")}
@@ -84,7 +160,6 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
                     </div>
                     <div>
                         <div className="text-lg font-bold">${totalSpent.toLocaleString()}</div>
-                        <div className="text-[10px] text-base-content/50">Gastado</div>
                     </div>
                 </div>
 
@@ -96,7 +171,7 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
                         <div className="p-1.5 bg-blue-100 text-blue-600 rounded-md">
                             <Calendar className="w-4 h-4" />
                         </div>
-                        <span className="text-xs font-semibold text-base-content/60">Planes</span>
+                        <span className="text-xs font-semibold text-base-content/60">Progreso</span>
                     </div>
                     <div className="w-full">
                         <div className="flex justify-between items-end mb-1">
@@ -144,31 +219,13 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
                                                     <span>• {new Date(booking.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span>
                                                 )}
                                             </div>
-
-                                            {booking.startDate && (
-                                                <div className="text-xs mt-1.5 flex items-center gap-1">
-                                                    {(() => {
-                                                        const now = new Date();
-                                                        now.setHours(0, 0, 0, 0);
-                                                        const bookDate = new Date(booking.startDate);
-                                                        bookDate.setHours(0, 0, 0, 0);
-                                                        const diffTime = bookDate.getTime() - now.getTime();
-                                                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                                                        if (diffDays < 0) return <span className="text-base-content/40">Completado</span>;
-                                                        if (diffDays === 0) return <span className="text-success font-bold">¡Hoy!</span>;
-                                                        if (diffDays === 1) return <span className="text-warning font-bold">Mañana</span>;
-                                                        return <span className="text-primary font-medium">Faltan {diffDays} días</span>;
-                                                    })()}
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                 );
                             })
                         ) : (
                             <div className="p-4 text-center text-sm text-base-content/60">
-                                {bookings.length} reservas registradas (sin vuelos ni hoteles destacados).
+                                {bookings.length} reservas registradas.
                             </div>
                         )}
                     </div>

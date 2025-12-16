@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { ArrowLeft, Calendar, Plus, LayoutDashboard, Plane, DollarSign, Lightbulb, Pencil, MapPin, CheckCircle2, Circle, Building, Car, Ticket, FileText } from "lucide-react";
 import { MobileModal } from "../components/ui/MobileModal";
+import { SwipeableCard } from "../components/ui/SwipeableCard";
 import { Input } from "../components/ui/Input";
 import { TextArea } from "../components/ui/TextArea";
 import { DateInput } from "../components/ui/DateInput";
@@ -13,6 +14,7 @@ import { TripBookingsTab } from "../components/trips/tabs/TripBookingsTab";
 import { TripFinancesTab } from "../components/trips/tabs/TripFinancesTab";
 import { TripIdeasTab } from "../components/trips/tabs/TripIdeasTab";
 import { EditTripModal } from "../components/trips/modals/EditTripModal";
+import { TripPlanDetailModal } from "../components/trips/modals/TripPlanDetailModal";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 
 // Helper to normalized mixed items
@@ -27,11 +29,14 @@ export function TripDetailPage() {
     const plans = useQuery(api.trips.getTripPlans, { tripId: tripId as Id<"trips"> });
     const bookings = useQuery(api.trips.getTripBookings, { tripId: tripId as Id<"trips"> }); // Need bookings here
     const deletePlan = useMutation(api.trips.deleteTripPlan);
+    const toggleCompletion = useMutation(api.trips.togglePlanCompletion);
 
     const [activeTab, setActiveTab] = useState("overview");
     const [isAddPlanOpen, setIsAddPlanOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [preselectedPlaceId, setPreselectedPlaceId] = useState<Id<"places"> | undefined>(undefined);
+    const [selectedPlanId, setSelectedPlanId] = useState<Id<"tripPlans"> | undefined>(undefined);
+    const [planToEditId, setPlanToEditId] = useState<Id<"tripPlans"> | undefined>(undefined);
 
     if (trip === undefined || plans === undefined || bookings === undefined) return null;
     if (trip === null) return <div>Viaje no encontrado</div>;
@@ -167,6 +172,8 @@ export function TripDetailPage() {
                                                             key={item._id}
                                                             plan={item}
                                                             onDelete={() => deletePlan({ planId: item._id })}
+                                                            onCheckIn={() => toggleCompletion({ planId: item._id })}
+                                                            onSelect={() => setSelectedPlanId(item._id)}
                                                         />
                                                     );
                                                 })
@@ -222,9 +229,13 @@ export function TripDetailPage() {
                     familyId={trip.familyId}
                     placeListId={trip.placeListId}
                     initialPlaceId={preselectedPlaceId}
+                    minDate={trip.startDate}
+                    maxDate={trip.endDate}
+                    editPlanId={planToEditId}
                     onClose={() => {
                         setIsAddPlanOpen(false);
                         setPreselectedPlaceId(undefined);
+                        setPlanToEditId(undefined);
                     }}
                 />
             )}
@@ -235,53 +246,106 @@ export function TripDetailPage() {
                     onClose={() => setIsEditOpen(false)}
                 />
             )}
+
+            {selectedPlanId && (
+                <TripPlanDetailModal
+                    planId={selectedPlanId}
+                    onClose={() => setSelectedPlanId(undefined)}
+                    onEdit={() => {
+                        setPlanToEditId(selectedPlanId);
+                        setSelectedPlanId(undefined);
+                        setIsAddPlanOpen(true);
+                    }}
+                    onDelete={() => {
+                        deletePlan({ planId: selectedPlanId });
+                        setSelectedPlanId(undefined);
+                    }}
+                    onToggleCompletion={() => {
+                        toggleCompletion({ planId: selectedPlanId });
+                        // Don't close, let user see status change? Or close.
+                        // User might want to toggle and stay.
+                        // But modal has button inside.
+                    }}
+                />
+            )}
         </div>
     );
 }
 
-function PlanItem({ plan, onDelete }: { plan: Doc<"tripPlans"> & { placeName?: string }, onDelete?: () => void }) {
-    const toggleCompletion = useMutation(api.trips.togglePlanCompletion);
-
+function PlanItem({ plan, onDelete, onCheckIn, onSelect }: {
+    plan: Doc<"tripPlans"> & { placeName?: string },
+    onDelete?: () => void,
+    onCheckIn: () => void,
+    onSelect: () => void
+}) {
     return (
-        <div className={`card bg - base - 100 shadow - sm border border - base - 200 p - 3 flex flex - row gap - 3 items - start ${plan.isCompleted ? 'opacity-60 bg-base-100/50' : ''} `}>
-            <button
-                onClick={() => toggleCompletion({ planId: plan._id })}
-                className={`mt - 1 shrink - 0 ${plan.isCompleted ? 'text-success' : 'text-base-content/30 hover:text-primary transition-colors'} `}
-            >
-                {plan.isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
-            </button>
-
-            <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-start gap-2">
-                    <span className={`font - medium leading - tight ${plan.isCompleted ? 'line-through text-base-content/50' : ''} `}>
-                        {plan.activity}
-                    </span>
-                    {plan.time && (
-                        <span className="text-xs font-mono bg-base-200 px-1.5 py-0.5 rounded text-base-content/70 shrink-0">
-                            {plan.time}
-                        </span>
+        <SwipeableCard
+            className="mb-1"
+            contentClassName={`relative bg-base-100 p-3 border border-base-200 rounded-xl shadow-sm z-10 select-none ${plan.isCompleted ? 'bg-base-200 opacity-60' : ''}`}
+            actionWidth={100} // Adjusted width for 2 buttons
+            onClick={onSelect}
+            actions={({ close }) => (
+                <>
+                    <button
+                        className={`btn btn-sm btn-circle shadow-sm ${plan.isCompleted ? 'btn-warning text-white' : 'btn-success text-white'}`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            close();
+                            onCheckIn();
+                        }}
+                    >
+                        {plan.isCompleted ? <Circle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                    </button>
+                    {onDelete && (
+                        <button
+                            className="btn btn-sm btn-circle btn-error text-white shadow-sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                close();
+                                onDelete();
+                            }}
+                        >
+                            <span className="text-lg">×</span>
+                        </button>
                     )}
-                </div>
-
-                {plan.placeName && (
-                    <div className="text-xs text-primary mt-0.5 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" /> {plan.placeName}
+                </>
+            )}
+        >
+            <div className="flex gap-3 items-start">
+                {plan.time ? (
+                    <div className="pt-0.5 flex flex-col items-center min-w-[3rem] border-r border-base-content/10 pr-2 mr-1">
+                        <span className="font-mono text-sm font-bold text-primary">{plan.time}</span>
+                        {plan.isCompleted && <span className="text-[10px] text-success font-bold uppercase mt-1">Listo</span>}
+                    </div>
+                ) : (
+                    /* Minimal indicator for untimed activities */
+                    <div className="pt-1.5 flex flex-col items-center min-w-[1rem] mr-2">
+                        <div className={`w-2 h-2 rounded-full ${plan.isCompleted ? 'bg-success' : 'bg-primary/20'}`} />
                     </div>
                 )}
 
-                {plan.notes && (
-                    <p className="text-xs text-base-content/60 mt-1 line-clamp-2">
-                        {plan.notes}
-                    </p>
-                )}
+                <div className="flex-1 min-w-0">
+                    <div className={`font-medium leading-tight ${plan.isCompleted ? 'line-through text-base-content/50' : 'text-base-content'}`}>
+                        {plan.activity}
+                    </div>
+
+                    {plan.placeName && (
+                        <div className="text-xs text-primary/80 mt-0.5 flex items-center gap-1 font-medium">
+                            <MapPin className="w-3 h-3" /> {plan.placeName}
+                        </div>
+                    )}
+
+                    {plan.notes && (
+                        <p className="text-xs text-base-content/60 mt-1 line-clamp-2">
+                            {plan.notes}
+                        </p>
+                    )}
+                </div>
+
+                {/* Drag Hint */}
+                <div className="w-1 h-8 rounded-full bg-base-200 ml-1 self-center shrink-0 opacity-50" />
             </div>
-            {/* Delete Option (can be improved with a dropdown menu later) */}
-            {onDelete && (
-                <button onClick={onDelete} className="btn btn-ghost btn-xs text-error opacity-0 group-hover:opacity-100 transition-opacity">
-                    ×
-                </button>
-            )}
-        </div>
+        </SwipeableCard>
     );
 }
 
@@ -294,31 +358,46 @@ const BOOKING_ICONS = {
     other: FileText
 };
 
-function AddPlanModal({ tripId, familyId, placeListId, initialPlaceId, onClose }: { tripId: Id<"trips">, familyId: Id<"families">, placeListId?: Id<"placeLists"> | null, initialPlaceId?: Id<"places">, onClose: () => void }) {
+function AddPlanModal({ tripId, familyId, placeListId, initialPlaceId, minDate, maxDate, editPlanId, onClose }: {
+    tripId: Id<"trips">,
+    familyId: Id<"families">,
+    placeListId?: Id<"placeLists"> | null,
+    initialPlaceId?: Id<"places">,
+    minDate?: number,
+    maxDate?: number,
+    editPlanId?: Id<"tripPlans">,
+    onClose: () => void
+}) {
     const addPlan = useMutation(api.trips.addTripPlan);
+    const updatePlan = useMutation(api.trips.updateTripPlan);
 
     // Conditionally fetch places based on list ID
     const places = useQuery(api.places.getPlaces, { familyId, listId: placeListId || undefined });
+    const planToEdit = useQuery(api.trips.getTripPlan, editPlanId ? { planId: editPlanId } : "skip");
 
     const [activity, setActivity] = useState("");
     const [placeId, setPlaceId] = useState<Id<"places"> | "">(initialPlaceId || "");
     const [date, setDate] = useState("");
+    const [time, setTime] = useState("");
+    const [notes, setNotes] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Load data for editing
+    useEffect(() => {
+        if (planToEdit) {
+            setActivity(planToEdit.activity || "");
+            setPlaceId(planToEdit.placeId || "");
+            if (planToEdit.dayDate) {
+                // Ensure correct date string format (YYYY-MM-DD)
+                const d = new Date(planToEdit.dayDate);
+                setDate(d.toISOString().split('T')[0]);
+            }
+            setTime(planToEdit.time || "");
+            setNotes(planToEdit.notes || "");
+        }
+    }, [planToEdit]);
 
     // Pre-fill activity name if initialPlaceId is present and places loaded
-    // Need useEffect or improved logic.
-    // Let's just improve the logic inside the component body or rely on user interaction?
-    // User expects "Add to Itinerary" to likely pre-fill the name.
-
-    // Quick fix: when places load, if placeId is set and activity is empty, set it.
-    // Or just set it on mount if possible.
-
-    // Let's use an effect for the initial setup if places are available or when they become available.
-    // But hooks order...
-    // simpler:
-
-
-    // If we have an initialPlaceId and empty activity, we want to set activity.
-    // But we don't want to overwrite if user types.
     // Let's use useState default if possible, but places might be undefined initially.
     // We'll use an effect.
 
@@ -330,10 +409,6 @@ function AddPlanModal({ tripId, familyId, placeListId, initialPlaceId, onClose }
             }
         }
     }, [initialPlaceId, places, activity]); // Added activity to dependencies to prevent re-setting if user types
-
-    const [time, setTime] = useState("");
-    const [notes, setNotes] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
 
     // Auto-fill activity name when place is selected if empty
     const handlePlaceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -353,22 +428,37 @@ function AddPlanModal({ tripId, familyId, placeListId, initialPlaceId, onClose }
 
         setIsLoading(true);
         try {
-            await addPlan({
-                tripId,
-                placeId: placeId ? (placeId as Id<"places">) : undefined,
-                activity: activity.trim(),
-                dayDate: date ? new Date(date + "T12:00:00").getTime() : undefined,
-                time: time || undefined,
-                notes: notes.trim() || undefined,
-            });
+            const dayTimestamp = date ? new Date(date + "T12:00:00").getTime() : undefined;
+
+            if (editPlanId) {
+                await updatePlan({
+                    planId: editPlanId,
+                    activity: activity.trim(),
+                    placeId: placeId && placeId !== "" ? (placeId as Id<"places">) : undefined,
+                    dayDate: dayTimestamp,
+                    time: time || undefined,
+                    notes: notes.trim() || undefined,
+                });
+            } else {
+                await addPlan({
+                    tripId,
+                    placeId: placeId && placeId !== "" ? (placeId as Id<"places">) : undefined,
+                    activity: activity.trim(),
+                    dayDate: dayTimestamp,
+                    time: time || undefined,
+                    notes: notes.trim() || undefined,
+                });
+            }
             onClose();
+        } catch (error) {
+            console.error("Error saving plan:", error);
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <MobileModal isOpen onClose={onClose} title="Nueva Actividad">
+        <MobileModal isOpen onClose={onClose} title={editPlanId ? "Editar Actividad" : "Nueva Actividad"}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="form-control">
                     <label className="label"><span className="label-text">Lugar (Opcional)</span></label>
@@ -408,6 +498,8 @@ function AddPlanModal({ tripId, familyId, placeListId, initialPlaceId, onClose }
                         label="Fecha (Opcional)"
                         value={date}
                         onChange={setDate}
+                        min={minDate ? new Date(minDate).toISOString().split('T')[0] : undefined}
+                        max={maxDate ? new Date(maxDate).toISOString().split('T')[0] : undefined}
                     />
                     <Input
                         label="Hora (Opcional)"

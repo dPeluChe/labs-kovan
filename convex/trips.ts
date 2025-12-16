@@ -185,6 +185,13 @@ export const getTripPlans = query({
     },
 });
 
+export const getTripPlan = query({
+    args: { planId: v.id("tripPlans") },
+    handler: async (ctx, args) => {
+        return await ctx.db.get(args.planId);
+    },
+});
+
 export const addTripPlan = mutation({
     args: {
         tripId: v.id("trips"),
@@ -228,6 +235,7 @@ export const updateTripPlan = mutation({
         notes: v.optional(v.string()),
         isCompleted: v.optional(v.boolean()),
         cost: v.optional(v.number()),
+        placeId: v.optional(v.id("places")),
     },
     handler: async (ctx, args) => {
         const { planId, ...updates } = args;
