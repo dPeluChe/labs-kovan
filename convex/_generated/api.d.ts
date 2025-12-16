@@ -27,6 +27,7 @@ import type * as loans from "../loans.js";
 import type * as petNutrition from "../petNutrition.js";
 import type * as places from "../places.js";
 import type * as recipes from "../recipes.js";
+import type * as trips from "../trips.js";
 import type * as users from "../users.js";
 import type * as vehicles from "../vehicles.js";
 
@@ -56,6 +57,7 @@ declare const fullApi: ApiFromModules<{
   petNutrition: typeof petNutrition;
   places: typeof places;
   recipes: typeof recipes;
+  trips: typeof trips;
   users: typeof users;
   vehicles: typeof vehicles;
 }>;

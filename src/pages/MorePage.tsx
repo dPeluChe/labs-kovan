@@ -20,6 +20,7 @@ import {
   LayoutGrid,
   List,
   Cat,
+  Plane,
 } from "lucide-react";
 
 const menuItems = [
@@ -64,6 +65,13 @@ const menuItems = [
     label: "Lugares",
     description: "Lugares por conocer",
     color: "bg-rose-500/10 text-rose-600",
+  },
+  {
+    to: "/trips",
+    icon: Plane,
+    label: "Viajes",
+    description: "Tus aventuras",
+    color: "bg-cyan-500/10 text-cyan-600",
   },
   {
     to: "/collections",

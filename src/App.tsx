@@ -35,6 +35,8 @@ import { ContactsPage } from "./pages/ContactsPage";
 import { ActivitiesPage } from "./pages/ActivitiesPage";
 import AgentPage from "./pages/AgentPage";
 import { LandingPage } from "./pages/LandingPage";
+import { TripsPage } from "./pages/TripsPage";
+import { TripDetailPage } from "./pages/TripDetailPage";
 
 function AppRoutes() {
   const { user, isLoading: authLoading } = useAuth();
@@ -83,6 +85,8 @@ function AppRoutes() {
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/places/visits" element={<PlaceVisitsPage />} />
         <Route path="/places" element={<PlacesPage />} />
+        <Route path="/trips" element={<TripsPage />} />
+        <Route path="/trips/:tripId" element={<TripDetailPage />} />
         <Route path="/activities" element={<ActivitiesPage />} />
         <Route path="/agent" element={<AgentPage />} />
         <Route path="/settings" element={<SettingsPage />} />

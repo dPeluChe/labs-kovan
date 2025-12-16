@@ -6,7 +6,8 @@ const EXPENSE_TYPE = v.union(
   v.literal("general"),
   v.literal("subscription"),
   v.literal("vehicle"),
-  v.literal("gift")
+  v.literal("gift"),
+  v.literal("trip")
 );
 
 const CATEGORY_TYPE = v.union(
@@ -21,29 +22,30 @@ const CATEGORY_TYPE = v.union(
   v.literal("gifts"),
   v.literal("vehicle"),
   v.literal("subscription"),
+  v.literal("trip"),
   v.literal("other")
 );
 
 // ==================== QUERIES ====================
 export const getExpenses = query({
-  args: { 
-    familyId: v.id("families"), 
+  args: {
+    familyId: v.id("families"),
     type: v.optional(EXPENSE_TYPE),
-    limit: v.optional(v.number()) 
+    limit: v.optional(v.number())
   },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
-    
+
     if (args.type) {
       return await ctx.db
         .query("expenses")
-        .withIndex("by_family_type", (q) => 
+        .withIndex("by_family_type", (q) =>
           q.eq("familyId", args.familyId).eq("type", args.type!)
         )
         .order("desc")
         .take(limit);
     }
-    
+
     return await ctx.db
       .query("expenses")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -80,6 +82,17 @@ export const getExpensesByGiftEvent = query({
     return await ctx.db
       .query("expenses")
       .withIndex("by_gift_event", (q) => q.eq("giftEventId", args.giftEventId))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const getExpensesByTrip = query({
+  args: { tripId: v.id("trips") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("expenses")
+      .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
       .order("desc")
       .collect();
   },
@@ -149,6 +162,7 @@ export const createExpense = mutation({
     paidBy: v.optional(v.id("users")),
     notes: v.optional(v.string()),
     // Relaciones opcionales
+    tripId: v.optional(v.id("trips")),
     vehicleId: v.optional(v.id("vehicles")),
     vehicleEventId: v.optional(v.id("vehicleEvents")),
     subscriptionId: v.optional(v.id("subscriptions")),
@@ -254,7 +268,7 @@ export const deleteSubscription = mutation({
       .query("expenses")
       .withIndex("by_subscription", (q) => q.eq("subscriptionId", args.subscriptionId))
       .collect();
-    
+
     await Promise.all(expenses.map((e) => ctx.db.delete(e._id)));
     return await ctx.db.delete(args.subscriptionId);
   },

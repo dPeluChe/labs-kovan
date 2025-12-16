@@ -256,7 +256,8 @@ export default defineSchema({
       v.literal("general"),      // Gasto puntual normal
       v.literal("subscription"), // Pago de suscripción
       v.literal("vehicle"),      // Gasto de auto
-      v.literal("gift")          // Gasto de regalo
+      v.literal("gift"),          // Gasto de regalo
+      v.literal("trip")           // Gasto de viaje
     ),
 
     // Categoría secundaria (para reportes y filtros)
@@ -272,10 +273,12 @@ export default defineSchema({
       v.literal("gifts"),
       v.literal("vehicle"),
       v.literal("subscription"),
+      v.literal("trip"),
       v.literal("other")
     ),
 
     // Relaciones opcionales (para conectar con otros módulos)
+    tripId: v.optional(v.id("trips")),
     vehicleId: v.optional(v.id("vehicles")),
     vehicleEventId: v.optional(v.id("vehicleEvents")),
     subscriptionId: v.optional(v.id("subscriptions")),
@@ -292,6 +295,7 @@ export default defineSchema({
     .index("by_family", ["familyId"])
     .index("by_family_date", ["familyId", "date"])
     .index("by_family_type", ["familyId", "type"])
+    .index("by_trip", ["tripId"])
     .index("by_vehicle", ["vehicleId"])
     .index("by_subscription", ["subscriptionId"])
     .index("by_gift_event", ["giftEventId"]),
@@ -364,7 +368,7 @@ export default defineSchema({
     visited: v.optional(v.boolean()),
     rating: v.optional(v.number()), // 1-5 (Current/Latest rating)
     notes: v.optional(v.string()), // General notes
-    addedBy: v.id("users"),
+    addedBy: v.optional(v.id("users")),
   })
     .index("by_family", ["familyId"])
     .index("by_list", ["listId"]),
@@ -377,7 +381,7 @@ export default defineSchema({
     notes: v.optional(v.string()), // Review/Bitácora
     images: v.optional(v.array(v.string())),
     visitType: v.optional(v.string()), // e.g., "Casual", "Date", "Celebration"
-    visitedBy: v.id("users"),
+    visitedBy: v.optional(v.id("users")),
   })
     .index("by_place", ["placeId"])
     .index("by_family", ["familyId"]),
@@ -387,21 +391,48 @@ export default defineSchema({
     familyId: v.id("families"),
     name: v.string(), // "Japón 2025"
     destination: v.optional(v.string()),
-    startDate: v.number(),
-    endDate: v.number(),
+    startDate: v.optional(v.number()),
+    endDate: v.optional(v.number()),
     status: v.union(v.literal("planning"), v.literal("confirmed"), v.literal("active"), v.literal("completed")),
     budget: v.optional(v.number()),
     coverImage: v.optional(v.string()),
+    description: v.optional(v.string()),
+    members: v.optional(v.array(v.id("users"))), // Who is going?
+    placeListId: v.optional(v.union(v.id("placeLists"), v.null())), // Link to specific category/list of places
   }).index("by_family", ["familyId"]),
+
+  tripBookings: defineTable({
+    tripId: v.id("trips"),
+    type: v.union(
+      v.literal("flight"),
+      v.literal("hotel"),
+      v.literal("transport"), // Train, Bus
+      v.literal("rental"), // Car
+      v.literal("activity"), // Tours
+      v.literal("other")
+    ),
+    provider: v.string(), // "Aeromexico", "Marriott"
+    confirmationCode: v.optional(v.string()),
+    startDate: v.number(),
+    endDate: v.optional(v.number()),
+    location: v.optional(v.string()), // Airport, Address
+    cost: v.optional(v.number()),
+    currency: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    files: v.optional(v.array(v.string())),
+  }).index("by_trip", ["tripId"]),
 
   tripPlans: defineTable({
     tripId: v.id("trips"),
-    dayDate: v.number(), // Specific date or day index
+    // If dayDate is null/undefined, it's in the "general ideas" bucket
+    dayDate: v.optional(v.number()),
+    time: v.optional(v.string()), // "14:00"
     order: v.number(), // Order within the day
     placeId: v.optional(v.id("places")), // Optional link to a saved spot
     activity: v.string(), // "Breakfast at...", "Visit Museum"
     notes: v.optional(v.string()),
     isCompleted: v.boolean(),
+    cost: v.optional(v.number()),
   })
     .index("by_trip", ["tripId"])
     .index("by_trip_date", ["tripId", "dayDate"]),
