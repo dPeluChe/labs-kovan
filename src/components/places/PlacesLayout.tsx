@@ -3,7 +3,9 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
-import { Plus, ListFilter, Map } from "lucide-react";
+import { Plus, ListFilter, Map, MapPin, LayoutGrid, Clock, CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { AnimatedTabs } from "../ui/AnimatedTabs";
 
 import { PlaceCard } from "./PlaceCard";
 import { CreateListModal } from "./modals/CreateListModal";
@@ -12,10 +14,12 @@ import { PlaceDetailModal } from "./modals/PlaceDetailModal";
 import { useConfirmModal } from "../../hooks/useConfirmModal";
 
 export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
+    const navigate = useNavigate();
     const [selectedListId, setSelectedListId] = useState<Id<"placeLists"> | null>(null);
     const [showCreateList, setShowCreateList] = useState(false);
     const [showCreatePlace, setShowCreatePlace] = useState(false);
     const [selectedPlace, setSelectedPlace] = useState<Doc<"places"> | null>(null);
+    const [filter, setFilter] = useState<'all' | 'pending' | 'visited'>('all');
 
     const { confirm, ConfirmModal } = useConfirmModal();
     const deletePlace = useMutation(api.places.deletePlace);
@@ -40,8 +44,23 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
         listId: selectedListId || undefined // If null, passes undefined to get all
     });
 
-    // Helper: Find selected list name
-    const selectedList = lists?.find(l => l._id === selectedListId);
+
+    const filteredPlaces = places?.filter(place => {
+        if (filter === 'pending') return !place.visited;
+        if (filter === 'visited') return place.visited;
+        return true;
+    }) || [];
+
+    const allCount = places?.length || 0;
+    const pendingCount = places?.filter(p => !p.visited).length || 0;
+    const visitedCount = places?.filter(p => p.visited).length || 0;
+
+    // Icons for tabs
+    const tabs = [
+        { id: 'all', label: 'Todos', count: allCount, icon: <LayoutGrid className="w-4 h-4" /> },
+        { id: 'pending', label: 'Pendientes', count: pendingCount, icon: <Clock className="w-4 h-4" /> },
+        { id: 'visited', label: 'Visitados', count: visitedCount, icon: <CheckCircle className="w-4 h-4" /> },
+    ] as const;
 
     return (
         <div className="min-h-screen bg-base-100 pb-20">
@@ -50,6 +69,12 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
                 <div className="flex justify-between items-center mb-4">
                     <h1 className="text-2xl font-bold font-display">Lugares</h1>
                     <div className="flex gap-2">
+                        <button
+                            className="btn btn-circle btn-ghost btn-sm"
+                            onClick={() => navigate('/places/visits')}
+                        >
+                            <MapPin className="w-5 h-5" />
+                        </button>
                         <button
                             className="btn btn-circle btn-ghost btn-sm"
                             onClick={() => setShowCreateList(true)}
@@ -96,6 +121,11 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
                             >
                                 <span className="text-lg">{list.icon || "📁"}</span>
                                 <span className="font-bold text-sm">{list.name}</span>
+                                {list.count > 0 && (
+                                    <span className={`badge badge-sm badge-circle border-0 ml-1 ${selectedListId === list._id ? 'bg-white/20 text-white' : 'bg-base-content/10'}`}>
+                                        {list.count}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -114,31 +144,34 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
 
             {/* Main Content */}
             <div className="p-4 space-y-4">
-                {/* Context Header */}
-                <div className="flex items-center justify-between text-base-content/50 text-sm pl-1">
-                    <span>
-                        {selectedList ? `${selectedList.icon} ${selectedList.name}` : "Todos los lugares"}
-                    </span>
-                    <span>{places?.length || 0} spots</span>
-                </div>
+
+                {/* Filter Tabs (Reusable Component) */}
+                <AnimatedTabs
+                    tabs={tabs}
+                    activeTab={filter}
+                    onTabChange={setFilter}
+                    className="mb-2"
+                />
 
                 {/* Places Grid */}
                 <div className="grid grid-cols-1 gap-4">
                     {places === undefined ? (
                         <div className="flex justify-center py-10"><span className="loading loading-dots loading-lg text-primary/30"></span></div>
-                    ) : places.length === 0 ? (
+                    ) : filteredPlaces.length === 0 ? (
                         <div className="text-center py-20 opacity-50 space-y-4">
                             <Map className="w-16 h-16 mx-auto text-base-content/20" />
-                            <p>No hay lugares aquí aún.</p>
-                            <button
-                                onClick={() => setShowCreatePlace(true)}
-                                className="btn btn-outline btn-sm animate-pulse"
-                            >
-                                Agregar el primero
-                            </button>
+                            <p>{filter === 'pending' ? '¡Todo visitado!' : filter === 'visited' ? 'Aún no has visitado nada.' : 'No hay lugares aquí aún.'}</p>
+                            {filter !== 'visited' && (
+                                <button
+                                    onClick={() => setShowCreatePlace(true)}
+                                    className="btn btn-outline btn-sm animate-pulse"
+                                >
+                                    Agregar lugar
+                                </button>
+                            )}
                         </div>
                     ) : (
-                        places.map(place => (
+                        filteredPlaces.map(place => (
                             <PlaceCard
                                 key={place._id}
                                 place={place}

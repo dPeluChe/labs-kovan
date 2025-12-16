@@ -9,7 +9,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { useConfirmModal } from "../hooks/useConfirmModal";
 import { DollarSign, Plus, Trash2, Car, Gift, CreditCard, Repeat, HandCoins } from "lucide-react";
 import { DateInput } from "../components/ui/DateInput";
-import { ShiftingTabs } from "../components/ui/ShiftingTabs";
+import { AnimatedTabs } from "../components/ui/AnimatedTabs";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 
 type ExpenseType = "all" | "general" | "subscription" | "vehicle" | "gift";
@@ -394,7 +394,7 @@ function ExpensesView() {
 
   const tabs = (Object.entries(TYPE_CONFIG) as [ExpenseType, typeof TYPE_CONFIG[ExpenseType]][]).map(([type, config]) => ({
     id: type,
-    icon: config.icon,
+    icon: <config.icon className="w-5 h-5" />,
     label: config.label
   }));
 
@@ -403,11 +403,11 @@ function ExpensesView() {
       <div className="px-4 mb-4">
         {/* Type Tabs */}
         <div className="mb-2 overflow-x-auto">
-          <ShiftingTabs
+          <AnimatedTabs
             tabs={tabs}
             activeTab={activeTab}
-            onChange={(id) => setActiveTab(id as ExpenseType)}
-            className="bg-base-200"
+            onTabChange={(id) => setActiveTab(id as ExpenseType)}
+            className="mb-2"
           />
         </div>
 

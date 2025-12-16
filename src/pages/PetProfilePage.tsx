@@ -17,7 +17,7 @@ import {
     CakeIcon
 } from "lucide-react";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
-import { ShiftingTabs } from "../components/ui/ShiftingTabs";
+import { AnimatedTabs } from "../components/ui/AnimatedTabs";
 
 // Components
 import { RecordsTab } from "../components/health/RecordsTab";
@@ -113,10 +113,10 @@ export function PetProfilePage() {
     };
 
     const tabs = [
-        { id: "records", icon: Stethoscope, label: "Consultas" },
-        { id: "studies", icon: TestTube, label: "Estudios" },
-        { id: "medications", icon: Pill, label: "Meds" },
-        { id: "nutrition", icon: ShoppingBag, label: "Alimentación" },
+        { id: "records", icon: <Stethoscope className="w-5 h-5" />, label: "Consultas" },
+        { id: "studies", icon: <TestTube className="w-5 h-5" />, label: "Estudios" },
+        { id: "medications", icon: <Pill className="w-5 h-5" />, label: "Meds" },
+        { id: "nutrition", icon: <ShoppingBag className="w-5 h-5" />, label: "Alimentación" },
     ];
 
     return (
@@ -159,10 +159,10 @@ export function PetProfilePage() {
 
             {/* Tabs */}
             <div className="px-4 pt-4 bg-base-100 pb-2 sticky top-14 z-10 overflow-x-auto">
-                <ShiftingTabs
+                <AnimatedTabs
                     tabs={tabs}
                     activeTab={activeTab}
-                    onChange={(id) => setActiveTab(id as Tab)}
+                    onTabChange={(id) => setActiveTab(id as Tab)}
                 />
             </div>
 

@@ -15,10 +15,32 @@ const PLACE_CATEGORY = v.union(
 export const getLists = query({
   args: { familyId: v.id("families") },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const lists = await ctx.db
       .query("placeLists")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
       .collect();
+
+    // Fetch counts for each list
+    // Note: N+1 query pattern, but safe for small number of lists (<20).
+    // An alternative is fetching all places for family and aggregating in memory.
+    // Let's do aggregation for efficiency if lists grow.
+    const allPlaces = await ctx.db
+      .query("places")
+      .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
+      .collect();
+
+    // Map counts
+    const counts = allPlaces.reduce((acc, place) => {
+      if (place.listId) {
+        acc[place.listId] = (acc[place.listId] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    return lists.map(list => ({
+      ...list,
+      count: counts[list._id] || 0
+    }));
   },
 });
 
@@ -179,10 +201,31 @@ export const getPlaceVisits = query({
     return await ctx.db
       .query("placeVisits")
       .withIndex("by_place", (q) => q.eq("placeId", args.placeId))
-      .order("desc") // Most recent first (if date is indexed? currently no range index on date but default is creation time usually, actually we sorting by creation if not specified, but visitDate isn't the sort key here. We might need logic or an index on date)
-      // Ideally .index("by_place", ["placeId", "visitDate"]) if we want sorted DB side. 
-      // For now, client side sort or simple.
+      .order("desc")
       .collect();
+  }
+});
+
+export const getAllVisits = query({
+  args: { familyId: v.id("families"), limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const visits = await ctx.db
+      .query("placeVisits")
+      .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
+      .order("desc")
+      .take(args.limit || 50);
+
+    // Join with place names efficiently
+    const visitsWithPlace = await Promise.all(visits.map(async (visit) => {
+      const place = await ctx.db.get(visit.placeId);
+      return {
+        ...visit,
+        placeName: place?.name || "Lugar eliminado",
+        placeImage: place?.imageUrl,
+      };
+    }));
+
+    return visitsWithPlace;
   }
 });
 

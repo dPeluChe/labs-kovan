@@ -29,6 +29,7 @@ import { FamilyPage } from "./pages/FamilyPage";
 import { FinancesPage } from "./pages/FinancesPage";
 import { RecipesPage } from "./pages/RecipesPage";
 import { PlacesPage } from "./pages/PlacesPage";
+import { PlaceVisitsPage } from "./pages/PlaceVisitsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ContactsPage } from "./pages/ContactsPage";
 import { ActivitiesPage } from "./pages/ActivitiesPage";
@@ -80,6 +81,7 @@ function AppRoutes() {
         <Route path="/family" element={<FamilyPage />} />
         <Route path="/finances" element={<FinancesPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
+        <Route path="/places/visits" element={<PlaceVisitsPage />} />
         <Route path="/places" element={<PlacesPage />} />
         <Route path="/activities" element={<ActivitiesPage />} />
         <Route path="/agent" element={<AgentPage />} />

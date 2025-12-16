@@ -1,21 +1,21 @@
 
-import { MapPin, Star, Utensils, Coffee, Plane, Ticket, CheckCircle2, ExternalLink } from "lucide-react";
+import { MapPin, Star, Utensils, Coffee, Plane, CheckCircle2, Ticket as ActivityIcon, Map, ExternalLink } from "lucide-react";
 import type { Doc } from "../../../convex/_generated/dataModel";
+import { SwipeableCard } from "../ui/SwipeableCard";
 
 interface PlaceCardProps {
     place: Doc<"places">;
     onClick: () => void;
-    onCheckIn: (e: React.MouseEvent) => void;
+    onCheckIn: (e: React.MouseEvent | React.TouchEvent) => void;
 }
 
 export function PlaceCard({ place, onClick, onCheckIn }: PlaceCardProps) {
-
     const getCategoryIcon = (cat: string) => {
         switch (cat) {
             case "restaurant": return <Utensils className="w-4 h-4" />;
             case "cafe": return <Coffee className="w-4 h-4" />;
             case "travel": return <Plane className="w-4 h-4" />;
-            case "activity": return <Ticket className="w-4 h-4" />;
+            case "activity": return <ActivityIcon className="w-4 h-4" />;
             default: return <MapPin className="w-4 h-4" />;
         }
     };
@@ -31,88 +31,114 @@ export function PlaceCard({ place, onClick, onCheckIn }: PlaceCardProps) {
     };
 
     return (
-        <div
+        <SwipeableCard
+            className="mb-3"
+            contentClassName={`relative bg-base-100 p-4 border border-base-content/5 rounded-2xl shadow-sm z-10 select-none ${place.visited ? 'bg-base-200' : ''}`}
             onClick={onClick}
-            className={`group relative bg-base-100 rounded-2xl border border-base-content/5 p-4 transition-all hover:shadow-lg hover:border-primary/20 cursor-pointer overflow-hidden ${place.visited ? 'opacity-80' : ''}`}
-        >
-            {/* Status Indicators */}
-            {place.visited && (
-                <div className="absolute top-4 right-4 z-10">
-                    <div className="badge badge-success text-white badge-sm gap-1 shadow-sm">
-                        <CheckCircle2 className="w-3 h-3" /> Visitado
-                    </div>
-                </div>
-            )}
-
-            {/* Content */}
-            <div className="flex gap-4">
-                {/* Image / Icon */}
-                <div className="shrink-0">
-                    {place.imageUrl ? (
-                        <img src={place.imageUrl} alt={place.name} className="w-20 h-20 rounded-xl object-cover shadow-sm bg-base-200" />
-                    ) : (
-                        <div className={`w-20 h-20 rounded-xl flex items-center justify-center ${getCategoryColor(place.category)}`}>
-                            {getCategoryIcon(place.category)}
-                        </div>
-                    )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <div className={`badge badge-ghost badge-xs mb-1 uppercase font-bold tracking-wider ${getCategoryColor(place.category)} bg-opacity-20`}>
-                                {place.category}
-                            </div>
-                            <h3 className="font-bold text-lg leading-tight truncate pr-2">{place.name}</h3>
-                        </div>
-                    </div>
-
-                    {place.highlight && (
-                        <p className="text-sm text-base-content/70 italic mt-1 line-clamp-1">"{place.highlight}"</p>
-                    )}
-
-                    <div className="flex items-center gap-2 mt-3 text-xs text-base-content/50">
-                        {place.rating ? (
-                            <div className="flex items-center text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded-md">
-                                <Star className="w-3 h-3 fill-current mr-1" /> {place.rating}
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-1">
-                                <Star className="w-3 h-3" /> Sin calificar
-                            </div>
-                        )}
-                        {place.address && (
-                            <div className="flex items-center gap-1 truncate max-w-[120px]">
-                                <MapPin className="w-3 h-3" /> {place.address}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Action Area (Bottom) */}
-            <div className="mt-4 pt-3 border-t border-base-content/5 flex items-center justify-between opacity-60 group-hover:opacity-100 transition-opacity">
-                <div className="flex gap-2">
+            actions={({ close }) => (
+                <>
                     {place.mapsUrl && (
                         <a
                             href={place.mapsUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="btn btn-xs btn-ghost gap-1"
+                            className="btn btn-circle btn-sm btn-ghost bg-base-100 shadow-sm border border-base-200"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <ExternalLink className="w-3 h-3" /> Maps
+                            <Map className="w-4 h-4 text-blue-500" />
+                        </a>
+                    )}
+                    <button
+                        className="btn btn-sm btn-primary shadow-sm"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            close();
+                            onCheckIn(e);
+                        }}
+                    >
+                        <CheckCircle2 className="w-4 h-4" />
+                        Check In
+                    </button>
+                </>
+            )}
+        >
+            <div className="flex gap-4 items-center">
+                {/* Icon */}
+                <div className={`w-12 h-12 shrink-0 rounded-xl flex items-center justify-center ${getCategoryColor(place.category)}`}>
+                    {place.imageUrl ? (
+                        <img src={place.imageUrl} alt="" className="w-full h-full object-cover rounded-xl" />
+                    ) : (
+                        getCategoryIcon(place.category)
+                    )}
+                </div>
+
+                {/* Main Info */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-0.5">
+                        <h3 className={`font-bold text-base leading-tight truncate ${place.visited ? 'text-base-content/60' : 'text-base-content'}`}>
+                            {place.name}
+                        </h3>
+                        {place.visited && (
+                            <span className="text-[10px] font-bold text-success uppercase tracking-wider ml-2 flex items-center gap-0.5">
+                                Visitado <CheckCircle2 className="w-3 h-3" />
+                            </span>
+                        )}
+                    </div>
+
+                    {place.highlight ? (
+                        <p className="text-xs text-primary/80 font-medium truncate mb-1">{place.highlight}</p>
+                    ) : (
+                        <p className="text-xs text-base-content/50 capitalize mb-1">{place.category}</p>
+                    )}
+
+                    <div className="flex items-center gap-3 text-xs text-base-content/60">
+                        {place.rating ? (
+                            <span className="flex items-center text-amber-500 font-bold">
+                                <Star className="w-3 h-3 fill-current mr-0.5" /> {place.rating}
+                            </span>
+                        ) : (
+                            <span className="flex items-center opacity-70">
+                                <Star className="w-3 h-3 mr-0.5" /> --
+                            </span>
+                        )}
+
+                        {place.address && (
+                            <span className="flex items-center truncate max-w-[100px]">
+                                <MapPin className="w-3 h-3 mr-0.5" /> {place.address}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Quick Access Links (Right Side) */}
+                <div className="flex flex-col gap-2 shrink-0">
+                    {place.mapsUrl && (
+                        <a
+                            href={place.mapsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="btn btn-circle btn-ghost btn-xs text-base-content/40 hover:text-primary hover:bg-primary/10"
+                        >
+                            <Map className="w-4 h-4" />
+                        </a>
+                    )}
+                    {place.url && (
+                        <a
+                            href={place.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="btn btn-circle btn-ghost btn-xs text-base-content/40 hover:text-pink-500 hover:bg-pink-500/10"
+                        >
+                            <ExternalLink className="w-4 h-4" />
                         </a>
                     )}
                 </div>
-                <button
-                    className="btn btn-xs btn-primary btn-outline gap-1"
-                    onClick={onCheckIn}
-                >
-                    <CheckCircle2 className="w-3 h-3" /> {place.visited ? "Registrar visita" : "Check In"}
-                </button>
+
+                {/* Visual Hint for Swipe */}
+                <div className="w-1 h-8 rounded-full bg-base-200/50 self-center shrink-0" />
             </div>
-        </div>
+        </SwipeableCard>
     );
 }
