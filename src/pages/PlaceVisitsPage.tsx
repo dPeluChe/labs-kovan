@@ -18,16 +18,18 @@ import { useFamily } from "../contexts/FamilyContext";
 export function PlaceVisitsPage() {
     const navigate = useNavigate();
 
+
     // Auth / Family Logic
     const { currentFamily } = useFamily();
     const familyId = currentFamily?._id;
 
+    // Use explicit type assertion if needed, but inference should work
     const visits = useQuery(api.places.getAllVisits, familyId ? { familyId, limit: 100 } : "skip");
     const [searchTerm, setSearchTerm] = useState("");
 
-    const filteredVisits = visits?.filter(v =>
+    const filteredVisits = visits?.filter((v) =>
         v.placeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        v.notes?.toLowerCase().includes(searchTerm.toLowerCase())
+        (v.notes && v.notes.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     if (!familyId || visits === undefined) return (
