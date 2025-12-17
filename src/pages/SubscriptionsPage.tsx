@@ -7,10 +7,11 @@ import { CreateSubscriptionModal } from "../components/subscriptions/CreateSubsc
 import { SubscriptionDetailModal } from "../components/subscriptions/SubscriptionDetailModal";
 import { PageHeader } from "../components/ui/PageHeader";
 import { Plus, Zap, Wifi, Tv, Shield, CreditCard, Smartphone, HelpCircle, DollarSign, Calendar } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useFamily } from "../contexts/FamilyContext";
 import type { Doc } from "../../convex/_generated/dataModel";
 
-const TYPE_ICONS: Record<string, any> = {
+const TYPE_ICONS: Record<string, LucideIcon> = {
     utility: Zap,
     internet: Wifi,
     streaming: Tv,

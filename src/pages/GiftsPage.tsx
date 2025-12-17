@@ -8,7 +8,7 @@ import { PageHeader } from "../components/ui/PageHeader";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
-import { Gift, Plus, ChevronRight, CheckCircle2, Edit2, Trash2, MoreVertical } from "lucide-react";
+import { Gift, Plus, ChevronRight, CheckCircle2, Calendar } from "lucide-react";
 import { useConfirmModal } from "../hooks/useConfirmModal";
 import { DateInput } from "../components/ui/DateInput";
 import { Link } from "react-router-dom";
@@ -21,15 +21,12 @@ export function GiftsPage() {
   const [showNewEventModal, setShowNewEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Doc<"giftEvents"> | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
-  const { confirm, ConfirmModal } = useConfirmModal();
+  const { ConfirmModal } = useConfirmModal();
 
   const events = useQuery(
     api.gifts.getGiftEvents,
     currentFamily ? { familyId: currentFamily._id } : "skip"
   );
-
-  const deleteEvent = useMutation(api.gifts.deleteGiftEvent);
-  const updateEvent = useMutation(api.gifts.updateGiftEvent);
 
   if (!currentFamily) return <PageLoader />;
 
@@ -105,26 +102,6 @@ export function GiftsPage() {
                   <GiftEventCard
                     key={event._id}
                     event={event}
-                    onEdit={() => setEditingEvent(event)}
-                    onDelete={async () => {
-                      const confirmed = await confirm({
-                        title: "Eliminar evento",
-                        message: `¿Eliminar "${event.name}" y todos sus regalos?`,
-                        confirmText: "Eliminar",
-                        cancelText: "Cancelar",
-                        variant: "danger",
-                        icon: "trash",
-                      });
-                      if (confirmed) {
-                        await deleteEvent({ eventId: event._id });
-                      }
-                    }}
-                    onToggleComplete={async () => {
-                      await updateEvent({
-                        eventId: event._id,
-                        isCompleted: !event.isCompleted,
-                      });
-                    }}
                   />
                 ))}
               </div>
@@ -167,14 +144,8 @@ export function GiftsPage() {
 
 function GiftEventCard({
   event,
-  onEdit,
-  onDelete,
-  onToggleComplete,
 }: {
   event: Doc<"giftEvents">;
-  onEdit: () => void;
-  onDelete: () => void;
-  onToggleComplete: () => void;
 }) {
   const summary = useQuery(api.gifts.getGiftEventSummary, { eventId: event._id });
 
@@ -191,63 +162,69 @@ function GiftEventCard({
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className={`font-semibold ${event.isCompleted ? "line-through text-base-content/60" : ""}`}>
-                {event.name}
-              </h3>
-              {event.date && (
-                <p className="text-sm text-base-content/60">
-                  {new Date(event.date + 86400000 / 2).toLocaleDateString("es-MX", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              )}
-              {summary ? (
-                <div className="flex flex-wrap gap-1.5 mt-1 text-xs animate-fade-in">
-                  <span className="badge badge-sm badge-ghost gap-1">
-                    👥 {summary.recipientCount}
-                  </span>
-                  <span className="badge badge-sm badge-ghost gap-1">
-                    🎁 {summary.totalItems}
-                  </span>
-                  {summary.byStatus.bought > 0 && (
-                    <span className="badge badge-sm badge-success gap-1">
-                      ✅ {summary.byStatus.bought}
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <div className="h-5 w-24 bg-base-200 rounded animate-pulse mt-1" />
-              )}
+              {(() => {
+                const evtDate = event.date ? new Date(event.date) : null;
+                let timeText = "";
+                let timeClass = "text-primary";
+
+                if (evtDate) {
+                  const diffDays = Math.ceil((evtDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                  if (diffDays === 0) {
+                    timeText = "¡¡ES HOY!!";
+                    timeClass = "text-error font-bold animate-pulse";
+                  } else if (diffDays === 1) {
+                    timeText = "¡¡ES MAÑANA!!";
+                    timeClass = "text-warning font-bold";
+                  } else if (diffDays > 1) {
+                    timeText = `(en ${diffDays} días)`;
+                  }
+                }
+
+                return (
+                  <>
+                    <div className="flex items-center justify-between gap-2 min-w-0 w-full">
+                      <h3 className={`font-semibold truncate ${event.isCompleted ? "line-through text-base-content/60" : ""}`}>
+                        {event.name}
+                      </h3>
+                      {timeText && !event.isCompleted && (
+                        <span className={`text-[10px] uppercase font-bold shrink-0 whitespace-nowrap ${timeClass}`}>
+                          {timeText}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 mt-1 text-xs animate-fade-in items-center">
+                      {evtDate && (
+                        <span className="badge badge-sm badge-ghost gap-1 text-base-content/70 pl-0">
+                          <Calendar className="w-3 h-3" />
+                          {evtDate.toLocaleDateString("es-MX", { month: "short", day: "numeric" })}
+                        </span>
+                      )}
+
+                      {summary ? (
+                        <>
+                          <span className="badge badge-sm badge-ghost gap-1">
+                            👥 {summary.recipientCount}
+                          </span>
+                          <span className="badge badge-sm badge-ghost gap-1">
+                            🎁 {summary.totalItems}
+                          </span>
+                          {summary.byStatus.bought > 0 && (
+                            <span className="badge badge-sm badge-success gap-1">
+                              ✅ {summary.byStatus.bought}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <div className="h-5 w-24 bg-base-200 rounded animate-pulse" />
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
             <ChevronRight className="w-5 h-5 text-base-content/40" />
           </Link>
-
-          {/* Actions Dropdown */}
-          <div className="dropdown dropdown-end">
-            <button tabIndex={0} className="btn btn-ghost btn-sm btn-circle" onClick={(e) => e.stopPropagation()}>
-              <MoreVertical className="w-4 h-4" />
-            </button>
-            <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 border border-base-300 z-50">
-              <li>
-                <button onClick={onEdit}>
-                  <Edit2 className="w-4 h-4" /> Editar
-                </button>
-              </li>
-              <li>
-                <button onClick={onToggleComplete}>
-                  <CheckCircle2 className="w-4 h-4" />
-                  {event.isCompleted ? "Reactivar" : "Marcar finalizado"}
-                </button>
-              </li>
-              <li>
-                <button onClick={onDelete} className="text-error">
-                  <Trash2 className="w-4 h-4" /> Eliminar
-                </button>
-              </li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>

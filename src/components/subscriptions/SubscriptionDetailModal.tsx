@@ -3,11 +3,10 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { MobileModal } from "../ui/MobileModal";
 import { Input } from "../ui/Input";
-// @ts-ignore
 import Barcode from "react-barcode";
-// @ts-ignore
 import { QRCodeSVG } from "qrcode.react";
 import { Zap, Wifi, Tv, Shield, CreditCard, Smartphone, HelpCircle, Calendar, Edit2, Trash2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
 interface SubscriptionDetailModalProps {
@@ -15,7 +14,7 @@ interface SubscriptionDetailModalProps {
     onClose: () => void;
 }
 
-const TYPE_ICONS: Record<string, any> = {
+const TYPE_ICONS: Record<string, LucideIcon> = {
     utility: Zap,
     internet: Wifi,
     streaming: Tv,
@@ -147,7 +146,7 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                                         <select
                                             className="select select-bordered w-full rounded-xl"
                                             value={formData.billingCycle}
-                                            onChange={e => setFormData({ ...formData, billingCycle: e.target.value as any })}
+                                            onChange={e => setFormData({ ...formData, billingCycle: e.target.value as "monthly" | "bimonthly" | "quarterly" | "annual" | "variable" })}
                                         >
                                             <option value="monthly">Mensual</option>
                                             <option value="bimonthly">Bimestral</option>
@@ -188,7 +187,7 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                                         <select
                                             className="select select-sm select-bordered"
                                             value={formData.barcodeType}
-                                            onChange={e => setFormData({ ...formData, barcodeType: e.target.value as any })}
+                                            onChange={e => setFormData({ ...formData, barcodeType: e.target.value as "code128" | "qr" })}
                                         >
                                             <option value="code128">Barras</option>
                                             <option value="qr">QR</option>

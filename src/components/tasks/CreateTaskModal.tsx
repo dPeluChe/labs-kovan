@@ -63,7 +63,7 @@ export function CreateTaskModal({ isOpen, onClose, defaultType = "general" }: Cr
                             <button
                                 key={t.id}
                                 type="button"
-                                onClick={() => setType(t.id as any)}
+                                onClick={() => setType(t.id as "general" | "shopping" | "chore")}
                                 className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${isSelected ? "bg-white shadow-sm text-primary" : "text-base-content/60 hover:text-base-content"
                                     }`}
                             >

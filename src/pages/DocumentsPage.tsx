@@ -37,7 +37,7 @@ export function DocumentsPage() {
 
     const getExpiryStatus = (timestamp?: number) => {
         if (!timestamp) return null;
-        const now = Date.now();
+        const now = new Date().getTime();
         const days = (timestamp - now) / (1000 * 60 * 60 * 24);
         if (days < 0) return { label: "Vencido", color: "text-red-500", bg: "bg-red-500/10" };
         if (days < 30) return { label: "Vence pronto", color: "text-amber-500", bg: "bg-amber-500/10" };

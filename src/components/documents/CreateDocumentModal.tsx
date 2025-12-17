@@ -9,6 +9,7 @@ import {
     Hash, Globe,
     CreditCard, Car, Shield, Plane, Plus
 } from "lucide-react";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 interface CreateDocumentModalProps {
     isOpen: boolean;
@@ -66,8 +67,8 @@ export function CreateDocumentModal({ isOpen, onClose }: CreateDocumentModalProp
                 familyId: currentFamily._id,
                 userId: user._id,
                 title: title.trim(),
-                type: type as any,
-                personId: personId ? (personId as any) : undefined,
+                type: type as "identity" | "travel" | "financial" | "insurance" | "education" | "health" | "other",
+                personId: personId ? (personId as Id<"personProfiles">) : undefined,
                 documentNumber: documentNumber.trim() || undefined,
                 expiryDate: expiryDate ? new Date(expiryDate).getTime() : undefined,
                 issueDate: issueDate ? new Date(issueDate).getTime() : undefined,

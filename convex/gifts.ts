@@ -10,10 +10,25 @@ export const getGiftEvents = query({
     // TODO: Enable security when auth is fully implemented
     // await getFamilyUser(ctx, { familyId: args.familyId });
 
-    return await ctx.db
+    const events = await ctx.db
       .query("giftEvents")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
       .collect();
+
+    return events.sort((a, b) => {
+      // Sort by date ascending (soonest first)
+      if (a.date && b.date) {
+        return a.date - b.date;
+      }
+      // If one has date and other doesn't, put dated ones first? Or last?
+      // Usually upcoming events first. Undated events at the bottom.
+      if (a.date && !b.date) return -1;
+      if (!a.date && b.date) return 1;
+
+      // If neither has date, sort by creation time (implicitly by ID or name?)
+      // Let's fallback to name for stability
+      return a.name.localeCompare(b.name);
+    });
   },
 });
 
@@ -171,7 +186,7 @@ export const getUnassignedGifts = query({
       .query("giftItems")
       .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
       .collect();
-    
+
     // Filter to only unassigned items (no recipientId)
     return allItems.filter(item => !item.giftRecipientId);
   },
@@ -247,19 +262,19 @@ export const updateGiftItem = mutation({
   },
   handler: async (ctx, args) => {
     const { itemId, familyId, paidBy, ...updates } = args;
-    
+
     // Get current item to check status change
     const currentItem = await ctx.db.get(itemId);
     if (!currentItem) throw new Error("Item not found");
-    
+
     // Update the item
     await ctx.db.patch(itemId, updates);
-    
+
     // If status changed to "bought" and has price, create expense
     if (
-      args.status === "bought" && 
-      currentItem.status !== "bought" && 
-      currentItem.priceEstimate && 
+      args.status === "bought" &&
+      currentItem.status !== "bought" &&
+      currentItem.priceEstimate &&
       familyId
     ) {
       // Check if expense already exists for this item
@@ -267,7 +282,7 @@ export const updateGiftItem = mutation({
         .query("expenses")
         .filter((q) => q.eq(q.field("giftItemId"), itemId))
         .first();
-      
+
       if (!existingExpense) {
         await ctx.db.insert("expenses", {
           familyId,
@@ -282,7 +297,7 @@ export const updateGiftItem = mutation({
         });
       }
     }
-    
+
     return itemId;
   },
 });

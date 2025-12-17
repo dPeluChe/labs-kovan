@@ -10,7 +10,7 @@ export const list = query({
         type: v.optional(v.union(v.literal("general"), v.literal("shopping"), v.literal("chore"))),
     },
     handler: async (ctx, args) => {
-        let q = ctx.db
+        const q = ctx.db
             .query("tasks")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId));
 

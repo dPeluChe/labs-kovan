@@ -83,7 +83,7 @@ export function DashboardPage() {
   const subActiveCount = subscriptions?.filter(s => s.isActive).length || 0;
 
   // Calculate Expiring Documents (Next 30 days)
-  const now = Date.now();
+  const now = new Date().getTime();
   const thirtyDaysFromNow = now + 30 * 24 * 60 * 60 * 1000;
   const expiringDocuments = documents?.filter(d =>
     !d.isArchived && d.expiryDate && d.expiryDate <= thirtyDaysFromNow
@@ -238,26 +238,52 @@ export function DashboardPage() {
         {(hasGifts || giftEvents === undefined) && (
           <DashboardCard
             icon={Gift}
-            title="Eventos de regalos"
+            title="Regalos e Intercambios"
             to="/gifts"
             color="bg-red-500/10 text-red-600"
           >
             {giftEvents === undefined ? (
               <div className="py-1"><SkeletonText lines={1} /></div>
             ) : (
-              <ul className="space-y-1">
-                {giftEvents.slice(0, 3).map((event) => (
-                  <li key={event._id} className="text-sm flex justify-between items-center">
-                    <span className="truncate font-medium">{event.name}</span>
-                    {event.date && (
-                      <span className="text-xs text-base-content/60 ml-2">
-                        {new Date(event.date).toLocaleDateString("es-MX", { month: "short", day: "numeric" })}
-                      </span>
-                    )}
-                  </li>
-                ))}
+              <ul className="space-y-2">
+                {giftEvents.slice(0, 3).map((event) => {
+                  const eventDate = new Date(event.date || 0);
+                  const diffTime = eventDate.getTime() - now;
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                  let timeText = "";
+                  let timeClass = "text-primary";
+
+                  if (diffDays === 0) {
+                    timeText = "¡¡ES HOY!!";
+                    timeClass = "text-error font-bold animate-pulse";
+                  } else if (diffDays === 1) {
+                    timeText = "¡¡ES MAÑANA!!";
+                    timeClass = "text-warning font-bold";
+                  } else if (diffDays > 1) {
+                    timeText = `en ${diffDays} días`;
+                  }
+
+                  return (
+                    <li key={event._id} className="text-sm flex justify-between items-center">
+                      <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                        <span className="truncate font-medium">{event.name}</span>
+                        {timeText && (
+                          <span className={`text-[10px] uppercase shrink-0 ${timeClass}`}>
+                            {timeText}
+                          </span>
+                        )}
+                      </div>
+                      {event.date && (
+                        <span className="text-xs text-base-content/60 ml-2 whitespace-nowrap">
+                          {eventDate.toLocaleDateString("es-MX", { month: "short", day: "numeric" })}
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
                 {giftEvents.length > 3 && (
-                  <li className="text-xs text-base-content/50">+{giftEvents.length - 3} más</li>
+                  <li className="text-xs text-base-content/50 pt-1">+{giftEvents.length - 3} más</li>
                 )}
               </ul>
             )}

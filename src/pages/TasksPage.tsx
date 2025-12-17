@@ -68,7 +68,7 @@ export function TasksPage() {
                     <AnimatedTabs
                         tabs={tabs}
                         activeTab={activeTab}
-                        onTabChange={(id) => setActiveTab(id as any)}
+                        onTabChange={(id) => setActiveTab(id as "general" | "shopping" | "chore")}
                     />
                 </div>
             </div>

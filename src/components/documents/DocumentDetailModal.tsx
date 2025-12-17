@@ -1,5 +1,6 @@
 import { MobileModal } from "../ui/MobileModal";
 import { FileText, User, Hash, Globe, Building, Shield } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
 interface DocumentDetailModalProps {
@@ -9,7 +10,7 @@ interface DocumentDetailModalProps {
     // We could pass helper to getPersonName if needed, or pass the name directly.
 }
 
-const TYPE_ICONS: Record<string, any> = {
+const TYPE_ICONS: Record<string, LucideIcon> = {
     identity: User,
     travel: Globe,
     financial: Building,
@@ -53,7 +54,7 @@ export function DocumentDetailModal({ document, onClose, personName }: DocumentD
                     </div>
                     <div className="p-3 bg-base-100 border border-base-200 rounded-xl space-y-1">
                         <span className="text-xs text-base-content/60 block">Vencimiento</span>
-                        <span className={`font-medium text-sm ${document.expiryDate && document.expiryDate < Date.now() ? "text-red-500" : ""}`}>
+                        <span className={`font-medium text-sm ${document.expiryDate && document.expiryDate < new Date().getTime() ? "text-red-500" : ""}`}>
                             {formatDate(document.expiryDate)}
                         </span>
                     </div>

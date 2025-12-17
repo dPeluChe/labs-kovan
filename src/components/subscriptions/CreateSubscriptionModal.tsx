@@ -49,7 +49,7 @@ export function CreateSubscriptionModal({ isOpen, onClose }: CreateSubscriptionM
                 familyId: currentFamily._id,
                 userId: user._id,
                 name: name.trim(),
-                type: type as any,
+                type: type as "utility" | "internet" | "streaming" | "insurance" | "membership" | "software" | "other",
                 referenceNumber: referenceNumber.trim() || undefined,
                 notes: notes.trim() || undefined,
                 // Defaults for others

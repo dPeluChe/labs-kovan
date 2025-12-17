@@ -69,7 +69,7 @@ export function TaskItem({ task, onToggle, onClick, onDelete }: TaskItemProps) {
 
                     <div className="flex items-center gap-3 text-xs text-base-content/60">
                         {task.dueDate && (
-                            <span className={`flex items-center gap-1 ${task.dueDate < Date.now() && !isCompleted ? "text-error" : ""
+                            <span className={`flex items-center gap-1 ${task.dueDate < new Date().getTime() && !isCompleted ? "text-error" : ""
                                 }`}>
                                 <Calendar className="w-3 h-3" />
                                 {formatDate(task.dueDate)}

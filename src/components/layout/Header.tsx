@@ -1,7 +1,7 @@
 import { useFamily } from "../../contexts/FamilyContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
-import { Moon, Sun, ChevronDown, LogOut, Settings } from "lucide-react";
+import { Moon, Sun, ChevronDown, LogOut, Settings, RotateCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Avatar } from "../ui/Avatar"; // Import the new Avatar component
 
@@ -48,6 +48,14 @@ export function Header() {
       </div>
 
       <div className="flex-none gap-1">
+        <button
+          onClick={() => window.location.reload()}
+          className="btn btn-ghost btn-circle btn-sm"
+          aria-label="Refrescar"
+        >
+          <RotateCw className="w-5 h-5" />
+        </button>
+
         <button
           onClick={toggleTheme}
           className="btn btn-ghost btn-circle btn-sm"

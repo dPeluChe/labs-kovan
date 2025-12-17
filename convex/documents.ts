@@ -9,7 +9,7 @@ export const list = query({
         personId: v.optional(v.id("personProfiles")),
     },
     handler: async (ctx, args) => {
-        let q = ctx.db
+        const q = ctx.db
             .query("documents")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId));
 
