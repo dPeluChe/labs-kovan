@@ -9,11 +9,9 @@ import { CreateTaskModal } from "../components/tasks/CreateTaskModal";
 import { CheckSquare, ShoppingCart, Repeat, Plus } from "lucide-react";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { useFamily } from "../contexts/FamilyContext";
-import { useAuth } from "../contexts/AuthContext";
 
 export function TasksPage() {
     const { currentFamily } = useFamily();
-    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<"general" | "shopping" | "chore">("general");
     const [showCreateModal, setShowCreateModal] = useState(false);
 

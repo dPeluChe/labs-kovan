@@ -23,7 +23,6 @@ export const list = query({
         }
 
         // Sort: Active expirations first (soonest first), then others
-        const now = Date.now();
         return docs.sort((a, b) => {
             // Archived at bottom
             if (a.isArchived !== b.isArchived) return a.isArchived ? 1 : -1;
