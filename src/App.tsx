@@ -26,6 +26,9 @@ import { VehicleDetailPage } from "./pages/VehicleDetailPage";
 import { MorePage } from "./pages/MorePage";
 import { CalendarSettingsPage } from "./pages/CalendarSettingsPage";
 import { FamilyPage } from "./pages/FamilyPage";
+import { TasksPage } from "./pages/TasksPage";
+import { DocumentsPage } from "./pages/DocumentsPage";
+import { SubscriptionsPage } from "./pages/SubscriptionsPage";
 import { FinancesPage } from "./pages/FinancesPage";
 import { RecipesPage } from "./pages/RecipesPage";
 import { PlacesPage } from "./pages/PlacesPage";
@@ -81,6 +84,9 @@ function AppRoutes() {
         <Route path="/vehicles/:vehicleId" element={<VehicleDetailPage />} />
         <Route path="/more" element={<MorePage />} />
         <Route path="/family" element={<FamilyPage />} />
+        <Route path="/tasks" element={<TasksPage />} />
+        <Route path="/documents" element={<DocumentsPage />} />
+        <Route path="/subscriptions" element={<SubscriptionsPage />} />
         <Route path="/finances" element={<FinancesPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/places/visits" element={<PlaceVisitsPage />} />

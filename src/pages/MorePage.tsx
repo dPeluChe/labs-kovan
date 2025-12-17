@@ -21,6 +21,9 @@ import {
   List,
   Cat,
   Plane,
+  CheckSquare,
+  FileText,
+  CreditCard,
 } from "lucide-react";
 
 const menuItems = [
@@ -37,6 +40,27 @@ const menuItems = [
     label: "Finanzas",
     description: "Control de gastos",
     color: "bg-emerald-500/10 text-emerald-600",
+  },
+  {
+    to: "/tasks",
+    icon: CheckSquare,
+    label: "Tareas",
+    description: "Pendientes y Super",
+    color: "bg-sky-500/10 text-sky-600",
+  },
+  {
+    to: "/documents",
+    icon: FileText,
+    label: "Bóveda",
+    description: "Documentos importantes",
+    color: "bg-slate-500/10 text-slate-600",
+  },
+  {
+    to: "/subscriptions",
+    icon: CreditCard,
+    label: "Suscripciones",
+    description: "Servicios y Pagos",
+    color: "bg-violet-500/10 text-violet-600",
   },
   {
     to: "/health",

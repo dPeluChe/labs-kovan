@@ -244,6 +244,12 @@ export default defineSchema({
     ),
     dueDay: v.optional(v.number()),      // Día del mes
     isActive: v.optional(v.boolean()),
+
+    // Payment info
+    referenceNumber: v.optional(v.string()), // Contrato
+    barcodeType: v.optional(v.union(v.literal("code128"), v.literal("qr"))),
+    barcodeValue: v.optional(v.string()),
+
     notes: v.optional(v.string()),
   }).index("by_family", ["familyId"]),
 
@@ -505,4 +511,55 @@ export default defineSchema({
     ),
     createdAt: v.number(),
   }).index("by_status", ["status"]),
+
+  // ==================== DOCUMENTS (VAULT) ====================
+  documents: defineTable({
+    familyId: v.id("families"),
+    personId: v.optional(v.id("personProfiles")),
+    title: v.string(),
+    type: v.union(
+      v.literal("identity"),
+      v.literal("travel"),
+      v.literal("financial"),
+      v.literal("insurance"),
+      v.literal("education"),
+      v.literal("health"),
+      v.literal("other")
+    ),
+    documentNumber: v.optional(v.string()),
+    issuingAuthority: v.optional(v.string()),
+    expiryDate: v.optional(v.number()),
+    issueDate: v.optional(v.number()),
+    notes: v.optional(v.string()),
+    files: v.optional(v.array(v.string())),
+    storageIds: v.optional(v.array(v.id("_storage"))),
+    isArchived: v.optional(v.boolean()),
+    addedBy: v.id("users"),
+  })
+    .index("by_family", ["familyId"])
+    .index("by_person", ["personId"])
+    .index("by_expiry", ["familyId", "expiryDate"]),
+
+  // ==================== TASKS ====================
+  tasks: defineTable({
+    familyId: v.id("families"),
+    title: v.string(),
+    description: v.optional(v.string()),
+    status: v.union(v.literal("pending"), v.literal("completed")),
+    type: v.union(
+      v.literal("general"), // Pendientes generales
+      v.literal("shopping"), // Lista de super
+      v.literal("chore") // Tareas domésticas / recurrentes
+    ),
+    priority: v.optional(v.union(v.literal("low"), v.literal("medium"), v.literal("high"))),
+    dueDate: v.optional(v.number()), // Para tareas con fecha límite
+    recurrence: v.optional(v.union(v.literal("daily"), v.literal("weekly"), v.literal("monthly"))), // Para tareas recurrentes
+    assignedTo: v.optional(v.id("users")),
+    createdBy: v.id("users"),
+    tags: v.optional(v.array(v.string())), // Útil para categorías de super (Lácteos, Frutas, etc.) o contextos
+  })
+    .index("by_family", ["familyId"])
+    .index("by_family_status", ["familyId", "status"])
+    .index("by_family_type", ["familyId", "type"])
+    .index("by_assignee", ["assignedTo"]),
 });

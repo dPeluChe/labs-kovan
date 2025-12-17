@@ -6,9 +6,10 @@ import { PageLoader } from "../components/ui/LoadingSpinner";
 import { SkeletonText } from "../components/ui/Skeleton";
 import {
   Gift, Heart, Book, Car, Calendar,
-  DollarSign, ChefHat, MapPin, Star, Plus, AlertTriangle, X
+  DollarSign, ChefHat, MapPin, Star, AlertTriangle, X, CreditCard, FileText
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { DashboardCard } from "../components/dashboard/DashboardCard";
+import { QuickAddSection } from "../components/dashboard/QuickAddSection";
 
 export function DashboardPage() {
   const { currentFamily, inviteError, clearInviteError } = useFamily();
@@ -55,9 +56,39 @@ export function DashboardPage() {
     currentFamily ? { familyId: currentFamily._id } : "skip"
   );
 
+  const subscriptions = useQuery(
+    api.subscriptions.list,
+    currentFamily ? { familyId: currentFamily._id } : "skip"
+  );
+
+  const documents = useQuery(
+    api.documents.list,
+    currentFamily ? { familyId: currentFamily._id } : "skip"
+  );
+
   if (!currentFamily) {
     return <PageLoader />;
   }
+
+  // Calculate Subscriptions totals (Monthly approx)
+  const subTotalMonthly = subscriptions?.reduce((acc, sub) => {
+    if (!sub.isActive || !sub.amount) return acc;
+    let monthlyAmount = sub.amount;
+    if (sub.billingCycle === "bimonthly") monthlyAmount /= 2;
+    if (sub.billingCycle === "quarterly") monthlyAmount /= 3;
+    if (sub.billingCycle === "annual") monthlyAmount /= 12;
+    if (sub.billingCycle === "variable") return acc;
+    return acc + monthlyAmount;
+  }, 0) || 0;
+  const subActiveCount = subscriptions?.filter(s => s.isActive).length || 0;
+
+  // Calculate Expiring Documents (Next 30 days)
+  const now = Date.now();
+  const thirtyDaysFromNow = now + 30 * 24 * 60 * 60 * 1000;
+  const expiringDocuments = documents?.filter(d =>
+    !d.isArchived && d.expiryDate && d.expiryDate <= thirtyDaysFromNow
+  ).sort((a, b) => (a.expiryDate || 0) - (b.expiryDate || 0)) || [];
+
 
   // Helper to check if section has data
   const hasGifts = giftEvents && giftEvents.length > 0;
@@ -68,15 +99,19 @@ export function DashboardPage() {
   const hasExpenses = expensesSummary && expensesSummary.countThisMonth > 0;
   const hasRecipes = recipesSummary && recipesSummary.total > 0;
   const hasPlaces = placesSummary && placesSummary.total > 0;
+  const hasSubscriptions = subscriptions && subscriptions.length > 0;
+  const hasDocuments = documents && documents.length > 0;
 
   const isLoading =
     giftEvents === undefined ||
     healthSummary === undefined ||
     expensesSummary === undefined ||
     recipesSummary === undefined ||
-    placesSummary === undefined;
+    placesSummary === undefined ||
+    subscriptions === undefined ||
+    documents === undefined;
 
-  const hasAnyData = hasGifts || hasHealth || hasLibrary || hasVehicles || hasCalendar || hasExpenses || hasRecipes || hasPlaces;
+  const hasAnyData = hasGifts || hasHealth || hasLibrary || hasVehicles || hasCalendar || hasExpenses || hasRecipes || hasPlaces || hasSubscriptions || hasDocuments;
 
   return (
     <div className="pb-4">
@@ -130,6 +165,32 @@ export function DashboardPage() {
           </DashboardCard>
         )}
 
+        {/* Expiring Documents - High Priority */}
+        {(expiringDocuments.length > 0) && (
+          <DashboardCard
+            icon={FileText}
+            title="Documentos por vencer"
+            to="/documents"
+            color="bg-orange-500/10 text-orange-600"
+          >
+            <ul className="space-y-1">
+              {expiringDocuments.slice(0, 3).map((doc) => {
+                const daysLeft = Math.ceil(((doc.expiryDate || 0) - now) / (1000 * 60 * 60 * 24));
+                const isExpired = daysLeft < 0;
+                return (
+                  <li key={doc._id} className="text-sm flex justify-between items-center">
+                    <span className="truncate font-medium">{doc.title}</span>
+                    <span className={`text-xs font-bold ${isExpired ? "text-error" : "text-warning"}`}>
+                      {isExpired ? "Vencido" : `${daysLeft} días`}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </DashboardCard>
+        )}
+
+
         {/* Expenses - only if has data */}
         {(hasExpenses || expensesSummary === undefined) && (
           <DashboardCard
@@ -146,6 +207,28 @@ export function DashboardPage() {
                 <span className="text-sm text-base-content/60">
                   en {expensesSummary.countThisMonth} {expensesSummary.countThisMonth === 1 ? "gasto" : "gastos"}
                 </span>
+              </div>
+            )}
+          </DashboardCard>
+        )}
+
+        {/* Subscriptions - only if has data */}
+        {(hasSubscriptions || subscriptions === undefined) && (
+          <DashboardCard
+            icon={CreditCard}
+            title="Suscripciones"
+            to="/subscriptions"
+            color="bg-indigo-500/10 text-indigo-600"
+          >
+            {subscriptions === undefined ? (
+              <div className="py-1"><SkeletonText lines={1} /></div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-bold">${subTotalMonthly.toFixed(2)}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase font-bold text-base-content/40">Mensual Fijo</span>
+                  <span className="text-xs text-base-content/60">{subActiveCount} activos</span>
+                </div>
               </div>
             )}
           </DashboardCard>
@@ -356,92 +439,11 @@ export function DashboardPage() {
             hasHealth={hasHealth}
             hasLibrary={hasLibrary}
             hasVehicles={hasVehicles}
+            hasSubscriptions={hasSubscriptions}
+            hasDocuments={hasDocuments}
           />
         )}
       </div>
     </div>
-  );
-}
-
-function QuickAddSection({
-  hasExpenses,
-  hasGifts,
-  hasPlaces,
-  hasRecipes,
-  hasHealth,
-  hasLibrary,
-  hasVehicles,
-}: {
-  hasExpenses: boolean | undefined;
-  hasGifts: boolean | undefined;
-  hasPlaces: boolean | undefined;
-  hasRecipes: boolean | undefined;
-  hasHealth: boolean | undefined;
-  hasLibrary: boolean | undefined;
-  hasVehicles: boolean | undefined;
-}) {
-  const emptyModules = [
-    { show: !hasExpenses, to: "/expenses", icon: DollarSign, label: "Gastos", color: "text-emerald-600" },
-    { show: !hasGifts, to: "/gifts", icon: Gift, label: "Regalos", color: "text-red-600" },
-    { show: !hasPlaces, to: "/places", icon: MapPin, label: "Lugares", color: "text-rose-600" },
-    { show: !hasRecipes, to: "/recipes", icon: ChefHat, label: "Recetas", color: "text-amber-600" },
-    { show: !hasHealth, to: "/health", icon: Heart, label: "Salud", color: "text-pink-600" },
-    { show: !hasLibrary, to: "/library", icon: Book, label: "Librería", color: "text-blue-600" },
-    { show: !hasVehicles, to: "/vehicles", icon: Car, label: "Autos", color: "text-green-600" },
-  ].filter((m) => m.show);
-
-  if (emptyModules.length === 0) return null;
-
-  return (
-    <div className="mt-4">
-      <h3 className="text-xs font-medium text-base-content/50 uppercase tracking-wider mb-3">
-        Agregar más
-      </h3>
-      <div className="flex flex-wrap gap-2">
-        {emptyModules.map(({ to, icon: Icon, label, color }) => (
-          <Link
-            key={to}
-            to={to}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-base-300 hover:border-primary hover:bg-primary/5 transition-all group"
-          >
-            <div className={`${color} opacity-60 group-hover:opacity-100`}>
-              <Icon className="w-4 h-4" />
-            </div>
-            <span className="text-sm text-base-content/60 group-hover:text-base-content">{label}</span>
-            <Plus className="w-3 h-3 text-base-content/40 group-hover:text-primary" />
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function DashboardCard({
-  icon: Icon,
-  title,
-  to,
-  color,
-  children,
-}: {
-  icon: typeof Gift;
-  title: string;
-  to: string;
-  color: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link to={to} className="card bg-base-100 shadow-sm border border-base-300 card-interactive">
-      <div className="card-body p-4">
-        <div className="flex items-start gap-3">
-          <div className={`p-2 rounded-lg ${color} transition-transform group-hover:scale-110`}>
-            <Icon className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm mb-1">{title}</h3>
-            {children}
-          </div>
-        </div>
-      </div>
-    </Link>
   );
 }
