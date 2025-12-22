@@ -84,19 +84,28 @@ export default defineSchema({
   calendarIntegrations: defineTable({
     familyId: v.id("families"),
     provider: v.literal("google"),
-    calendarId: v.string(),
+    calendarId: v.string(), // Primary calendar ID (usually 'primary' or Kovan) - Used for writing
+    syncedCalendarIds: v.optional(v.array(v.string())), // List of calendar IDs to sync events from
     displayName: v.string(),
     connectedBy: v.id("users"),
+    accessToken: v.optional(v.string()),
+    refreshToken: v.optional(v.string()),
+    tokenExpiry: v.optional(v.number()),
+    scope: v.optional(v.string()),
+    lastSync: v.optional(v.number()), // Timestamp of last successful sync
   }).index("by_family", ["familyId"]),
 
   cachedCalendarEvents: defineTable({
     familyId: v.id("families"),
     externalId: v.string(),
+    calendarId: v.optional(v.string()), // Which Google Calendar this event belongs to
     title: v.string(),
+    description: v.optional(v.string()), // Added description
     startDateTime: v.number(),
     endDateTime: v.number(),
     location: v.optional(v.string()),
     allDay: v.boolean(),
+    colorId: v.optional(v.string()), // For color coding based on source calendar
   })
     .index("by_family", ["familyId"])
     .index("by_family_start", ["familyId", "startDateTime"]),
@@ -562,4 +571,30 @@ export default defineSchema({
     .index("by_family_status", ["familyId", "status"])
     .index("by_family_type", ["familyId", "type"])
     .index("by_assignee", ["assignedTo"]),
+
+  // ==================== GAMES / ACTIVITIES ====================
+  gamePresets: defineTable({
+    familyId: v.id("families"),
+    gameType: v.union(v.literal("roulette"), v.literal("headsup")),
+    name: v.string(),
+    items: v.array(v.string()),
+    isDefault: v.optional(v.boolean()),
+    createdBy: v.id("users"),
+  })
+    .index("by_family_game", ["familyId", "gameType"])
+    .index("by_family", ["familyId"]),
+
+  gameSessions: defineTable({
+    familyId: v.id("families"),
+    gameType: v.union(v.literal("roulette"), v.literal("headsup")),
+    presetId: v.optional(v.id("gamePresets")),
+    winner: v.optional(v.string()),
+    participants: v.array(v.string()),
+    result: v.optional(v.string()), // For headsup: score, for roulette: winner
+    playedAt: v.number(),
+    playedBy: v.id("users"),
+  })
+    .index("by_family", ["familyId"])
+    .index("by_family_type", ["familyId", "gameType"])
+    .index("by_preset", ["presetId"]),
 });

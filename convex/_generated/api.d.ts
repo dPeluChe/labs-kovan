@@ -19,6 +19,7 @@ import type * as expenses from "../expenses.js";
 import type * as families from "../families.js";
 import type * as featureRequests from "../featureRequests.js";
 import type * as files from "../files.js";
+import type * as games from "../games.js";
 import type * as gifts from "../gifts.js";
 import type * as health from "../health.js";
 import type * as lib_agent_fuzzyMatch from "../lib/agent/fuzzyMatch.js";
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   families: typeof families;
   featureRequests: typeof featureRequests;
   files: typeof files;
+  games: typeof games;
   gifts: typeof gifts;
   health: typeof health;
   "lib/agent/fuzzyMatch": typeof lib_agent_fuzzyMatch;
