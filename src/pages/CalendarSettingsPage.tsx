@@ -264,7 +264,7 @@ export function CalendarSettingsPage() {
   );
 }
 
-function CalendarSelection({ accessToken, syncedIds, familyId }: { accessToken: string, syncedIds: string[], familyId: Id<"families"> }) {
+function CalendarSelection({ accessToken: _accessToken, syncedIds, familyId }: { accessToken: string, syncedIds: string[], familyId: Id<"families"> }) {
   const listCalendars = useAction(api.calendar.listGoogleCalendarsAction);
   const updateSettings = useMutation(api.calendar.updateCalendarSettings);
 
