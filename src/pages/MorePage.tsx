@@ -35,6 +35,13 @@ const menuItems = [
     color: "bg-purple-500/10 text-purple-600",
   },
   {
+    to: "/calendar",
+    icon: Calendar,
+    label: "Calendario",
+    description: "Agenda Familiar",
+    color: "bg-orange-500/10 text-orange-600",
+  },
+  {
     to: "/finances",
     icon: DollarSign,
     label: "Finanzas",
@@ -131,13 +138,6 @@ const menuItems = [
     label: "Familia",
     description: "Miembros",
     color: "bg-purple-500/10 text-purple-600",
-  },
-  {
-    to: "/settings/calendar",
-    icon: Calendar,
-    label: "Calendario",
-    description: "Conexión Google",
-    color: "bg-orange-500/10 text-orange-600",
   },
   {
     to: "/settings",

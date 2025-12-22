@@ -1,15 +1,22 @@
-import { useQuery } from "convex/react";
+import { useState } from "react";
+import { useQuery, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import type { Doc } from "../../convex/_generated/dataModel";
 import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
-import { Calendar, MapPin, Clock, Settings } from "lucide-react";
+import { Calendar, MapPin, Clock, Settings, Plus, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
+import { EventFormModal } from "../components/calendar/EventFormModal";
+import { EventDetailModal } from "../components/calendar/EventDetailModal";
 
 export function CalendarPage() {
   const { currentFamily } = useFamily();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Doc<"cachedCalendarEvents"> | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const integration = useQuery(
     api.calendar.getCalendarIntegration,
@@ -21,9 +28,29 @@ export function CalendarPage() {
     currentFamily ? { familyId: currentFamily._id } : "skip"
   );
 
+  const syncCalendar = useAction(api.calendar.syncGoogleCalendar);
+
+  const handleSync = async () => {
+    if (!currentFamily) return;
+    setIsSyncing(true);
+    try {
+      await syncCalendar({ familyId: currentFamily._id });
+    } catch (err) {
+      console.error("Sync failed", err);
+      alert("Error al sincronizar calendario");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   if (!currentFamily) return <PageLoader />;
 
   const hasIntegration = integration !== undefined && integration !== null;
+
+  // Format Last Sync
+  const lastSyncLabel = integration?.lastSync
+    ? `Actualizado: ${new Date(integration.lastSync).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    : hasIntegration ? "Sincronización pendiente" : "Eventos compartidos";
 
   // Group events by date
   const eventsByDate = new Map<string, typeof events>();
@@ -44,16 +71,40 @@ export function CalendarPage() {
     <div className="pb-4">
       <PageHeader
         title="Calendario"
-        subtitle={hasIntegration ? integration.displayName : "Eventos compartidos"}
+        subtitle={lastSyncLabel}
         action={
-          <Link to="/settings/calendar" className="btn btn-ghost btn-sm btn-circle">
-            <Settings className="w-5 h-5" />
-          </Link>
+          <div className="flex gap-2">
+            {hasIntegration && (
+              <button
+                onClick={handleSync}
+                className={`btn btn-ghost btn-sm btn-circle ${isSyncing ? "animate-spin" : ""}`}
+                disabled={isSyncing}
+                title="Sincronizar ahora"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
+            )}
+            <Link to="/settings/calendar" className="btn btn-ghost btn-sm btn-circle">
+              <Settings className="w-5 h-5" />
+            </Link>
+            {hasIntegration && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="btn btn-primary btn-sm btn-square"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            )}
+          </div>
         }
       />
 
       <div className="px-4">
-        {!hasIntegration ? (
+        {integration === undefined ? (
+          <div className="mt-4">
+            <SkeletonList count={1} />
+          </div>
+        ) : !hasIntegration ? (
           <div className="card bg-base-100 shadow-sm border border-base-300 mt-4 animate-fade-in">
             <div className="card-body text-center">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -92,10 +143,10 @@ export function CalendarPage() {
                       {isToday
                         ? "Hoy"
                         : date.toLocaleDateString("es-MX", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "short"
-                          })}
+                          weekday: "long",
+                          day: "numeric",
+                          month: "short"
+                        })}
                     </span>
                     {isToday && <span className="badge badge-xs badge-primary">Actual</span>}
                   </div>
@@ -106,13 +157,17 @@ export function CalendarPage() {
                       .map((event) => (
                         <div
                           key={event._id}
-                          className="card bg-base-100 shadow-sm border border-base-300 card-interactive group"
+                          onClick={() => setSelectedEvent(event)}
+                          className="card bg-base-100 shadow-sm border border-base-300 card-interactive group cursor-pointer"
                         >
                           <div className="card-body p-3">
                             <div className="flex items-start gap-3">
-                              <div className={`p-2 rounded-lg flex flex-col items-center min-w-[3rem] ${
-                                isToday ? "bg-primary/10 text-primary" : "bg-base-200 text-base-content/70"
-                              }`}>
+                              <div className={`p-2 rounded-lg flex flex-col items-center min-w-[3rem] relative ${isToday ? "bg-primary/10 text-primary" : "bg-base-200 text-base-content/70"
+                                }`}>
+                                {/* Calendar Indicator (Color/Dot) */}
+                                {event.calendarId && (
+                                  <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-secondary" title="Sincronizado" />
+                                )}
                                 <span className="text-xs font-bold">
                                   {new Date(event.startDateTime).toLocaleTimeString("es-MX", {
                                     hour: "2-digit",
@@ -120,7 +175,7 @@ export function CalendarPage() {
                                   })}
                                 </span>
                               </div>
-                              
+
                               <div className="flex-1 min-w-0 py-0.5">
                                 <h4 className="font-semibold text-sm leading-tight mb-1">{event.title}</h4>
                                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/60">
@@ -152,6 +207,17 @@ export function CalendarPage() {
           </div>
         )}
       </div>
+
+      <EventFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+
+      <EventDetailModal
+        isOpen={!!selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+        event={selectedEvent}
+      />
     </div>
   );
 }
