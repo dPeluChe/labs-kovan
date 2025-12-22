@@ -2,6 +2,47 @@
 
 Módulo de juegos y dinámicas familiares para Kovan.
 
+## 🎯 Arquitectura de Juegos (2025)
+
+### Enfoque Modular por Categorías
+
+El módulo está organizado en dos categorías principales:
+
+#### 1. **Juegos Casuales** (Sin lógica compleja)
+Juegos rápidos, sin estado persistente, ideales para momentos breves.
+- **Ruleta de la Suerte** ✅ - Selección aleatoria
+- **Heads Up!** ✅ - Adivinanzas con timer
+- **Carta Más Alta** ✅ - Juego de cartas simple
+
+#### 2. **Juegos por Turnos** (Con arquitectura compartida)
+Juegos estratégicos con sistema de turnos, física opcional y estado de juego.
+- **Batalla Naval** 🚧 (En desarrollo)
+- **Damas Chinas** 📋 (Planeado)
+- **Más juegos por definir** 📋
+
+### Core de Juegos por Turnos
+
+Sistema reutilizable para cualquier juego basado en turnos:
+
+```
+shared/core/
+├── turnSystem/
+│   ├── TurnManager.ts         # Gestión de turnos genérica
+│   ├── PlayerManager.ts       # Gestión de jugadores
+│   └── Timer.ts               # Temporizador por turnos
+├── physics/
+│   ├── PhysicsEngine.ts       # Wrapper de Matter.js
+│   ├── GameObject.ts          # Clase base para objetos con física
+│   └── ParticleSystem.ts      # Sistema de partículas
+├── state/
+│   ├── GameStateManager.ts    # Gestión de estado de juego
+│   └── HistoryManager.ts      # Historial de movimientos
+└── ui/
+    ├── GameBoard.tsx          # Tablero genérico
+    ├── PlayerCard.tsx         # Tarjeta de jugador
+    └── ScoreBoard.tsx         # Marcador
+```
+
 ## 📁 Estructura
 
 ```
@@ -12,18 +53,20 @@ activities/
 │   └── RoulettePresets.ts     # Presets predefinidos para la ruleta
 ├── games/                      # Componentes de cada juego
 │   ├── roulette/              # Juego de Ruleta de la Suerte
-│   │   ├── RouletteGame.tsx   # Componente principal del juego
-│   │   ├── PresetSelector.tsx # Selector de tipo de preset
-│   │   └── types.ts           # Tipos específicos de Roulette
-│   └── headsup/               # Juego de Heads Up!
-│       ├── HeadsUpGame.tsx    # Componente principal del juego
-│       ├── CategorySelector.tsx # Selector de categoría
-│       ├── GameScreen.tsx     # Pantalla de juego
-│       └── types.ts           # Tipos específicos de HeadsUp
-├── utils/                      # Funciones compartidas entre juegos
-│   ├── random.ts              # Utilidades de aleatoriedad
-│   ├── timer.ts               # Utilidades de timer/countdown
-│   └── animation.ts           # Utilidades de animaciones
+│   ├── headsup/               # Juego de Heads Up!
+│   ├── highcard/              # Juego de Carta Más Alta
+│   ├── battleship/            # Juego de Batalla Naval (por turnos)
+│   └── checkers/              # Juego de Damas Chinas (por turnos)
+├── shared/                     # **NUEVO** - Core compartido para juegos por turnos
+│   ├── core/                  # Lógica de juego reutilizable
+│   │   ├── turnSystem/        # Sistema de turnos
+│   │   ├── physics/           # Motor de física (Matter.js)
+│   │   ├── state/             # Gestión de estado
+│   │   └── ui/                # Componentes UI genéricos
+│   └── utils/                 # Utilidades compartidas
+│       ├── random.ts          # Utilidades de aleatoriedad
+│       ├── timer.ts           # Utilidades de timer/countdown
+│       └── animation.ts       # Utilidades de animaciones
 └── types.ts                    # Tipos compartidos entre juegos
 ```
 
@@ -244,12 +287,19 @@ Similar a Heads Up pero dibujando en lugar de adivinar con palabras.
 
 ## 📊 Prioridad de Implementación Sugerida
 
+### Juegos Casuales (Sin turnos)
 1. **Carta Más Alta** 🃏 - ✅ COMPLETADO - Juego de cartas con anónimos
 2. **Gato** ⭕❌ - Más simple, excelente para testing
 3. **Memory Match** 🧠 - Popular y visualmente atractivo
 4. **Stop!** ✏️ - Muy replayable, engage familiar
 5. **Verdad o Reto** ⚖️ - Bueno para eventos familiares
 6. **¿Quién Soy?** 🎨 - Más complejo, para después
+
+### Juegos por Turnos (Nueva arquitectura)
+1. **Batalla Naval** ⚓ - 🚧 EN DESARROLLO - Próximo juego con física
+2. **Damas Chinas** ♟️ - Planeado - Reutilizará core compartido
+3. **Ajedrez** ♟️ - Planeado - Más complejo, mismo core
+4. **Más juegos** - Por definir - El core permitirá agregarlos rápidamente
 
 ## 🏗️ Convex Schema
 
@@ -329,3 +379,185 @@ Los juegos pueden tener los siguientes estados:
 - `playing` - Juego en curso
 - `paused` - Pausado
 - `finished` - Terminado con resultado
+
+---
+
+## 🚀 Nueva Arquitectura: Juegos por Turnos (2025)
+
+### Decisión Técnica: Matter.js + Core Compartido
+
+**Fecha:** Diciembre 2025  
+**Stack:** React + Vite + TypeScript + Matter.js
+
+#### ¿Por qué Matter.js?
+
+- ✅ **Lightweight**: ~927 KB bundle (vs 147 MB Phaser, 63 MB Pixi.js)
+- ✅ **Física 2D realista**: Colisiones, gravedad, fricción
+- ✅ **Perfecto para mini-juegos**: No es un motor completo como Phaser
+- ✅ **Compatible con React**: Hooks directos, sin adaptadores complejos
+- ✅ **Multi-touch nativo**: Ideal para juegos en el mismo celular
+- ✅ **TypeScript types**: `@types/matter-js` disponible
+
+#### Comparativo de Librerías 2025
+
+| Librería | Bundle Size | Para Kovan | Veredicto |
+|----------|-------------|------------|-----------|
+| **Matter.js** | ~1 MB | ⭐⭐⭐⭐⭐ | ✅ **ELEGIDO** |
+| Pixi.js | ~63 MB | ⭐⭐ | ❌ Overkill (solo render) |
+| Phaser | ~147 MB | ⭐ | ❌ Overkill (motor completo) |
+
+### Roadmap de Implementación
+
+#### Fase 1: Core Compartido ✅ (En progreso)
+- [ ] Sistema de turnos genérico (`TurnManager`)
+- [ ] Gestión de jugadores (`PlayerManager`)
+- [ ] Gestión de estado (`GameStateManager`)
+- [ ] Wrapper de Matter.js (`PhysicsEngine`)
+- [ ] Sistema de partículas (`ParticleSystem`)
+- [ ] Componentes UI genéricos (`GameBoard`, `PlayerCard`, `ScoreBoard`)
+
+#### Fase 2: Batalla Naval 🚧 (Siguiente)
+- [ ] Tablero 10x10 interactivo
+- [ ] Colocación de barcos (drag & drop)
+- [ ] Sistema de turnos (usando core)
+- [ ] Disparos con física (proyectiles)
+- [ ] Explosiones con partículas
+- [ ] Detección de hundimiento
+- [ ] IA para jugar contra CPU
+
+#### Fase 3: Damas Chinas 📋
+- [ ] Tablero 8x8
+- [ ] Fichas con física
+- [ ] Validación de movimientos
+- [ ] Sistema de capturas con física
+- [ ] IA básica
+
+### Estructura de Tipos para Juegos por Turnos
+
+```typescript
+// shared/core/turnSystem/types.ts
+
+export interface Player<T = any> {
+  id: string;
+  name: string;
+  avatar?: string;
+  color?: string;
+  score?: number;
+  data?: T; // Datos específicos del juego
+}
+
+export type TurnState = 'waiting' | 'playing' | 'paused' | 'finished';
+
+export interface TurnManagerConfig<T = any> {
+  players: Player<T>[];
+  onTurnChange: (player: Player<T>) => void;
+  onGameOver: (winner: Player<T>) => void;
+  maxTurns?: number;
+  turnTimeLimit?: number; // segundos
+}
+
+export interface GameState<T = any> {
+  status: TurnState;
+  currentPlayer: Player<T>;
+  turnCount: number;
+  moves: Move<T>[];
+  winner?: Player<T>;
+}
+
+export interface Move<T = any> {
+  playerId: string;
+  timestamp: number;
+  from?: { x: number; y: number };
+  to?: { x: number; y: number };
+  data?: T; // Datos específicos del movimiento
+}
+```
+
+### Ejemplo de Uso del Core
+
+```typescript
+// battleship/BattleshipGame.tsx
+
+import { TurnManager } from '../shared/core/turnSystem/TurnManager';
+import { PhysicsEngine } from '../shared/core/physics/PhysicsEngine';
+
+export function BattleshipGame() {
+  const [turnManager] = useState(() => new TurnManager<BattleshipPlayer>({
+    players: [
+      { id: '1', name: 'Jugador 1', color: '#3b82f6' },
+      { id: '2', name: 'Jugador 2', color: '#ef4444' }
+    ],
+    onTurnChange: (player) => {
+      console.log('Turno de:', player.name);
+    },
+    onGameOver: (winner) => {
+      console.log('¡Ganador:', winner.name);
+    },
+    maxTurns: 100,
+    turnTimeLimit: 30,
+  }));
+  
+  const handleAttack = (x: number, y: number) => {
+    // Lógica de ataque usando el core
+    turnManager.nextTurn();
+  };
+  
+  return <div>...</div>;
+}
+```
+
+### Principios de Diseño del Core
+
+1. **Reutilizable**: El core debe servir para ANY juego por turnos
+2. **Modular**: Cada módulo es independiente y puede usarse por separado
+3. **Tipos Genéricos**: Uso de TypeScript generics para máxima flexibilidad
+4. **Sin dependencias**: El core NO depende de Matter.js directamente (física es opcional)
+5. **Testeable**: Cada módulo debe poder probarse unitariamente
+6. **React-friendly**: Hooks-first, compatible con el ecosistema React
+
+### Archivos a Crear (Próximos pasos)
+
+```
+src/components/activities/shared/core/
+├── turnSystem/
+│   ├── TurnManager.ts        # Prioridad 1
+│   ├── PlayerManager.ts      # Prioridad 1
+│   └── types.ts              # Prioridad 1
+├── state/
+│   ├── GameStateManager.ts   # Prioridad 2
+│   └── HistoryManager.ts     # Prioridad 2
+└── ui/
+    ├── GameBoard.tsx         # Prioridad 3
+    ├── PlayerCard.tsx        # Prioridad 3
+    └── ScoreBoard.tsx        # Prioridad 3
+```
+
+### Testing Strategy
+
+1. **Unit Tests**: Para cada módulo del core (Jest + React Testing Library)
+2. **Integration Tests**: Para flujos completos de juego
+3. **E2E Tests**: Para juegos completos (Playwright)
+
+---
+
+## 📝 Reglas de Desarrollo
+
+1. **Sin `any`**: Usar tipos explícitos de TypeScript
+2. **Límite de líneas**: Máximo 400-500 líneas por archivo
+3. **Componentes modulares**: Separar lógica en componentes pequeños
+4. **Types centralizados**: Usar `types.ts` para tipos compartidos
+5. **Constants separadas**: Configuraciones en `constants/`
+6. **Icons de Lucide**: Importar desde `lucide-react`
+7. **Utils compartidas**: Reutilizar funciones de `utils/` antes de crear nuevas
+8. **Core-first**: Para juegos por turnos, SIEMPRE usar el core compartido
+
+## 🔧 Agregar un Nuevo Juego Por Turnos
+
+1. Usar el core compartido (`TurnManager`, `PlayerManager`, etc.)
+2. Crear carpeta en `games/nuevo-juego/`
+3. Crear `types.ts` con tipos específicos (extender tipos base)
+4. Crear componente principal `NuevoJuegoGame.tsx`
+5. Usar componentes UI genéricos del core (`GameBoard`, `PlayerCard`)
+6. Agregar física opcionalmente con `PhysicsEngine`
+7. Actualizar `GameConfig.ts` con metadata del juego
+8. Actualizar `ActivitiesPage.tsx` para incluir el juego
