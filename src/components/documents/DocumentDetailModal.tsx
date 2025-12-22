@@ -1,13 +1,13 @@
 import { MobileModal } from "../ui/MobileModal";
-import { FileText, User, Hash, Globe, Building, Shield } from "lucide-react";
+import { FileText, User, Hash, Globe, Building, Shield, Pencil } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
 interface DocumentDetailModalProps {
     document: Doc<"documents"> | null;
     onClose: () => void;
+    onEdit: () => void;
     personName?: string;
-    // We could pass helper to getPersonName if needed, or pass the name directly.
 }
 
 const TYPE_ICONS: Record<string, LucideIcon> = {
@@ -20,7 +20,7 @@ const TYPE_ICONS: Record<string, LucideIcon> = {
     other: FileText,
 };
 
-export function DocumentDetailModal({ document, onClose, personName }: DocumentDetailModalProps) {
+export function DocumentDetailModal({ document, onClose, onEdit, personName }: DocumentDetailModalProps) {
     if (!document) return null;
 
     const Icon = TYPE_ICONS[document.type] || FileText;
@@ -80,14 +80,18 @@ export function DocumentDetailModal({ document, onClose, personName }: DocumentD
                     </div>
                 )}
 
-                {/* Future: Files Preview */}
-                {/* <div className="border border-dashed border-base-300 rounded-xl p-8 flex flex-col items-center justify-center text-base-content/40 gap-2">
-                    <FileText className="w-8 h-8 opacity-50" />
-                    <span className="text-xs">Sin archivos adjuntos</span>
-                </div> */}
-
-                <div className="pt-4">
-                    <button className="btn btn-outline btn-block" onClick={onClose}>Cerrar</button>
+                <div className="pt-4 flex gap-3">
+                    <button className="btn btn-outline flex-1" onClick={onClose}>Cerrar</button>
+                    <button
+                        className="btn btn-primary flex-1 gap-2"
+                        onClick={() => {
+                            onEdit();
+                            onClose();
+                        }}
+                    >
+                        <Pencil className="w-4 h-4" />
+                        Editar
+                    </button>
                 </div>
             </div>
         </MobileModal>

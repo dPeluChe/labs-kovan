@@ -3,7 +3,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
-import { CreateDocumentModal } from "../components/documents/CreateDocumentModal";
+import { DocumentFormModal } from "../components/documents/DocumentFormModal";
 import { DocumentDetailModal } from "../components/documents/DocumentDetailModal";
 import { PageHeader } from "../components/ui/PageHeader";
 import { FileText, Plus, User, AlertTriangle, Calendar } from "lucide-react";
@@ -12,7 +12,8 @@ import type { Doc } from "../../convex/_generated/dataModel";
 
 export function DocumentsPage() {
     const { currentFamily } = useFamily();
-    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showFormModal, setShowFormModal] = useState(false);
+    const [docToEdit, setDocToEdit] = useState<Doc<"documents"> | null>(null);
     const [selectedPersonId, setSelectedPersonId] = useState<string | "all" | "general">("all");
     const [selectedDoc, setSelectedDoc] = useState<Doc<"documents"> | null>(null);
 
@@ -45,6 +46,16 @@ export function DocumentsPage() {
         return { label: new Date(timestamp).toLocaleDateString(), color: "text-base-content/60", bg: "bg-base-200" };
     };
 
+    const handleCreate = () => {
+        setDocToEdit(null);
+        setShowFormModal(true);
+    };
+
+    const handleEdit = (doc: Doc<"documents">) => {
+        setDocToEdit(doc);
+        setShowFormModal(true);
+    };
+
     return (
         <div className="pb-20">
             <PageHeader
@@ -52,7 +63,7 @@ export function DocumentsPage() {
                 subtitle={currentFamily?.name}
                 action={
                     <button
-                        onClick={() => setShowCreateModal(true)}
+                        onClick={handleCreate}
                         className="btn btn-primary btn-sm btn-circle"
                     >
                         <Plus className="w-5 h-5" />
@@ -134,7 +145,7 @@ export function DocumentsPage() {
                         title="Sin documentos"
                         description={selectedPersonId === "all" ? "No hay documentos registrados." : "Esta persona no tiene documentos asignados."}
                         action={
-                            <button onClick={() => setShowCreateModal(true)} className="btn btn-primary btn-sm">
+                            <button onClick={handleCreate} className="btn btn-primary btn-sm">
                                 Agregar Documento
                             </button>
                         }
@@ -142,14 +153,19 @@ export function DocumentsPage() {
                 )}
             </div>
 
-            <CreateDocumentModal
-                isOpen={showCreateModal}
-                onClose={() => setShowCreateModal(false)}
+            <DocumentFormModal
+                isOpen={showFormModal}
+                onClose={() => {
+                    setShowFormModal(false);
+                    setDocToEdit(null);
+                }}
+                document={docToEdit}
             />
 
             <DocumentDetailModal
                 document={selectedDoc}
                 onClose={() => setSelectedDoc(null)}
+                onEdit={() => selectedDoc && handleEdit(selectedDoc)}
                 personName={getPersonName(selectedDoc?.personId)}
             />
         </div>

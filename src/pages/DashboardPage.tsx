@@ -246,44 +246,57 @@ export function DashboardPage() {
               <div className="py-1"><SkeletonText lines={1} /></div>
             ) : (
               <ul className="space-y-2">
-                {giftEvents.slice(0, 3).map((event) => {
-                  const eventDate = new Date(event.date || 0);
-                  const diffTime = eventDate.getTime() - now;
-                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                {[...giftEvents]
+                  .filter(e => !e.isCompleted) // Only show active
+                  .sort((a, b) => (a.date || 9999999999999) - (b.date || 9999999999999)) // Sort by date
+                  .slice(0, 3)
+                  .map((event) => {
+                    const eventDate = new Date(event.date || 0);
+                    // Normalize dates for diff
+                    const nowDate = new Date();
+                    nowDate.setHours(0, 0, 0, 0);
+                    const targetDate = new Date(eventDate);
+                    targetDate.setHours(0, 0, 0, 0);
 
-                  let timeText = "";
-                  let timeClass = "text-primary";
+                    const diffTime = targetDate.getTime() - nowDate.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                  if (diffDays === 0) {
-                    timeText = "¡¡ES HOY!!";
-                    timeClass = "text-error font-bold animate-pulse";
-                  } else if (diffDays === 1) {
-                    timeText = "¡¡ES MAÑANA!!";
-                    timeClass = "text-warning font-bold";
-                  } else if (diffDays > 1) {
-                    timeText = `en ${diffDays} días`;
-                  }
+                    let timeText = "";
+                    let timeClass = "text-primary";
 
-                  return (
-                    <li key={event._id} className="text-sm flex justify-between items-center">
-                      <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-                        <span className="truncate font-medium">{event.name}</span>
-                        {timeText && (
-                          <span className={`text-[10px] uppercase shrink-0 ${timeClass}`}>
-                            {timeText}
+                    if (diffDays === 0) {
+                      timeText = "¡¡ES HOY!!";
+                      timeClass = "text-error font-bold animate-pulse";
+                    } else if (diffDays === 1) {
+                      timeText = "¡¡ES MAÑANA!!";
+                      timeClass = "text-warning font-bold";
+                    } else if (diffDays > 1) {
+                      timeText = `en ${diffDays} días`;
+                    } else if (diffDays < 0) {
+                      timeText = "VENCIDO";
+                      timeClass = "text-error font-bold";
+                    }
+
+                    return (
+                      <li key={event._id} className="text-sm flex justify-between items-center">
+                        <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                          <span className={`truncate font-medium ${diffDays < 0 ? "text-base-content/70" : ""}`}>{event.name}</span>
+                          {timeText && (
+                            <span className={`text-[10px] uppercase shrink-0 ${timeClass}`}>
+                              {timeText}
+                            </span>
+                          )}
+                        </div>
+                        {event.date && (
+                          <span className="text-xs text-base-content/60 ml-2 whitespace-nowrap">
+                            {eventDate.toLocaleDateString("es-MX", { month: "short", day: "numeric" })}
                           </span>
                         )}
-                      </div>
-                      {event.date && (
-                        <span className="text-xs text-base-content/60 ml-2 whitespace-nowrap">
-                          {eventDate.toLocaleDateString("es-MX", { month: "short", day: "numeric" })}
-                        </span>
-                      )}
-                    </li>
-                  );
-                })}
-                {giftEvents.length > 3 && (
-                  <li className="text-xs text-base-content/50 pt-1">+{giftEvents.length - 3} más</li>
+                      </li>
+                    );
+                  })}
+                {giftEvents.filter(e => !e.isCompleted).length > 3 && (
+                  <li className="text-xs text-base-content/50 pt-1">+{giftEvents.filter(e => !e.isCompleted).length - 3} más</li>
                 )}
               </ul>
             )}

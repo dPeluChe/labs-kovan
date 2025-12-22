@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { MobileModal } from "../ui/MobileModal";
@@ -9,11 +9,12 @@ import {
     Hash, Globe,
     CreditCard, Car, Shield, Plane, Plus
 } from "lucide-react";
-import type { Id } from "../../../convex/_generated/dataModel";
+import type { Id, Doc } from "../../../convex/_generated/dataModel";
 
-interface CreateDocumentModalProps {
+interface DocumentFormModalProps {
     isOpen: boolean;
     onClose: () => void;
+    document?: Doc<"documents"> | null;
 }
 
 const COMMON_DOCS = [
@@ -26,10 +27,11 @@ const COMMON_DOCS = [
     { id: "other", label: "Otro", type: "other", icon: Plus },
 ] as const;
 
-export function CreateDocumentModal({ isOpen, onClose }: CreateDocumentModalProps) {
+export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormModalProps) {
     const { currentFamily } = useFamily();
     const { user } = useAuth();
     const create = useMutation(api.documents.create);
+    const update = useMutation(api.documents.update);
     const profiles = useQuery(api.health.getPersonProfiles, currentFamily ? { familyId: currentFamily._id } : "skip");
 
     const [title, setTitle] = useState("");
@@ -41,15 +43,39 @@ export function CreateDocumentModal({ isOpen, onClose }: CreateDocumentModalProp
     const [notes, setNotes] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
+    useEffect(() => {
+        if (isOpen) {
+            if (document) {
+                // Edit mode
+                setTitle(document.title);
+                setType(document.type);
+                setPersonId(document.personId || "");
+                setDocumentNumber(document.documentNumber || "");
+                setExpiryDate(document.expiryDate ? new Date(document.expiryDate).toISOString().split('T')[0] : "");
+                setIssueDate(document.issueDate ? new Date(document.issueDate).toISOString().split('T')[0] : "");
+                setNotes(document.notes || "");
+            } else {
+                // Create mode: Cleanup
+                setTitle("");
+                setType("other");
+                setPersonId("");
+                setDocumentNumber("");
+                setExpiryDate("");
+                setIssueDate("");
+                setNotes("");
+            }
+        }
+    }, [isOpen, document]);
+
+
     const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const val = e.target.value;
         const doc = COMMON_DOCS.find(d => d.id === val);
         if (doc) {
             setType(doc.type);
-            if (doc.id !== "other") {
+            if (doc.id !== "other" && !document) {
+                // Only auto-set title if creating new
                 setTitle(doc.label);
-            } else {
-                setTitle("");
             }
         }
     };
@@ -63,34 +89,38 @@ export function CreateDocumentModal({ isOpen, onClose }: CreateDocumentModalProp
 
         setIsLoading(true);
         try {
-            await create({
+            const commonFields = {
                 familyId: currentFamily._id,
-                userId: user._id,
                 title: title.trim(),
                 type: type as "identity" | "travel" | "financial" | "insurance" | "education" | "health" | "other",
                 personId: personId ? (personId as Id<"personProfiles">) : undefined,
-                documentNumber: documentNumber.trim() || undefined,
+                documentNumber: documentNumber.trim(),
                 expiryDate: expiryDate ? new Date(expiryDate).getTime() : undefined,
                 issueDate: issueDate ? new Date(issueDate).getTime() : undefined,
-                notes: notes.trim() || undefined,
-            });
+                notes: notes.trim(),
+            };
+
+            if (document) {
+                await update({
+                    documentId: document._id,
+                    ...commonFields,
+                });
+            } else {
+                await create({
+                    userId: user._id,
+                    ...commonFields,
+                });
+            }
             onClose();
-            // Reset
-            setTitle("");
-            setPersonId("");
-            setDocumentNumber("");
-            setExpiryDate("");
-            setIssueDate("");
-            setNotes("");
         } catch (error) {
-            console.error("Failed to create document:", error);
+            console.error("Failed to save document:", error);
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <MobileModal isOpen={isOpen} onClose={onClose} title="Nuevo Documento">
+        <MobileModal isOpen={isOpen} onClose={onClose} title={document ? "Editar Documento" : "Nuevo Documento"}>
             <form onSubmit={handleSubmit} className="space-y-4">
 
                 {/* Document Type Dropdown */}
@@ -101,9 +131,13 @@ export function CreateDocumentModal({ isOpen, onClose }: CreateDocumentModalProp
                     <select
                         className="select select-bordered w-full rounded-xl"
                         onChange={handleTypeChange}
-                        defaultValue="other"
+                        value={COMMON_DOCS.find(d => d.type === type && (d.id !== 'other' ? d.label === title : true))?.id || user && document ? "custom" : "other"}
                     >
-                        <option value="other" disabled selected>Selecciona un tipo</option>
+                        {/* Logic for select value is tricky if title changed. Just map by type or keep simple */}
+                        {/* Better: just show types. But user wants shortcuts. */}
+                        {/* Let's keep it simple: if editing, maybe don't force select mapping, just show type via a different simple select or just rely on manual edits */}
+                        {/* For now, just let them pick shortcuts or ignore if custom */}
+                        <option value="custom" disabled>Personalizado ({type})</option>
                         {COMMON_DOCS.map(doc => (
                             <option key={doc.id} value={doc.id}>{doc.label}</option>
                         ))}
@@ -204,7 +238,7 @@ export function CreateDocumentModal({ isOpen, onClose }: CreateDocumentModalProp
                         className="btn btn-primary w-full rounded-xl"
                         disabled={isLoading || !title.trim()}
                     >
-                        {isLoading ? <span className="loading loading-spinner" /> : "Guardar Documento"}
+                        {isLoading ? <span className="loading loading-spinner" /> : (document ? "Guardar Cambios" : "Guardar Documento")}
                     </button>
                 </div>
             </form>

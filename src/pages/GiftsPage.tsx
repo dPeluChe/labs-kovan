@@ -20,7 +20,7 @@ export function GiftsPage() {
   const { user } = useAuth();
   const [showNewEventModal, setShowNewEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Doc<"giftEvents"> | null>(null);
-  const [showCompleted, setShowCompleted] = useState(false);
+  const [filter, setFilter] = useState<"active" | "pending_close" | "completed">("active");
   const { ConfirmModal } = useConfirmModal();
 
   const events = useQuery(
@@ -30,9 +30,36 @@ export function GiftsPage() {
 
   if (!currentFamily) return <PageLoader />;
 
-  const activeEvents = events?.filter((e: Doc<"giftEvents">) => !e.isCompleted) || [];
+  // Group events
+  const now = new Date();
+  now.setHours(0, 0, 0, 0); // Normalize to start of day for comparison?
+  // Actually, allow "today" events to be active until tomorrow.
+  // Let's say if date < yesterday, it's pending closure.
+  // If date is today, it's active "ES HOY".
+
+  // Helper to check if date is strictly in the past (yesterday or before)
+  const isPast = (timestamp?: number) => {
+    if (!timestamp) return false;
+    const date = new Date(timestamp);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // Compare dates only
+    const eventDate = new Date(date);
+    eventDate.setHours(0, 0, 0, 0);
+    return eventDate.getTime() < today.getTime();
+  };
+
+  const activeEvents = events?.filter((e: Doc<"giftEvents">) => !e.isCompleted && !isPast(e.date)) || [];
+  const pendingClosureEvents = events?.filter((e: Doc<"giftEvents">) => !e.isCompleted && isPast(e.date)) || [];
   const completedEvents = events?.filter((e: Doc<"giftEvents">) => e.isCompleted) || [];
-  const displayedEvents = showCompleted ? completedEvents : activeEvents;
+
+  // Determine which list to show
+  let displayedEvents: Doc<"giftEvents">[] = [];
+  if (filter === "active") displayedEvents = activeEvents;
+  else if (filter === "pending_close") displayedEvents = pendingClosureEvents;
+  else displayedEvents = completedEvents;
+
+  // Auto-switch filter if active is empty but pending_close has items? No, confusing. Stick to default "active".
 
   return (
     <div className="pb-4">
@@ -53,7 +80,7 @@ export function GiftsPage() {
       <div className="px-4">
         {events === undefined ? (
           <SkeletonList count={3} />
-        ) : activeEvents.length === 0 && completedEvents.length === 0 ? (
+        ) : (activeEvents.length === 0 && pendingClosureEvents.length === 0 && completedEvents.length === 0) ? (
           <EmptyState
             icon={Gift}
             title="Sin eventos de regalos"
@@ -70,31 +97,41 @@ export function GiftsPage() {
         ) : (
           <>
             {/* Filter Tabs */}
-            {(activeEvents.length > 0 || completedEvents.length > 0) && (
-              <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
+              <button
+                onClick={() => setFilter("active")}
+                className={`btn btn-sm whitespace-nowrap ${filter === "active" ? "btn-primary" : "btn-ghost"}`}
+              >
+                Activos ({activeEvents.length})
+              </button>
+              {pendingClosureEvents.length > 0 && (
                 <button
-                  onClick={() => setShowCompleted(false)}
-                  className={`btn btn-sm ${!showCompleted ? "btn-primary" : "btn-ghost"}`}
+                  onClick={() => setFilter("pending_close")}
+                  className={`btn btn-sm whitespace-nowrap ${filter === "pending_close" ? "btn-warning" : "btn-ghost text-warning"}`}
                 >
-                  Activos ({activeEvents.length})
+                  Por cerrar ({pendingClosureEvents.length})
                 </button>
-                {completedEvents.length > 0 && (
-                  <button
-                    onClick={() => setShowCompleted(true)}
-                    className={`btn btn-sm ${showCompleted ? "btn-success" : "btn-ghost"}`}
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    Finalizados ({completedEvents.length})
-                  </button>
-                )}
-              </div>
-            )}
+              )}
+              {completedEvents.length > 0 && (
+                <button
+                  onClick={() => setFilter("completed")}
+                  className={`btn btn-sm whitespace-nowrap ${filter === "completed" ? "btn-success" : "btn-ghost"}`}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Finalizados ({completedEvents.length})
+                </button>
+              )}
+            </div>
 
             {displayedEvents.length === 0 ? (
               <EmptyState
-                icon={showCompleted ? CheckCircle2 : Gift}
-                title={showCompleted ? "Sin eventos finalizados" : "Sin eventos activos"}
-                description={showCompleted ? "Los eventos finalizados aparecerán aquí" : "Crea un nuevo evento para empezar"}
+                icon={filter === "completed" ? CheckCircle2 : Gift}
+                title={
+                  filter === "completed" ? "Sin eventos finalizados" :
+                    filter === "pending_close" ? "Sin eventos por cerrar" :
+                      "Sin eventos activos"
+                }
+                description={filter === "active" ? "Crea un nuevo evento para empezar" : "No hay eventos en esta categoría"}
               />
             ) : (
               <div className="space-y-3 stagger-children">
@@ -102,6 +139,7 @@ export function GiftsPage() {
                   <GiftEventCard
                     key={event._id}
                     event={event}
+                    isPendingClose={filter === "pending_close"}
                   />
                 ))}
               </div>
@@ -144,19 +182,29 @@ export function GiftsPage() {
 
 function GiftEventCard({
   event,
+  isPendingClose,
 }: {
   event: Doc<"giftEvents">;
+  isPendingClose?: boolean;
 }) {
   const summary = useQuery(api.gifts.getGiftEventSummary, { eventId: event._id });
 
   return (
-    <div className={`card bg-base-100 shadow-sm border animate-fade-in ${event.isCompleted ? "border-success/30 opacity-75" : "border-base-300"}`}>
+    <div className={`card bg-base-100 shadow-sm border animate-fade-in ${event.isCompleted ? "border-success/30 opacity-75" :
+        isPendingClose ? "border-warning/50 bg-warning/5" :
+          "border-base-300"
+      }`}>
       <div className="card-body p-4">
         <div className="flex items-center gap-3">
           <Link to={`/gifts/${event._id}`} className="flex items-center gap-3 flex-1 min-w-0">
-            <div className={`p-2 rounded-lg ${event.isCompleted ? "bg-success/10" : "bg-red-500/10"}`}>
+            <div className={`p-2 rounded-lg ${event.isCompleted ? "bg-success/10" :
+                isPendingClose ? "bg-warning/10" :
+                  "bg-red-500/10"
+              }`}>
               {event.isCompleted ? (
                 <CheckCircle2 className="w-5 h-5 text-success" />
+              ) : isPendingClose ? (
+                <Calendar className="w-5 h-5 text-warning" />
               ) : (
                 <Gift className="w-5 h-5 text-red-600" />
               )}
@@ -168,15 +216,27 @@ function GiftEventCard({
                 let timeClass = "text-primary";
 
                 if (evtDate) {
-                  const diffDays = Math.ceil((evtDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                  if (diffDays === 0) {
-                    timeText = "¡¡ES HOY!!";
-                    timeClass = "text-error font-bold animate-pulse";
-                  } else if (diffDays === 1) {
-                    timeText = "¡¡ES MAÑANA!!";
-                    timeClass = "text-warning font-bold";
-                  } else if (diffDays > 1) {
-                    timeText = `(en ${diffDays} días)`;
+                  const now = new Date();
+                  now.setHours(0, 0, 0, 0); // Normalize today
+                  const target = new Date(evtDate);
+                  target.setHours(0, 0, 0, 0); // Normalize target
+
+                  const diffTime = target.getTime() - now.getTime();
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                  if (!event.isCompleted) {
+                    if (diffDays === 0) {
+                      timeText = "¡¡ES HOY!!";
+                      timeClass = "text-error font-bold animate-pulse";
+                    } else if (diffDays === 1) {
+                      timeText = "¡¡ES MAÑANA!!";
+                      timeClass = "text-warning font-bold";
+                    } else if (diffDays > 1) {
+                      timeText = `(en ${diffDays} días)`;
+                    } else if (diffDays < 0) {
+                      timeText = "PENDIENTE DE CIERRE";
+                      timeClass = "text-warning font-bold uppercase";
+                    }
                   }
                 }
 
