@@ -278,7 +278,7 @@ function CalendarSelection({ accessToken, syncedIds, familyId }: { accessToken: 
     setIsLoading(true);
     setError("");
     try {
-      const list = await listCalendars({ accessToken });
+      const list = await listCalendars({ familyId });
       setCalendars(list);
     } catch (err) {
       console.error(err);
@@ -286,7 +286,7 @@ function CalendarSelection({ accessToken, syncedIds, familyId }: { accessToken: 
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken, listCalendars]);
+  }, [familyId, listCalendars]);
 
   useEffect(() => {
     loadCalendars();

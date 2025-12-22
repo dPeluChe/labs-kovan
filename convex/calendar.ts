@@ -215,25 +215,80 @@ export const provisionKovanCalendar = action({
   },
 });
 
-export const listGoogleCalendarsAction = action({
-  args: { accessToken: v.string() },
-  handler: async (_ctx, args) => {
-    const response = await fetch(
-      "https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=reader",
-      { headers: { Authorization: `Bearer ${args.accessToken}` } }
-    );
-    if (!response.ok) throw new Error("Failed to list calendars");
+// Helper to refresh Google Token
+async function refreshAccessToken(refreshToken: string) {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    throw new Error("Missing Google OAuth Credentials");
+  }
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
+    }),
+  });
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(`Token refresh failed: ${err.error_description || err.error}`);
+  }
+  return await response.json();
+}
 
-    // Type the response minimally
+export const listGoogleCalendarsAction = action({
+  args: { familyId: v.id("families") },
+  handler: async (ctx, args) => {
+    const integration = await ctx.runQuery(api.calendar.getCalendarIntegration, { familyId: args.familyId });
+    if (!integration || !integration.accessToken) throw new Error("No calendar integration found");
+
+    const fetchList = async (token: string) => {
+      const response = await fetch(
+        "https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=reader",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.status === 401) throw new Error("UNAUTHORIZED");
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Failed to list calendars: ${response.status} ${text}`);
+      }
+      return await response.json();
+    };
+
+    let data;
+    try {
+      data = await fetchList(integration.accessToken);
+    } catch (err: any) {
+      if (err.message === "UNAUTHORIZED" && integration.refreshToken) {
+        console.log("Token expired, refreshing...");
+        const tokens = await refreshAccessToken(integration.refreshToken);
+
+        await ctx.runMutation(api.calendar.saveCalendarIntegration, {
+          familyId: args.familyId,
+          calendarId: integration.calendarId,
+          displayName: integration.displayName,
+          connectedBy: integration.connectedBy,
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token || integration.refreshToken,
+          tokenExpiry: Date.now() + (tokens.expires_in * 1000),
+          scope: tokens.scope || integration.scope,
+        });
+
+        data = await fetchList(tokens.access_token);
+      } else {
+        throw err;
+      }
+    }
+
     type CalendarItem = {
       id: string;
       summary: string;
       primary?: boolean;
       backgroundColor?: string;
     };
-    const data = await response.json() as { items: CalendarItem[] };
 
-    return data.items.map((c) => ({
+    return ((data as any).items as CalendarItem[]).map((c) => ({
       id: c.id,
       summary: c.summary,
       primary: c.primary,
