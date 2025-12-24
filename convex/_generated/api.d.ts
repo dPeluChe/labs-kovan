@@ -26,6 +26,7 @@ import type * as lib_agent_fuzzyMatch from "../lib/agent/fuzzyMatch.js";
 import type * as lib_agent_index from "../lib/agent/index.js";
 import type * as lib_utils from "../lib/utils.js";
 import type * as loans from "../loans.js";
+import type * as nutrition from "../nutrition.js";
 import type * as petNutrition from "../petNutrition.js";
 import type * as places from "../places.js";
 import type * as recipes from "../recipes.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   "lib/agent/index": typeof lib_agent_index;
   "lib/utils": typeof lib_utils;
   loans: typeof loans;
+  nutrition: typeof nutrition;
   petNutrition: typeof petNutrition;
   places: typeof places;
   recipes: typeof recipes;

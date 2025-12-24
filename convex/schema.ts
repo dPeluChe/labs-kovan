@@ -354,7 +354,6 @@ export default defineSchema({
   }).index("by_family", ["familyId"]),
 
   // ==================== PLACES (LUGARES) ====================
-  // ==================== PLACES (LUGARES) ====================
   placeLists: defineTable({
     familyId: v.id("families"),
     name: v.string(), // e.g. "GDL", "Japón 2025", "Fin de semana"
@@ -597,4 +596,74 @@ export default defineSchema({
     .index("by_family", ["familyId"])
     .index("by_family_type", ["familyId", "gameType"])
     .index("by_preset", ["presetId"]),
+
+  // ==================== NUTRITION ====================
+  nutritionPlans: defineTable({
+    familyId: v.id("families"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    targets: v.object({
+      calories: v.optional(v.number()),
+      protein: v.optional(v.number()),
+      carbs: v.optional(v.number()),
+      fat: v.optional(v.number()),
+      veggies: v.optional(v.number()),
+      fruits: v.optional(v.number()),
+      dairy: v.optional(v.number()),
+      legumes: v.optional(v.number()),
+    }),
+    createdBy: v.id("users"),
+  }).index("by_family", ["familyId"]),
+
+  nutritionAssignments: defineTable({
+    familyId: v.id("families"),
+    planId: v.id("nutritionPlans"),
+    personId: v.id("personProfiles"),
+    startDate: v.number(),
+    endDate: v.number(),
+    isActive: v.boolean(),
+  })
+    .index("by_family", ["familyId"])
+    .index("by_person", ["personId"])
+    .index("by_person_active", ["personId", "isActive"]),
+
+  nutritionMeals: defineTable({
+    familyId: v.id("families"),
+    personId: v.id("personProfiles"),
+    date: v.string(), // YYYY-MM-DD
+    name: v.string(), // e.g. "Desayuno", "Pollo con arroz"
+    content: v.object({
+      protein: v.optional(v.number()),
+      carbs: v.optional(v.number()),
+      fat: v.optional(v.number()),
+      veggies: v.optional(v.number()),
+      fruits: v.optional(v.number()),
+      dairy: v.optional(v.number()),
+      legumes: v.optional(v.number()),
+      water: v.optional(v.number()),
+      other: v.optional(v.number()),
+    }),
+    timestamp: v.number(),
+    addedBy: v.optional(v.id("users")),
+  })
+    .index("by_person_date", ["personId", "date"]),
+
+  nutritionLogs: defineTable({
+    familyId: v.id("families"),
+    personId: v.id("personProfiles"),
+    date: v.string(), // YYYY-MM-DD
+    consumed: v.object({
+      protein: v.optional(v.number()),
+      carbs: v.optional(v.number()),
+      fat: v.optional(v.number()),
+      veggies: v.optional(v.number()),
+      fruits: v.optional(v.number()),
+      dairy: v.optional(v.number()),
+      water: v.optional(v.number()),
+      calories: v.optional(v.number()),
+      legumes: v.optional(v.number()),
+      other: v.optional(v.number()),
+    }),
+  })
+    .index("by_person_date", ["personId", "date"]),
 });

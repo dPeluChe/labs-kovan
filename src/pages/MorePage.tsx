@@ -24,6 +24,7 @@ import {
   CheckSquare,
   FileText,
   CreditCard,
+  Utensils,
 } from "lucide-react";
 
 const menuItems = [
@@ -89,6 +90,13 @@ const menuItems = [
     label: "Recetas",
     description: "Colección de recetas",
     color: "bg-amber-500/10 text-amber-600",
+  },
+  {
+    to: "/nutrition",
+    icon: Utensils,
+    label: "Nutrición",
+    description: "Planes y seguimiento",
+    color: "bg-lime-500/10 text-lime-600",
   },
   {
     to: "/places",

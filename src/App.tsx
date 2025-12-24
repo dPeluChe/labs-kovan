@@ -36,6 +36,7 @@ import { PlaceVisitsPage } from "./pages/PlaceVisitsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ContactsPage } from "./pages/ContactsPage";
 import { ActivitiesPage } from "./pages/ActivitiesPage";
+import { NutritionPage } from "./pages/NutritionPage";
 import AgentPage from "./pages/AgentPage";
 import { LandingPage } from "./pages/LandingPage";
 import { TripsPage } from "./pages/TripsPage";
@@ -89,6 +90,7 @@ function AppRoutes() {
         <Route path="/subscriptions" element={<SubscriptionsPage />} />
         <Route path="/finances" element={<FinancesPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
+        <Route path="/nutrition" element={<NutritionPage />} />
         <Route path="/places/visits" element={<PlaceVisitsPage />} />
         <Route path="/places" element={<PlacesPage />} />
         <Route path="/trips" element={<TripsPage />} />
