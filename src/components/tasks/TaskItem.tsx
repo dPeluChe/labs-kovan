@@ -25,7 +25,8 @@ export function TaskItem({ task, onToggle, onClick, onDelete }: TaskItemProps) {
 
     return (
         <SwipeableCard
-            actions={({ close }) => (
+            enabled={!isCompleted}
+            actions={!isCompleted ? ({ close }) => (
                 <button
                     onClick={() => {
                         onDelete(task._id);
@@ -35,7 +36,7 @@ export function TaskItem({ task, onToggle, onClick, onDelete }: TaskItemProps) {
                 >
                     <Trash2 className="w-5 h-5 text-white" />
                 </button>
-            )}
+            ) : null}
             contentClassName={`bg-base-100 p-3 rounded-xl border border-transparent transition-all duration-200 ${isCompleted ? "opacity-50" : "hover:border-base-content/10 shadow-sm"
                 }`}
             className="mb-2"

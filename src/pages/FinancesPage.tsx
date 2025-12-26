@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -7,51 +6,18 @@ import { useAuth } from "../contexts/AuthContext";
 import { SkeletonPageContent } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useConfirmModal } from "../hooks/useConfirmModal";
-import { DollarSign, Plus, Trash2, Car, Gift, CreditCard, Repeat, HandCoins } from "lucide-react";
+import { DollarSign, Plus, Trash2, HandCoins, Repeat } from "lucide-react";
 import { DateInput } from "../components/ui/DateInput";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 import { MobileModal } from "../components/ui/MobileModal";
-
-type ExpenseType = "all" | "general" | "subscription" | "vehicle" | "gift";
-type ExpenseCategory = "food" | "transport" | "entertainment" | "utilities" | "health" | "shopping" | "home" | "education" | "gifts" | "vehicle" | "subscription" | "other";
-
-const CATEGORY_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
-  food: { label: "Comida", icon: "", color: "from-orange-500/20" },
-  transport: { label: "Transporte", icon: "🚗", color: "from-blue-500/20" },
-  entertainment: { label: "Entretenimiento", icon: "🎬", color: "from-purple-500/20" },
-  utilities: { label: "Servicios", icon: "💡", color: "from-yellow-500/20" },
-  health: { label: "Salud", icon: "💊", color: "from-red-500/20" },
-  shopping: { label: "Compras", icon: "🛍️", color: "from-pink-500/20" },
-  home: { label: "Hogar", icon: "🏠", color: "from-teal-500/20" },
-  education: { label: "Educación", icon: "📚", color: "from-indigo-500/20" },
-  gifts: { label: "Regalos", icon: "🎁", color: "from-red-500/20" },
-  vehicle: { label: "Auto", icon: "🚙", color: "from-green-500/20" },
-  subscription: { label: "Suscripción", icon: "📺", color: "from-violet-500/20" },
-  other: { label: "Otro", icon: "📋", color: "from-gray-500/20" },
-};
-
-const GENERAL_EXPENSE_CATEGORIES: ExpenseCategory[] = [
-  "food", "transport", "entertainment", "utilities", "health", "shopping", "home", "education", "other"
-];
-
-const TYPE_CONFIG: Record<ExpenseType, { label: string; icon: typeof DollarSign }> = {
-  all: { label: "Todos", icon: DollarSign },
-  general: { label: "Puntuales", icon: CreditCard },
-  subscription: { label: "Suscripciones", icon: Repeat },
-  vehicle: { label: "Auto", icon: Car },
-  gift: { label: "Regalos", icon: Gift },
-};
-
-const SUBSCRIPTION_TYPES = {
-  streaming: { label: "Streaming", icon: "📺" },
-  utility: { label: "Servicios", icon: "💡" },
-  internet: { label: "Internet", icon: "📶" },
-  insurance: { label: "Seguros", icon: "🛡️" },
-  membership: { label: "Membresías", icon: "🎫" },
-  software: { label: "Software", icon: "💻" },
-  other: { label: "Otro", icon: "📋" },
-};
+import { ExpenseCard } from "../components/finances/ExpenseCard";
+import { ExpenseFormModal } from "../components/finances/ExpenseFormModal";
+import {
+  TYPE_CONFIG,
+  SUBSCRIPTION_TYPES
+} from "../components/finances/constants";
+import type { ExpenseType } from "../components/finances/constants";
 
 type DateFilter = "thisMonth" | "last3Months" | "all";
 const DATE_FILTER_CONFIG: Record<DateFilter, { label: string }> = {
@@ -322,6 +288,7 @@ function ExpensesView() {
   const [activeTab, setActiveTab] = useState<ExpenseType>("all");
   const [dateFilter, setDateFilter] = useState<DateFilter>("thisMonth");
   const [showNewExpense, setShowNewExpense] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Doc<"expenses"> | undefined>(undefined);
   const [showNewSubscription, setShowNewSubscription] = useState(false);
   const [showPaySubscription, setShowPaySubscription] = useState<Id<"subscriptions"> | null>(null);
   const { confirm, ConfirmModal } = useConfirmModal();
@@ -369,6 +336,16 @@ function ExpensesView() {
 
   if (!currentFamily) return null;
 
+  const handleCreateExpense = () => {
+    setEditingExpense(undefined);
+    setShowNewExpense(true);
+  };
+
+  const handleEditExpense = (expense: Doc<"expenses">) => {
+    setEditingExpense(expense);
+    setShowNewExpense(true);
+  };
+
   // Determinar acción principal según tab
   const getAddAction = () => {
     switch (activeTab) {
@@ -379,7 +356,7 @@ function ExpensesView() {
       case "gift":
         return { label: "Ir a Regalos", action: () => window.location.href = "/gifts" };
       default:
-        return { label: "Nuevo gasto", action: () => setShowNewExpense(true) };
+        return { label: "Nuevo gasto", action: handleCreateExpense };
     }
   };
 
@@ -426,7 +403,7 @@ function ExpensesView() {
                 Nuevo
               </button>
               <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52">
-                <li><a onClick={() => setShowNewExpense(true)}>💳 Gasto puntual</a></li>
+                <li><a onClick={handleCreateExpense}>💳 Gasto puntual</a></li>
                 <li><a onClick={() => setShowNewSubscription(true)}>🔄 Nueva suscripción</a></li>
               </ul>
             </div>
@@ -446,7 +423,7 @@ function ExpensesView() {
                 <div>
                   <div className="text-sm text-base-content/60">Este mes</div>
                   <div className="text-2xl font-bold text-emerald-600">
-                    ${summary.totalThisMonth?.toLocaleString() || 0}
+                    {summary.totalThisMonth?.toLocaleString("es-MX", { style: "currency", currency: "MXN" }) || "$0.00"}
                   </div>
                 </div>
                 <div className="text-right text-sm">
@@ -525,7 +502,7 @@ function ExpensesView() {
             description={activeTab === "subscription" ? "Registra tus suscripciones y pagos recurrentes" : "Registra tus gastos para llevar control"}
             action={
               <button
-                onClick={() => activeTab === "subscription" ? setShowNewSubscription(true) : setShowNewExpense(true)}
+                onClick={() => activeTab === "subscription" ? setShowNewSubscription(true) : handleCreateExpense()}
                 className="btn btn-primary btn-sm"
               >
                 {activeTab === "subscription" ? "Agregar suscripción" : "Agregar gasto"}
@@ -534,61 +511,24 @@ function ExpensesView() {
           />
         ) : (
           <div className="space-y-2 stagger-children">
-            {filteredExpenses.map((expense: Doc<"expenses">) => {
-              const config = CATEGORY_CONFIG[expense.category] || CATEGORY_CONFIG.other;
-              const TypeIcon = TYPE_CONFIG[expense.type as ExpenseType]?.icon || DollarSign;
-              return (
-                <div
-                  key={expense._id}
-                  className={`card bg-gradient-to-r ${config.color} to-transparent border border-base-300 animate-fade-in`}
-                >
-                  <div className="card-body p-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{config.icon}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold truncate">{expense.description}</div>
-                        <div className="flex items-center gap-2 text-xs text-base-content/60">
-                          <span className="badge badge-sm badge-ghost gap-1">
-                            <TypeIcon className="w-2 h-2" />
-                            {TYPE_CONFIG[expense.type as ExpenseType]?.label || expense.type}
-                          </span>
-                          <span>{new Date(expense.date).toLocaleDateString("es-MX")}</span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold">${expense.amount.toLocaleString()}</div>
-                      </div>
-                      <button
-                        onClick={async () => {
-                          const confirmed = await confirm({
-                            title: "Eliminar gasto",
-                            message: `¿Eliminar "${expense.description}"?`,
-                            confirmText: "Eliminar",
-                            variant: "danger",
-                            icon: "trash",
-                          });
-                          if (confirmed) {
-                            await deleteExpense({ expenseId: expense._id });
-                          }
-                        }}
-                        className="btn btn-ghost btn-xs btn-circle text-error"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {filteredExpenses.map((expense: Doc<"expenses">) => (
+              <ExpenseCard
+                key={expense._id}
+                expense={expense}
+                onEdit={handleEditExpense}
+                onDelete={async (id) => await deleteExpense({ expenseId: id })}
+              />
+            ))}
           </div>
         )}
       </div>
 
       {/* Modals */}
       {showNewExpense && currentFamily && (
-        <NewExpenseModal
+        <ExpenseFormModal
           familyId={currentFamily._id}
           onClose={() => setShowNewExpense(false)}
+          expenseToEdit={editingExpense}
         />
       )}
 
@@ -614,104 +554,6 @@ function ExpensesView() {
 }
 
 
-function NewExpenseModal({
-  familyId,
-  onClose,
-}: {
-  familyId: Id<"families">;
-  onClose: () => void;
-}) {
-  const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState<ExpenseCategory>("food");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const createExpense = useMutation(api.expenses.createExpense);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!description.trim() || !amount) return;
-
-    setIsLoading(true);
-    try {
-      await createExpense({
-        familyId,
-        type: "general",
-        description: description.trim(),
-        amount: parseFloat(amount),
-        category,
-        date: new Date(date).getTime(),
-      });
-      onClose();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <MobileModal isOpen={true} onClose={onClose} title="Nuevo gasto">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="form-control">
-          <label className="label"><span className="label-text">Descripción *</span></label>
-          <input
-            type="text"
-            placeholder="¿En qué gastaste?"
-            className="input input-bordered w-full"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Monto *</span></label>
-            <input
-              type="number"
-              placeholder="0.00"
-              className="input input-bordered w-full"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              step="0.01"
-            />
-          </div>
-          <DateInput
-            label="Fecha"
-            value={date}
-            onChange={setDate}
-          />
-        </div>
-
-        <div className="form-control">
-          <label className="label"><span className="label-text">Categoría</span></label>
-          <div className="grid grid-cols-3 gap-2">
-            {GENERAL_EXPENSE_CATEGORIES.map((key) => {
-              const config = CATEGORY_CONFIG[key];
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setCategory(key)}
-                  className={`btn btn-sm gap-1 ${category === key ? "btn-primary" : "btn-ghost"}`}
-                >
-                  <span>{config.icon}</span>
-                  <span className="text-xs truncate">{config.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="modal-action">
-          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-          <button type="submit" className="btn btn-primary" disabled={isLoading || !description.trim() || !amount}>
-            {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
-          </button>
-        </div>
-      </form>
-    </MobileModal>
-  );
-}
 
 // New Subscription Modal
 function NewSubscriptionModal({

@@ -26,8 +26,9 @@ export function SwipeableCard({
     className = "",
     contentClassName = "bg-base-100 p-4 border border-base-content/5 rounded-2xl shadow-sm",
     actionWidth = 140,
-    onClick
-}: SwipeableCardProps) {
+    onClick,
+    enabled = true
+}: SwipeableCardProps & { enabled?: boolean }) {
     const controls = useAnimation();
     const [isOpen, setIsOpen] = useState(false);
 
@@ -69,7 +70,7 @@ export function SwipeableCard({
 
             {/* Foreground Card */}
             <motion.div
-                drag="x"
+                drag={enabled ? "x" : false}
                 dragConstraints={{ left: -actionWidth - 20, right: 0 }}
                 dragElastic={0.1}
                 onDragEnd={handleDragEnd}

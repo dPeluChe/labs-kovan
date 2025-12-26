@@ -5,15 +5,18 @@ import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
 import { TaskItem } from "../components/tasks/TaskItem";
-import { CreateTaskModal } from "../components/tasks/CreateTaskModal";
+import { TaskFormModal } from "../components/tasks/CreateTaskModal"; // Import updated component
 import { CheckSquare, ShoppingCart, Repeat, Plus } from "lucide-react";
-import type { Doc } from "../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { useFamily } from "../contexts/FamilyContext";
+import { useConfirmModal } from "../hooks/useConfirmModal";
 
 export function TasksPage() {
     const { currentFamily } = useFamily();
     const [activeTab, setActiveTab] = useState<"general" | "shopping" | "chore">("general");
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [editingTask, setEditingTask] = useState<Doc<"tasks"> | undefined>(undefined);
+    const { confirm, ConfirmModal } = useConfirmModal();
 
     // Queries
     const allTasks = useQuery(
@@ -24,18 +27,33 @@ export function TasksPage() {
     const toggleStatus = useMutation(api.tasks.toggleStatus);
     const deleteTask = useMutation(api.tasks.delete_task);
 
+    const handleDeleteTask = async (taskId: Id<"tasks">) => {
+        if (!currentFamily) return;
+        const ok = await confirm({
+            title: "Eliminar tarea",
+            message: "¿Estás seguro de que deseas eliminar esta tarea?",
+            confirmText: "Eliminar",
+            variant: "danger",
+            icon: "trash"
+        });
+        if (ok) {
+            await deleteTask({ taskId, familyId: currentFamily._id });
+        }
+    };
+
     // We optimize by fetching all and filtering client side for smoothest tab transitions
-    // But if list is huge, we should filter server side. 
-    // Given current usage, client side filtering of a few hundred tasks is fine and provides instant tab switching.
+    // ... (logic) ...
 
     // Filter logic
     const tasks = allTasks?.filter(t => {
         // Show pending tasks of the active type
         return t.type === activeTab;
     }).sort((a, b) => {
-        // Sort completed to bottom
+        // Sort: Pending first, then by completedAt (recent last or first?)
+        // If status different, pending first.
         if (a.status !== b.status) return a.status === "pending" ? -1 : 1;
-        return 0; // Existing sort from backend is preserved
+        // Check for completedAt logic if needed, but existing sort preserved for now
+        return 0;
     });
 
     const pendingCount = allTasks?.filter(t => t.type === "general" && t.status === "pending").length;
@@ -50,6 +68,16 @@ export function TasksPage() {
         { id: "chore", label: "Rutina", icon: <Repeat className="w-4 h-4" />, count: choreCount },
     ] as const;
 
+    const handleCreate = () => {
+        setEditingTask(undefined);
+        setShowCreateModal(true);
+    };
+
+    const handleEdit = (task: Doc<"tasks">) => {
+        setEditingTask(task);
+        setShowCreateModal(true);
+    };
+
     return (
         <div className="pb-20">
             {/* Header */}
@@ -57,7 +85,7 @@ export function TasksPage() {
                 <div className="px-4 py-3 flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Tareas</h1>
                     <button
-                        onClick={() => setShowCreateModal(true)}
+                        onClick={handleCreate}
                         className="btn btn-primary btn-sm btn-circle"
                     >
                         <Plus className="w-5 h-5" />
@@ -83,11 +111,8 @@ export function TasksPage() {
                                     key={task._id}
                                     task={task}
                                     onToggle={(id) => currentFamily && toggleStatus({ taskId: id, familyId: currentFamily._id })}
-                                    onClick={(t) => {
-                                        // Open edit modal (Future)
-                                        console.log("Edit", t);
-                                    }}
-                                    onDelete={(id) => currentFamily && deleteTask({ taskId: id, familyId: currentFamily._id })}
+                                    onClick={handleEdit}
+                                    onDelete={handleDeleteTask}
                                 />
                             ))}
                         </div>
@@ -99,7 +124,7 @@ export function TasksPage() {
                                 activeTab === "chore" ? "rutina" : "pendientes"
                                 }.`}
                             action={
-                                <button onClick={() => setShowCreateModal(true)} className="btn btn-primary btn-sm">
+                                <button onClick={handleCreate} className="btn btn-primary btn-sm">
                                     Agregar tarea
                                 </button>
                             }
@@ -108,11 +133,13 @@ export function TasksPage() {
                 </div>
             </div>
 
-            <CreateTaskModal
+            <TaskFormModal
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 defaultType={activeTab}
+                taskToEdit={editingTask}
             />
+            <ConfirmModal />
         </div>
     );
 }

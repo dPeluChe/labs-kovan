@@ -127,7 +127,10 @@ export const toggleStatus = mutation({
         if (task.familyId !== args.familyId) throw new Error("Unauthorized: Task does not belong to this family.");
 
         const newStatus = task.status === "pending" ? "completed" : "pending";
-        await ctx.db.patch(args.taskId, { status: newStatus });
+        await ctx.db.patch(args.taskId, {
+            status: newStatus,
+            completedAt: newStatus === "completed" ? Date.now() : undefined
+        });
     },
 });
 

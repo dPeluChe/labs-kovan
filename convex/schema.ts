@@ -565,6 +565,7 @@ export default defineSchema({
     assignedTo: v.optional(v.id("users")),
     createdBy: v.id("users"),
     tags: v.optional(v.array(v.string())), // Útil para categorías de super (Lácteos, Frutas, etc.) o contextos
+    completedAt: v.optional(v.number()),
   })
     .index("by_family", ["familyId"])
     .index("by_family_status", ["familyId", "status"])

@@ -4,6 +4,7 @@ import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { SkeletonText } from "../components/ui/Skeleton";
+import { useAuth } from "../contexts/AuthContext";
 import {
   Gift, Heart, Book, Car, Calendar,
   DollarSign, ChefHat, MapPin, Star, AlertTriangle, X, CreditCard, FileText
@@ -13,6 +14,13 @@ import { QuickAddSection } from "../components/dashboard/QuickAddSection";
 
 export function DashboardPage() {
   const { currentFamily, inviteError, clearInviteError } = useFamily();
+  const { user } = useAuth();
+
+  const hour = new Date().getHours();
+  let greeting = "Hola";
+  if (hour >= 5 && hour < 12) greeting = "Buenos días";
+  else if (hour >= 12 && hour < 19) greeting = "Buenas tardes";
+  else greeting = "Buenas noches";
 
   // Existing queries
   const giftEvents = useQuery(
@@ -116,8 +124,7 @@ export function DashboardPage() {
   return (
     <div className="pb-4">
       <PageHeader
-        title={`¡Hola! ${currentFamily.emoji || "🏠"}`}
-        subtitle={currentFamily.name}
+        title={`${greeting}, ${user?.name?.split(' ')[0] || "Usuario"}`}
       />
 
       {/* Invite Error Banner */}
@@ -203,7 +210,7 @@ export function DashboardPage() {
               <div className="py-1"><SkeletonText lines={1} /></div>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold">${expensesSummary.totalThisMonth.toLocaleString()}</span>
+                <span className="text-2xl font-bold">{expensesSummary.totalThisMonth.toLocaleString("es-MX", { style: "currency", currency: "MXN" })}</span>
                 <span className="text-sm text-base-content/60">
                   en {expensesSummary.countThisMonth} {expensesSummary.countThisMonth === 1 ? "gasto" : "gastos"}
                 </span>
@@ -224,7 +231,7 @@ export function DashboardPage() {
               <div className="py-1"><SkeletonText lines={1} /></div>
             ) : (
               <div className="flex items-center gap-3">
-                <span className="text-2xl font-bold">${subTotalMonthly.toFixed(2)}</span>
+                <span className="text-2xl font-bold">{subTotalMonthly.toLocaleString("es-MX", { style: "currency", currency: "MXN" })}</span>
                 <div className="flex flex-col">
                   <span className="text-[10px] uppercase font-bold text-base-content/40">Mensual Fijo</span>
                   <span className="text-xs text-base-content/60">{subActiveCount} activos</span>
@@ -443,7 +450,7 @@ export function DashboardPage() {
                     <span className="text-base-content/60 ml-1">vehículos</span>
                   </div>
                   <div>
-                    <span className="font-semibold">${vehiclesSummary.totalSpentThisMonth.toLocaleString()}</span>
+                    <span className="font-semibold">{vehiclesSummary.totalSpentThisMonth.toLocaleString("es-MX", { style: "currency", currency: "MXN" })}</span>
                     <span className="text-base-content/60 ml-1">este mes</span>
                   </div>
                 </div>
