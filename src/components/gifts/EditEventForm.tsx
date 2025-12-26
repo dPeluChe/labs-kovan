@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Input } from "../ui/Input";
+import { DateInput } from "../ui/DateInput";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
 import { TextArea } from "../ui/TextArea";
@@ -53,12 +54,10 @@ export function EditEventForm({
             />
 
             <div className="form-control">
-                <label className="label"><span className="label-text">Fecha (opcional)</span></label>
-                <input
-                    type="date"
-                    className="input input-bordered w-full"
+                <DateInput
+                    label="Fecha (opcional)"
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
+                    onChange={(val) => setDate(val)}
                     disabled={isLoading}
                 />
             </div>

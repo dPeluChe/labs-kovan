@@ -9,6 +9,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { useConfirmModal } from "../hooks/useConfirmModal";
 import { ChefHat, Plus, Trash2, Heart, ExternalLink, Star } from "lucide-react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { MobileModal } from "../components/ui/MobileModal";
 
 export function RecipesPage() {
   const { currentFamily } = useFamily();
@@ -237,58 +238,59 @@ function NewRecipeModal({
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="font-bold text-lg mb-4">Nueva receta</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Nombre *</span></label>
-            <input
-              type="text"
-              placeholder="Ej: Tacos al pastor"
-              className="input input-bordered w-full"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
+    <MobileModal
+      isOpen={true}
+      onClose={onClose}
+      title="Nueva receta"
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="form-control">
+          <label className="label"><span className="label-text">Nombre *</span></label>
+          <input
+            type="text"
+            placeholder="Ej: Tacos al pastor"
+            className="input input-bordered w-full"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            autoFocus
+          />
+        </div>
 
-          <div className="form-control">
-            <label className="label"><span className="label-text">URL de la receta</span></label>
-            <input
-              type="url"
-              placeholder="https://..."
-              className="input input-bordered w-full"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
-          </div>
+        <div className="form-control">
+          <label className="label"><span className="label-text">URL de la receta</span></label>
+          <input
+            type="url"
+            placeholder="https://..."
+            className="input input-bordered w-full"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+          />
+        </div>
 
-          <div className="form-control">
-            <label className="label"><span className="label-text">Categoría</span></label>
-            <select
-              className="select select-bordered w-full"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="">Sin categoría</option>
-              <option value="Desayuno">Desayuno</option>
-              <option value="Comida">Comida</option>
-              <option value="Cena">Cena</option>
-              <option value="Postre">Postre</option>
-              <option value="Snack">Snack</option>
-              <option value="Bebida">Bebida</option>
-            </select>
-          </div>
+        <div className="form-control">
+          <label className="label"><span className="label-text">Categoría</span></label>
+          <select
+            className="select select-bordered w-full"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="">Sin categoría</option>
+            <option value="Desayuno">Desayuno</option>
+            <option value="Comida">Comida</option>
+            <option value="Cena">Cena</option>
+            <option value="Postre">Postre</option>
+            <option value="Snack">Snack</option>
+            <option value="Bebida">Bebida</option>
+          </select>
+        </div>
 
-          <div className="modal-action">
-            <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading || !title.trim()}>
-              {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
-            </button>
-          </div>
-        </form>
-      </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+        <div className="modal-action">
+          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="btn btn-primary" disabled={isLoading || !title.trim()}>
+            {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
+          </button>
+        </div>
+      </form>
+    </MobileModal>
   );
 }

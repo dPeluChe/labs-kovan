@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -28,6 +28,7 @@ import {
   Dices,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { MobileModal } from "../components/ui/MobileModal";
 
 // All available nav items
 const ALL_NAV_ITEMS: { id: string; icon: LucideIcon; label: string }[] = [
@@ -56,11 +57,11 @@ export function SettingsPage() {
   const { user, logout } = useAuth();
   const { success } = useToast();
 
-  const [navOrder, setNavOrder] = useState<string[]>(["home", "agent", "finances", "places"]);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [editName, setEditName] = useState("");
+  const [localNavOrder, setLocalNavOrder] = useState<string[] | null>(null);
 
   const savedNavOrder = useQuery(
     api.users.getNavOrder,
@@ -70,37 +71,46 @@ export function SettingsPage() {
   const updateNavOrder = useMutation(api.users.updateNavOrder);
   const updateUser = useMutation(api.users.updateUser);
 
-  useEffect(() => {
-    if (savedNavOrder) {
-      // Get all available item IDs (excluding legacy ones and 'more')
-      const allAvailableIds = ALL_NAV_ITEMS
-        .filter(item => !['expenses', 'library', 'services'].includes(item.id))
-        .map(item => item.id);
-
-      // Start with saved order
-      const mergedOrder = [...savedNavOrder];
-
-      // Add any new items that aren't in the saved order
-      allAvailableIds.forEach(id => {
-        if (!mergedOrder.includes(id)) {
-          mergedOrder.push(id);
-        }
-      });
-
-      // Remove any legacy or invalid items
-      const cleanedOrder = mergedOrder.filter(id =>
-        allAvailableIds.includes(id) || id === 'more'
-      );
-
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setNavOrder(cleanedOrder);
-
-      // If we added new items, mark as changed so user can save
-      if (cleanedOrder.length !== savedNavOrder.length) {
-        setHasChanges(true);
-      }
+  // Compute the nav order: use local if modified, otherwise derive from saved
+  const navOrder = useMemo(() => {
+    // If user has made local changes, use those
+    if (localNavOrder !== null) {
+      return localNavOrder;
     }
-  }, [savedNavOrder]);
+
+    // Otherwise, compute from saved order
+    if (!savedNavOrder) {
+      return ["home", "agent", "finances", "places"];
+    }
+
+    // Get all available item IDs (excluding legacy ones and 'more')
+    const allAvailableIds = ALL_NAV_ITEMS
+      .filter(item => !['expenses', 'library', 'services'].includes(item.id))
+      .map(item => item.id);
+
+    // Start with saved order
+    const mergedOrder = [...savedNavOrder];
+
+    // Add any new items that aren't in the saved order
+    allAvailableIds.forEach(id => {
+      if (!mergedOrder.includes(id)) {
+        mergedOrder.push(id);
+      }
+    });
+
+    // Remove any legacy or invalid items
+    const cleanedOrder = mergedOrder.filter(id =>
+      allAvailableIds.includes(id) || id === 'more'
+    );
+
+    return cleanedOrder;
+  }, [savedNavOrder, localNavOrder]);
+
+  // Wrapper to set nav order that marks changes
+  const setNavOrder = useCallback((newOrder: string[]) => {
+    setLocalNavOrder(newOrder);
+    setHasChanges(true);
+  }, []);
 
   if (!user) return <PageLoader />;
 
@@ -338,63 +348,59 @@ export function SettingsPage() {
 
       {/* Edit Profile Modal */}
       {showEditProfile && (
-        <div className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg mb-4">Editar perfil</h3>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!editName.trim()) return;
-                await updateUser({ userId: user._id, name: editName.trim() });
-                success("Perfil actualizado");
-                setShowEditProfile(false);
-              }}
-              className="space-y-4"
-            >
-              <Input
-                label="Nombre"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                placeholder="Tu nombre"
-                autoFocus
+        <MobileModal isOpen={true} onClose={() => setShowEditProfile(false)} title="Editar perfil">
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!editName.trim()) return;
+              await updateUser({ userId: user._id, name: editName.trim() });
+              success("Perfil actualizado");
+              setShowEditProfile(false);
+            }}
+            className="space-y-4"
+          >
+            <Input
+              label="Nombre"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="Tu nombre"
+              autoFocus
+            />
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Email</span>
+              </label>
+              <input
+                type="email"
+                value={user.email}
+                className="input input-bordered w-full bg-base-200"
+                disabled
               />
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Email</span>
-                </label>
-                <input
-                  type="email"
-                  value={user.email}
-                  className="input input-bordered w-full bg-base-200"
-                  disabled
-                />
-                <label className="label">
-                  <span className="label-text-alt text-base-content/50">
-                    El email se usa para iniciar sesión y no puede cambiarse
-                  </span>
-                </label>
-              </div>
-              <div className="modal-action">
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={() => setShowEditProfile(false)}
-                >
-                  Cancelar
-                </button>
+              <label className="label">
+                <span className="label-text-alt text-base-content/50">
+                  El email se usa para iniciar sesión y no puede cambiarse
+                </span>
+              </label>
+            </div>
+            <div className="modal-action">
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setShowEditProfile(false)}
+              >
+                Cancelar
+              </button>
 
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={!editName.trim()}
-                >
-                  Guardar
-                </button>
-              </div>
-            </form>
-          </div>
-          <div className="modal-backdrop" onClick={() => setShowEditProfile(false)} />
-        </div >
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={!editName.trim()}
+              >
+                Guardar
+              </button>
+            </div>
+          </form>
+        </MobileModal>
       )
       }
     </div >

@@ -3,6 +3,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { MobileModal } from "../ui/MobileModal";
 import { Input } from "../ui/Input";
+import { DateInput } from "../ui/DateInput";
 import { ShoppingCart, CheckSquare, Calendar, Flag } from "lucide-react";
 import { useFamily } from "../../contexts/FamilyContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -85,12 +86,10 @@ export function CreateTaskModal({ isOpen, onClose, defaultType = "general" }: Cr
                 {/* Details Row */}
                 <div className="flex gap-3">
                     <div className="flex-1">
-                        <label className="label text-xs font-medium text-base-content/60">Fecha límite</label>
-                        <input
-                            type="date"
-                            className="input input-bordered w-full"
+                        <DateInput
+                            label="Fecha límite"
                             value={dueDate}
-                            onChange={(e) => setDueDate(e.target.value)}
+                            onChange={(val) => setDueDate(val)}
                         />
                     </div>
 

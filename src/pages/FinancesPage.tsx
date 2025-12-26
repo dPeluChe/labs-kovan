@@ -11,6 +11,7 @@ import { DollarSign, Plus, Trash2, Car, Gift, CreditCard, Repeat, HandCoins } fr
 import { DateInput } from "../components/ui/DateInput";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
+import { MobileModal } from "../components/ui/MobileModal";
 
 type ExpenseType = "all" | "general" | "subscription" | "vehicle" | "gift";
 type ExpenseCategory = "food" | "transport" | "entertainment" | "utilities" | "health" | "shopping" | "home" | "education" | "gifts" | "vehicle" | "subscription" | "other";
@@ -244,36 +245,32 @@ function NewLoanModal({ familyId, onClose }: { familyId: Id<"families">, onClose
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="font-bold text-lg mb-4">Nuevo Préstamo</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="tabs tabs-boxed">
-            <a className={`tab flex-1 ${type === "lent" ? "tab-active" : ""}`} onClick={() => setType("lent")}>Presté dinero</a>
-            <a className={`tab flex-1 ${type === "borrowed" ? "tab-active" : ""}`} onClick={() => setType("borrowed")}>Me prestaron</a>
-          </div>
+    <MobileModal isOpen={true} onClose={onClose} title="Nuevo Préstamo">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="tabs tabs-boxed">
+          <a className={`tab flex-1 ${type === "lent" ? "tab-active" : ""}`} onClick={() => setType("lent")}>Presté dinero</a>
+          <a className={`tab flex-1 ${type === "borrowed" ? "tab-active" : ""}`} onClick={() => setType("borrowed")}>Me prestaron</a>
+        </div>
 
+        <div className="form-control">
+          <label className="label"><span className="label-text">¿A quién / Quién?</span></label>
+          <input className="input input-bordered" placeholder="Nombre de la persona" value={person} onChange={e => setPerson(e.target.value)} autoFocus />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
           <div className="form-control">
-            <label className="label"><span className="label-text">¿A quién / Quién?</span></label>
-            <input className="input input-bordered" placeholder="Nombre de la persona" value={person} onChange={e => setPerson(e.target.value)} autoFocus />
+            <label className="label"><span className="label-text">Monto</span></label>
+            <input className="input input-bordered" type="number" step="0.01" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
           </div>
+          <DateInput label="Fecha" value={date} onChange={setDate} />
+        </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div className="form-control">
-              <label className="label"><span className="label-text">Monto</span></label>
-              <input className="input input-bordered" type="number" step="0.01" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
-            </div>
-            <DateInput label="Fecha" value={date} onChange={setDate} />
-          </div>
-
-          <div className="modal-action">
-            <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading || !person || !amount}>Guardar</button>
-          </div>
-        </form>
-      </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+        <div className="modal-action">
+          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="btn btn-primary" disabled={isLoading || !person || !amount}>Guardar</button>
+        </div>
+      </form>
+    </MobileModal>
   );
 }
 
@@ -303,23 +300,19 @@ function PaymentModal({ loanId, familyId, onClose }: { loanId: Id<"loans">, fami
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="font-bold text-lg mb-4">Registrar Abono</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Monto abonado</span></label>
-            <input className="input input-bordered" type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} autoFocus />
-          </div>
-          <DateInput label="Fecha" value={date} onChange={setDate} />
-          <div className="modal-action">
-            <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading || !amount}>Registrar</button>
-          </div>
-        </form>
-      </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+    <MobileModal isOpen={true} onClose={onClose} title="Registrar Abono">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="form-control">
+          <label className="label"><span className="label-text">Monto abonado</span></label>
+          <input className="input input-bordered" type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} autoFocus />
+        </div>
+        <DateInput label="Fecha" value={date} onChange={setDate} />
+        <div className="modal-action">
+          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="btn btn-primary" disabled={isLoading || !amount}>Registrar</button>
+        </div>
+      </form>
+    </MobileModal>
   );
 }
 
@@ -657,70 +650,66 @@ function NewExpenseModal({
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="font-bold text-lg mb-4">Nuevo gasto</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <MobileModal isOpen={true} onClose={onClose} title="Nuevo gasto">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="form-control">
+          <label className="label"><span className="label-text">Descripción *</span></label>
+          <input
+            type="text"
+            placeholder="¿En qué gastaste?"
+            className="input input-bordered w-full"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
           <div className="form-control">
-            <label className="label"><span className="label-text">Descripción *</span></label>
+            <label className="label"><span className="label-text">Monto *</span></label>
             <input
-              type="text"
-              placeholder="¿En qué gastaste?"
+              type="number"
+              placeholder="0.00"
               className="input input-bordered w-full"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              step="0.01"
             />
           </div>
+          <DateInput
+            label="Fecha"
+            value={date}
+            onChange={setDate}
+          />
+        </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div className="form-control">
-              <label className="label"><span className="label-text">Monto *</span></label>
-              <input
-                type="number"
-                placeholder="0.00"
-                className="input input-bordered w-full"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                step="0.01"
-              />
-            </div>
-            <DateInput
-              label="Fecha"
-              value={date}
-              onChange={setDate}
-            />
+        <div className="form-control">
+          <label className="label"><span className="label-text">Categoría</span></label>
+          <div className="grid grid-cols-3 gap-2">
+            {GENERAL_EXPENSE_CATEGORIES.map((key) => {
+              const config = CATEGORY_CONFIG[key];
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setCategory(key)}
+                  className={`btn btn-sm gap-1 ${category === key ? "btn-primary" : "btn-ghost"}`}
+                >
+                  <span>{config.icon}</span>
+                  <span className="text-xs truncate">{config.label}</span>
+                </button>
+              );
+            })}
           </div>
+        </div>
 
-          <div className="form-control">
-            <label className="label"><span className="label-text">Categoría</span></label>
-            <div className="grid grid-cols-3 gap-2">
-              {GENERAL_EXPENSE_CATEGORIES.map((key) => {
-                const config = CATEGORY_CONFIG[key];
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setCategory(key)}
-                    className={`btn btn-sm gap-1 ${category === key ? "btn-primary" : "btn-ghost"}`}
-                  >
-                    <span>{config.icon}</span>
-                    <span className="text-xs truncate">{config.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="modal-action">
-            <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading || !description.trim() || !amount}>
-              {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
-            </button>
-          </div>
-        </form>
-      </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+        <div className="modal-action">
+          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="btn btn-primary" disabled={isLoading || !description.trim() || !amount}>
+            {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
+          </button>
+        </div>
+      </form>
+    </MobileModal>
   );
 }
 
@@ -762,85 +751,81 @@ function NewSubscriptionModal({
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="font-bold text-lg mb-4">Nueva suscripción</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Nombre *</span></label>
-            <input
-              type="text"
-              placeholder="Ej: Netflix, Spotify, CFE"
-              className="input input-bordered w-full"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-            />
-          </div>
+    <MobileModal isOpen={true} onClose={onClose} title="Nueva suscripción">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="form-control">
+          <label className="label"><span className="label-text">Nombre *</span></label>
+          <input
+            type="text"
+            placeholder="Ej: Netflix, Spotify, CFE"
+            className="input input-bordered w-full"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+          />
+        </div>
 
-          <div className="form-control">
-            <label className="label"><span className="label-text">Tipo</span></label>
-            <select
-              className="select select-bordered w-full"
-              value={type}
-              onChange={(e) => setType(e.target.value as typeof type)}
-            >
-              {Object.entries(SUBSCRIPTION_TYPES).map(([key, config]) => (
-                <option key={key} value={key}>{config.icon} {config.label}</option>
-              ))}
-            </select>
-          </div>
+        <div className="form-control">
+          <label className="label"><span className="label-text">Tipo</span></label>
+          <select
+            className="select select-bordered w-full"
+            value={type}
+            onChange={(e) => setType(e.target.value as typeof type)}
+          >
+            {Object.entries(SUBSCRIPTION_TYPES).map(([key, config]) => (
+              <option key={key} value={key}>{config.icon} {config.label}</option>
+            ))}
+          </select>
+        </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div className="form-control">
-              <label className="label"><span className="label-text">Monto</span></label>
-              <input
-                type="number"
-                placeholder="0.00"
-                className="input input-bordered w-full"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                step="0.01"
-              />
-            </div>
-            <div className="form-control">
-              <label className="label"><span className="label-text">Ciclo</span></label>
-              <select
-                className="select select-bordered w-full"
-                value={billingCycle}
-                onChange={(e) => setBillingCycle(e.target.value as typeof billingCycle)}
-              >
-                <option value="monthly">Mensual</option>
-                <option value="bimonthly">Bimestral</option>
-                <option value="annual">Anual</option>
-                <option value="variable">Variable</option>
-              </select>
-            </div>
-          </div>
-
+        <div className="grid grid-cols-2 gap-2">
           <div className="form-control">
-            <label className="label"><span className="label-text">Día de pago (1-31)</span></label>
+            <label className="label"><span className="label-text">Monto</span></label>
             <input
               type="number"
-              placeholder="Ej: 15"
+              placeholder="0.00"
               className="input input-bordered w-full"
-              value={dueDay}
-              onChange={(e) => setDueDay(e.target.value)}
-              min="1"
-              max="31"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              step="0.01"
             />
           </div>
-
-          <div className="modal-action">
-            <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading || !name.trim()}>
-              {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
-            </button>
+          <div className="form-control">
+            <label className="label"><span className="label-text">Ciclo</span></label>
+            <select
+              className="select select-bordered w-full"
+              value={billingCycle}
+              onChange={(e) => setBillingCycle(e.target.value as typeof billingCycle)}
+            >
+              <option value="monthly">Mensual</option>
+              <option value="bimonthly">Bimestral</option>
+              <option value="annual">Anual</option>
+              <option value="variable">Variable</option>
+            </select>
           </div>
-        </form>
-      </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+        </div>
+
+        <div className="form-control">
+          <label className="label"><span className="label-text">Día de pago (1-31)</span></label>
+          <input
+            type="number"
+            placeholder="Ej: 15"
+            className="input input-bordered w-full"
+            value={dueDay}
+            onChange={(e) => setDueDay(e.target.value)}
+            min="1"
+            max="31"
+          />
+        </div>
+
+        <div className="modal-action">
+          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="btn btn-primary" disabled={isLoading || !name.trim()}>
+            {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
+          </button>
+        </div>
+      </form>
+    </MobileModal>
   );
 }
 
@@ -887,35 +872,31 @@ function PaySubscriptionModal({
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="font-bold text-lg mb-4">Registrar pago de {sub.name}</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Monto a pagar</span></label>
-            <input
-              type="number"
-              className="input input-bordered w-full"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              step="0.01"
-              autoFocus
-            />
-          </div>
-          <DateInput
-            label="Fecha del pago"
-            value={date}
-            onChange={setDate}
+    <MobileModal isOpen={true} onClose={onClose} title={`Registrar pago de ${sub.name}`}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="form-control">
+          <label className="label"><span className="label-text">Monto a pagar</span></label>
+          <input
+            type="number"
+            className="input input-bordered w-full"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            step="0.01"
+            autoFocus
           />
-          <div className="modal-action">
-            <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading || !amount}>
-              {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Registrar"}
-            </button>
-          </div>
-        </form>
-      </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+        </div>
+        <DateInput
+          label="Fecha del pago"
+          value={date}
+          onChange={setDate}
+        />
+        <div className="modal-action">
+          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="btn btn-primary" disabled={isLoading || !amount}>
+            {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Registrar"}
+          </button>
+        </div>
+      </form>
+    </MobileModal>
   );
 }

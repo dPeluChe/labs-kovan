@@ -13,6 +13,7 @@ import { useConfirmModal } from "../hooks/useConfirmModal";
 import { DateInput } from "../components/ui/DateInput";
 import { Link } from "react-router-dom";
 import { EditEventForm } from "../components/gifts/EditEventForm";
+import { MobileModal } from "../components/ui/MobileModal";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 
 export function GiftsPage() {
@@ -148,31 +149,31 @@ export function GiftsPage() {
         )}
       </div>
 
-      {user && showNewEventModal && (
-        <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-lg mb-4">Nuevo evento de regalos</h3>
-            <NewEventForm
-              familyId={currentFamily._id}
-              userId={user._id}
-              onClose={() => setShowNewEventModal(false)}
-            />
-          </div>
-          <div className="modal-backdrop" onClick={() => setShowNewEventModal(false)} />
-        </div>
+      {user && (
+        <MobileModal
+          isOpen={showNewEventModal}
+          onClose={() => setShowNewEventModal(false)}
+          title="Nuevo evento de regalos"
+        >
+          <NewEventForm
+            familyId={currentFamily._id}
+            userId={user._id}
+            onClose={() => setShowNewEventModal(false)}
+          />
+        </MobileModal>
       )}
 
       {editingEvent && (
-        <div className="modal modal-open">
-          <div className="modal-box max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-lg mb-4">Editar evento</h3>
-            <EditEventForm
-              event={editingEvent}
-              onClose={() => setEditingEvent(null)}
-            />
-          </div>
-          <div className="modal-backdrop" onClick={() => setEditingEvent(null)} />
-        </div>
+        <MobileModal
+          isOpen={true}
+          onClose={() => setEditingEvent(null)}
+          title="Editar evento"
+        >
+          <EditEventForm
+            event={editingEvent}
+            onClose={() => setEditingEvent(null)}
+          />
+        </MobileModal>
       )}
 
       <ConfirmModal />
@@ -191,15 +192,15 @@ function GiftEventCard({
 
   return (
     <div className={`card bg-base-100 shadow-sm border animate-fade-in ${event.isCompleted ? "border-success/30 opacity-75" :
-        isPendingClose ? "border-warning/50 bg-warning/5" :
-          "border-base-300"
+      isPendingClose ? "border-warning/50 bg-warning/5" :
+        "border-base-300"
       }`}>
       <div className="card-body p-4">
         <div className="flex items-center gap-3">
           <Link to={`/gifts/${event._id}`} className="flex items-center gap-3 flex-1 min-w-0">
             <div className={`p-2 rounded-lg ${event.isCompleted ? "bg-success/10" :
-                isPendingClose ? "bg-warning/10" :
-                  "bg-red-500/10"
+              isPendingClose ? "bg-warning/10" :
+                "bg-red-500/10"
               }`}>
               {event.isCompleted ? (
                 <CheckCircle2 className="w-5 h-5 text-success" />

@@ -23,6 +23,7 @@ import {
   Link,
 } from "lucide-react";
 import { useToast } from "../components/ui/Toast";
+import { MobileModal } from "../components/ui/MobileModal";
 
 export function FamilyPage() {
   const navigate = useNavigate();
@@ -147,7 +148,7 @@ export function FamilyPage() {
                                 variant: "danger",
                                 icon: "trash",
                               });
-                              
+
                               if (confirmed) {
                                 removeMember({ membershipId: member.membershipId });
                               }
@@ -214,7 +215,7 @@ export function FamilyPage() {
           onClose={() => setShowInvite(false)}
         />
       )}
-      
+
       {/* Confirm Modal */}
       <ConfirmModal />
     </div>
@@ -309,123 +310,118 @@ function InviteModal({
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="font-bold text-lg mb-4">Invitar a la familia</h3>
+    <MobileModal isOpen={true} onClose={onClose} title="Invitar a la familia">
+      {/* Share Links */}
+      <div className="space-y-3 mb-6">
+        <p className="text-sm text-base-content/70">Comparte un link de invitación:</p>
 
-        {/* Share Links */}
-        <div className="space-y-3 mb-6">
-          <p className="text-sm text-base-content/70">Comparte un link de invitación:</p>
-          
-          {/* Invite to this family */}
-          <div className="card bg-base-200 p-3">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <Link className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm">Unirse a "{familyName}"</p>
-                <p className="text-xs text-base-content/60 truncate">{inviteLink}</p>
-              </div>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => handleCopyLink(inviteLink, "Invitar a familia")}
-                  className="btn btn-ghost btn-sm btn-circle"
-                  title="Copiar link"
-                >
-                  {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={() => handleShare(inviteLink, "Unirse a mi familia")}
-                  className="btn btn-ghost btn-sm btn-circle"
-                  title="Compartir"
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-              </div>
+        {/* Invite to this family */}
+        <div className="card bg-base-200 p-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 p-2 rounded-lg">
+              <Link className="w-5 h-5 text-primary" />
             </div>
-          </div>
-
-          {/* Invite to create their own family */}
-          <div className="card bg-base-200 p-3">
-            <div className="flex items-center gap-3">
-              <div className="bg-success/10 p-2 rounded-lg">
-                <Users className="w-5 h-5 text-success" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm">Crear su propia familia</p>
-                <p className="text-xs text-base-content/60 truncate">{registerLink}</p>
-              </div>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => handleCopyLink(registerLink, "Registrarse")}
-                  className="btn btn-ghost btn-sm btn-circle"
-                  title="Copiar link"
-                >
-                  <Copy className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleShare(registerLink, "Únete a Kovan")}
-                  className="btn btn-ghost btn-sm btn-circle"
-                  title="Compartir"
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-              </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm">Unirse a "{familyName}"</p>
+              <p className="text-xs text-base-content/60 truncate">{inviteLink}</p>
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => handleCopyLink(inviteLink, "Invitar a familia")}
+                className="btn btn-ghost btn-sm btn-circle"
+                title="Copiar link"
+              >
+                {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+              </button>
+              <button
+                onClick={() => handleShare(inviteLink, "Unirse a mi familia")}
+                className="btn btn-ghost btn-sm btn-circle"
+                title="Compartir"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
 
-        <div className="divider text-xs text-base-content/50">O invita por email</div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Email del usuario</span>
-            </label>
-            <input
-              type="email"
-              placeholder="ejemplo@email.com"
-              className="input input-bordered w-full"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-            />
-            <label className="label">
-              <span className="label-text-alt text-base-content/60">
-                Si ya tiene cuenta, se agregará automáticamente.
-              </span>
-            </label>
-          </div>
-
-          {message && (
-            <div className="alert">
-              <span>{message}</span>
+        {/* Invite to create their own family */}
+        <div className="card bg-base-200 p-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-success/10 p-2 rounded-lg">
+              <Users className="w-5 h-5 text-success" />
             </div>
-          )}
-
-          <div className="modal-action">
-            <button type="button" className="btn" onClick={onClose} disabled={isLoading}>
-              Cerrar
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={isLoading || !email.trim()}
-            >
-              {isLoading ? (
-                <span className="loading loading-spinner loading-sm" />
-              ) : (
-                <>
-                  <Mail className="w-4 h-4" />
-                  Invitar
-                </>
-              )}
-            </button>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm">Crear su propia familia</p>
+              <p className="text-xs text-base-content/60 truncate">{registerLink}</p>
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => handleCopyLink(registerLink, "Registrarse")}
+                className="btn btn-ghost btn-sm btn-circle"
+                title="Copiar link"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleShare(registerLink, "Únete a Kovan")}
+                className="btn btn-ghost btn-sm btn-circle"
+                title="Compartir"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+
+      <div className="divider text-xs text-base-content/50">O invita por email</div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Email del usuario</span>
+          </label>
+          <input
+            type="email"
+            placeholder="ejemplo@email.com"
+            className="input input-bordered w-full"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+          />
+          <label className="label">
+            <span className="label-text-alt text-base-content/60">
+              Si ya tiene cuenta, se agregará automáticamente.
+            </span>
+          </label>
+        </div>
+
+        {message && (
+          <div className="alert">
+            <span>{message}</span>
+          </div>
+        )}
+
+        <div className="modal-action">
+          <button type="button" className="btn" onClick={onClose} disabled={isLoading}>
+            Cerrar
+          </button>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={isLoading || !email.trim()}
+          >
+            {isLoading ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : (
+              <>
+                <Mail className="w-4 h-4" />
+                Invitar
+              </>
+            )}
+          </button>
+        </div>
+      </form>
+    </MobileModal>
   );
 }

@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { MobileModal } from "../ui/MobileModal";
 import { Input } from "../ui/Input";
+import { DateInput } from "../ui/DateInput";
 import { useFamily } from "../../contexts/FamilyContext";
 import { useAuth } from "../../contexts/AuthContext";
 import {
@@ -201,21 +202,17 @@ export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormMod
 
                     <div className="flex gap-3">
                         <div className="flex-1">
-                            <label className="label text-xs font-medium text-base-content/60">Expedición (Opcional)</label>
-                            <input
-                                type="date"
-                                className="input input-bordered w-full rounded-xl"
+                            <DateInput
+                                label="Expedición (Opcional)"
                                 value={issueDate}
-                                onChange={(e) => setIssueDate(e.target.value)}
+                                onChange={(val) => setIssueDate(val)}
                             />
                         </div>
                         <div className="flex-1">
-                            <label className="label text-xs font-medium text-base-content/60">Vencimiento (Opcional)</label>
-                            <input
-                                type="date"
-                                className="input input-bordered w-full rounded-xl"
+                            <DateInput
+                                label="Vencimiento (Opcional)"
                                 value={expiryDate}
-                                onChange={(e) => setExpiryDate(e.target.value)}
+                                onChange={(val) => setExpiryDate(val)}
                             />
                         </div>
                     </div>

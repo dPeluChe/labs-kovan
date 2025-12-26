@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AlertTriangle, Trash2 } from "lucide-react";
+import { MobileModal } from "./MobileModal";
 
 export interface ConfirmModalProps {
   isOpen: boolean;
@@ -73,49 +74,46 @@ export function ConfirmModal({
     return <AlertTriangle className={iconClass} />;
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="modal modal-open">
-      <div className="modal-box max-w-sm">
-        <div className="text-center space-y-4">
-          {/* Icon */}
-          {renderIcon() && (
-            <div className={`w-12 h-12 rounded-full ${config.bgColor} flex items-center justify-center mx-auto`}>
-              {renderIcon()}
-            </div>
-          )}
-
-          {/* Title */}
-          <h3 className="font-bold text-lg">{title}</h3>
-
-          {/* Message */}
-          <p className="text-base-content/80 leading-relaxed">{message}</p>
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={handleClose}
-              disabled={isClosing}
-              className="btn btn-ghost flex-1"
-            >
-              {cancelText}
-            </button>
-            <button
-              onClick={handleConfirm}
-              disabled={isClosing}
-              className={`btn ${config.confirmBtn} flex-1 btn-active`}
-            >
-              {isClosing ? (
-                <span className="loading loading-spinner loading-xs" />
-              ) : (
-                confirmText
-              )}
-            </button>
+    <MobileModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={title}
+      boxClassName="max-w-sm"
+    >
+      <div className="text-center space-y-4">
+        {/* Icon */}
+        {renderIcon() && (
+          <div className={`w-12 h-12 rounded-full ${config.bgColor} flex items-center justify-center mx-auto`}>
+            {renderIcon()}
           </div>
+        )}
+
+        {/* Message */}
+        <p className="text-base-content/80 leading-relaxed">{message}</p>
+
+        {/* Actions */}
+        <div className="flex gap-3 pt-2">
+          <button
+            onClick={handleClose}
+            disabled={isClosing}
+            className="btn btn-ghost flex-1"
+          >
+            {cancelText}
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={isClosing}
+            className={`btn ${config.confirmBtn} flex-1 btn-active`}
+          >
+            {isClosing ? (
+              <span className="loading loading-spinner loading-xs" />
+            ) : (
+              confirmText
+            )}
+          </button>
         </div>
       </div>
-      <div className="modal-backdrop" onClick={handleClose} />
-    </div>
+    </MobileModal>
   );
 }

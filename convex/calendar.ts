@@ -259,8 +259,8 @@ export const listGoogleCalendarsAction = action({
     let data;
     try {
       data = await fetchList(integration.accessToken);
-    } catch (err: any) {
-      if (err.message === "UNAUTHORIZED" && integration.refreshToken) {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message === "UNAUTHORIZED" && integration.refreshToken) {
         console.log("Token expired, refreshing...");
         const tokens = await refreshAccessToken(integration.refreshToken);
 
@@ -288,7 +288,7 @@ export const listGoogleCalendarsAction = action({
       backgroundColor?: string;
     };
 
-    return ((data as any).items as CalendarItem[]).map((c) => ({
+    return ((data as { items: CalendarItem[] }).items).map((c) => ({
       id: c.id,
       summary: c.summary,
       primary: c.primary,

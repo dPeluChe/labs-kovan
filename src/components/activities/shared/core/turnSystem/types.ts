@@ -9,7 +9,7 @@ export type TurnState = 'waiting' | 'playing' | 'paused' | 'finished';
 /**
  * Jugador genérico con datos específicos del juego
  */
-export interface Player<T = any> {
+export interface Player<T = unknown> {
   id: string;
   name: string;
   avatar?: string;
@@ -22,7 +22,7 @@ export interface Player<T = any> {
 /**
  * Configuración inicial del TurnManager
  */
-export interface TurnManagerConfig<T = any> {
+export interface TurnManagerConfig<T = unknown> {
   players: Player<T>[];
   onTurnChange: (player: Player<T>) => void;
   onGameOver: (winner: Player<T> | null) => void;
@@ -34,7 +34,7 @@ export interface TurnManagerConfig<T = any> {
 /**
  * Estado completo del juego
  */
-export interface GameState<T = any, M = any> {
+export interface GameState<T = unknown, M = unknown> {
   status: TurnState;
   currentPlayer: Player<T>;
   turnCount: number;
@@ -47,7 +47,7 @@ export interface GameState<T = any, M = any> {
 /**
  * Movimiento o acción realizada por un jugador
  */
-export interface Move<T = any> {
+export interface Move<T = unknown> {
   playerId: string;
   timestamp: number;
   turnNumber: number;
@@ -68,7 +68,7 @@ export interface ValidationResult {
 /**
  * Opciones para inicializar un juego
  */
-export interface GameInitOptions<T = any> {
+export interface GameInitOptions<T = unknown> {
   players: Player<T>[];
   turnTimeLimit?: number;
   maxTurns?: number;

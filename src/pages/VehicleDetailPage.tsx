@@ -23,6 +23,7 @@ import {
   Gauge,
 } from "lucide-react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { MobileModal } from "../components/ui/MobileModal";
 
 const EVENT_TYPE_CONFIG = {
   verification: { label: "Verificación", icon: FileCheck, color: "text-blue-600 bg-blue-500/10" },
@@ -106,7 +107,7 @@ export function VehicleDetailPage() {
 
   // Calculate total spent
   const totalSpent = events.reduce((sum, e) => sum + (e.amount || 0), 0);
-  
+
   // Sort events by date (most recent first)
   const sortedEvents = [...events].sort((a, b) => b.date - a.date);
 
@@ -180,7 +181,7 @@ export function VehicleDetailPage() {
         <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <Calendar className="w-4 h-4" /> Historial
         </h3>
-        
+
         {sortedEvents.length === 0 ? (
           <EmptyState
             icon={Car}
@@ -318,111 +319,110 @@ function AddEventModal({
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box max-w-md">
-        <h3 className="font-bold text-lg mb-1">Nuevo evento</h3>
-        <p className="text-sm text-base-content/60 mb-4">{vehicleName}</p>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Event Type */}
-          <div className="form-control">
-            <label className="label"><span className="label-text">Tipo de evento</span></label>
-            <div className="grid grid-cols-3 gap-2">
-              {(Object.entries(EVENT_TYPE_CONFIG) as [EventType, typeof EVENT_TYPE_CONFIG[EventType]][]).map(([key, config]) => {
-                const Icon = config.icon;
-                const isActive = type === key;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => handleTypeChange(key)}
-                    className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
-                      isActive 
-                        ? "border-primary bg-primary/10 text-primary" 
-                        : "border-base-300 hover:border-primary/50"
+    <MobileModal
+      isOpen={true}
+      onClose={onClose}
+      title="Nuevo evento"
+    >
+      <p className="text-sm text-base-content/60 mb-4">{vehicleName}</p>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Event Type */}
+        <div className="form-control">
+          <label className="label"><span className="label-text">Tipo de evento</span></label>
+          <div className="grid grid-cols-3 gap-2">
+            {(Object.entries(EVENT_TYPE_CONFIG) as [EventType, typeof EVENT_TYPE_CONFIG[EventType]][]).map(([key, config]) => {
+              const Icon = config.icon;
+              const isActive = type === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleTypeChange(key)}
+                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${isActive
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-base-300 hover:border-primary/50"
                     }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="text-xs">{config.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-xs">{config.label}</span>
+                </button>
+              );
+            })}
           </div>
+        </div>
 
-          {/* Title */}
+        {/* Title */}
+        <div className="form-control">
+          <label className="label"><span className="label-text">Descripción *</span></label>
+          <input
+            type="text"
+            placeholder="Ej: Cambio de aceite"
+            className="input input-bordered w-full"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+
+        {/* Date and Amount */}
+        <div className="grid grid-cols-2 gap-2">
+          <DateInput
+            label="Fecha"
+            value={date}
+            onChange={setDate}
+          />
           <div className="form-control">
-            <label className="label"><span className="label-text">Descripción *</span></label>
+            <label className="label"><span className="label-text">Monto</span></label>
             <input
-              type="text"
-              placeholder="Ej: Cambio de aceite"
+              type="number"
+              placeholder="$0.00"
               className="input input-bordered w-full"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              step="0.01"
             />
           </div>
+        </div>
 
-          {/* Date and Amount */}
-          <div className="grid grid-cols-2 gap-2">
-            <DateInput
-              label="Fecha"
-              value={date}
-              onChange={setDate}
-            />
-            <div className="form-control">
-              <label className="label"><span className="label-text">Monto</span></label>
-              <input
-                type="number"
-                placeholder="$0.00"
-                className="input input-bordered w-full"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                step="0.01"
-              />
-            </div>
-          </div>
-
-          {/* Odometer and Next Date */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="form-control">
-              <label className="label"><span className="label-text">Kilometraje</span></label>
-              <input
-                type="number"
-                placeholder="123,456"
-                className="input input-bordered w-full"
-                value={odometer}
-                onChange={(e) => setOdometer(e.target.value)}
-              />
-            </div>
-            <DateInput
-              label="Próxima fecha"
-              value={nextDate}
-              onChange={setNextDate}
-            />
-          </div>
-
-          {/* Notes */}
+        {/* Odometer and Next Date */}
+        <div className="grid grid-cols-2 gap-2">
           <div className="form-control">
-            <label className="label"><span className="label-text">Notas (opcional)</span></label>
-            <textarea
-              placeholder="Detalles adicionales..."
-              className="textarea textarea-bordered w-full"
-              rows={2}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+            <label className="label"><span className="label-text">Kilometraje</span></label>
+            <input
+              type="number"
+              placeholder="123,456"
+              className="input input-bordered w-full"
+              value={odometer}
+              onChange={(e) => setOdometer(e.target.value)}
             />
           </div>
+          <DateInput
+            label="Próxima fecha"
+            value={nextDate}
+            onChange={setNextDate}
+          />
+        </div>
 
-          <div className="modal-action">
-            <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading || !title.trim()}>
-              {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
-            </button>
-          </div>
-        </form>
-      </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+        {/* Notes */}
+        <div className="form-control">
+          <label className="label"><span className="label-text">Notas (opcional)</span></label>
+          <textarea
+            placeholder="Detalles adicionales..."
+            className="textarea textarea-bordered w-full"
+            rows={2}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
+
+        <div className="modal-action">
+          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="btn btn-primary" disabled={isLoading || !title.trim()}>
+            {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
+          </button>
+        </div>
+      </form>
+    </MobileModal>
   );
 }
 
@@ -474,52 +474,48 @@ function EditVehicleModal({
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="font-bold text-lg mb-4">Editar vehículo</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <MobileModal isOpen={true} onClose={onClose} title="Editar vehículo">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="form-control">
+          <label className="label"><span className="label-text">Nombre *</span></label>
+          <input
+            type="text"
+            className="input input-bordered w-full"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
           <div className="form-control">
-            <label className="label"><span className="label-text">Nombre *</span></label>
-            <input 
-              type="text" 
-              className="input input-bordered w-full" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)}
-            />
+            <label className="label"><span className="label-text">Marca</span></label>
+            <input type="text" className="input input-bordered w-full" value={brand} onChange={(e) => setBrand(e.target.value)} />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="form-control">
-              <label className="label"><span className="label-text">Marca</span></label>
-              <input type="text" className="input input-bordered w-full" value={brand} onChange={(e) => setBrand(e.target.value)} />
-            </div>
-            <div className="form-control">
-              <label className="label"><span className="label-text">Modelo</span></label>
-              <input type="text" className="input input-bordered w-full" value={model} onChange={(e) => setModel(e.target.value)} />
-            </div>
+          <div className="form-control">
+            <label className="label"><span className="label-text">Modelo</span></label>
+            <input type="text" className="input input-bordered w-full" value={model} onChange={(e) => setModel(e.target.value)} />
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="form-control">
-              <label className="label"><span className="label-text">Año</span></label>
-              <input type="number" className="input input-bordered w-full" value={year} onChange={(e) => setYear(e.target.value)} />
-            </div>
-            <div className="form-control">
-              <label className="label"><span className="label-text">Color</span></label>
-              <input type="text" className="input input-bordered w-full" value={color} onChange={(e) => setColor(e.target.value)} />
-            </div>
-            <div className="form-control">
-              <label className="label"><span className="label-text">Placa</span></label>
-              <input type="text" className="input input-bordered w-full" value={plate} onChange={(e) => setPlate(e.target.value)} />
-            </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="form-control">
+            <label className="label"><span className="label-text">Año</span></label>
+            <input type="number" className="input input-bordered w-full" value={year} onChange={(e) => setYear(e.target.value)} />
           </div>
-          <div className="modal-action">
-            <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading || !name.trim()}>
-              {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
-            </button>
+          <div className="form-control">
+            <label className="label"><span className="label-text">Color</span></label>
+            <input type="text" className="input input-bordered w-full" value={color} onChange={(e) => setColor(e.target.value)} />
           </div>
-        </form>
-      </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+          <div className="form-control">
+            <label className="label"><span className="label-text">Placa</span></label>
+            <input type="text" className="input input-bordered w-full" value={plate} onChange={(e) => setPlate(e.target.value)} />
+          </div>
+        </div>
+        <div className="modal-action">
+          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="btn btn-primary" disabled={isLoading || !name.trim()}>
+            {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
+          </button>
+        </div>
+      </form>
+    </MobileModal>
   );
 }

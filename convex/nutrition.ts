@@ -298,7 +298,7 @@ export const logMeal = mutation({
             )
             .first();
 
-        const updates: any = existingLog ? { ...existingLog.consumed } : {};
+        const updates: Record<string, number> = existingLog ? { ...existingLog.consumed } : {};
 
         // Sum up new values
         Object.entries(args.content).forEach(([key, value]) => {

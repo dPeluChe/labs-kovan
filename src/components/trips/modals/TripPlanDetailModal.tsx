@@ -3,6 +3,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { api } from "../../../../convex/_generated/api";
 import { MapPin, Clock, FileText, CheckCircle2, Circle, Pencil, Trash2 } from "lucide-react";
 import { MobileModal } from "../../ui/MobileModal";
+import { useConfirmModal } from "../../../hooks/useConfirmModal";
 
 interface TripPlanDetailModalProps {
     planId: Id<"tripPlans">;
@@ -18,6 +19,8 @@ export function TripPlanDetailModal({ planId, onClose, onEdit, onDelete, onToggl
     // If not joined in getTripPlan, we fetch place separately.
     // Let's assume getTripPlan returns the plan doc.
     const place = useQuery(api.places.getPlace, plan?.placeId ? { placeId: plan.placeId } : "skip");
+
+    const { confirm, ConfirmModal } = useConfirmModal();
 
     if (!plan) return null;
 
@@ -96,9 +99,17 @@ export function TripPlanDetailModal({ planId, onClose, onEdit, onDelete, onToggl
                     </button>
 
                     <button
-                        onClick={() => {
-                            // Confirm delete?
-                            if (window.confirm("¿Eliminar esta actividad?")) {
+                        onClick={async () => {
+                            const confirmed = await confirm({
+                                title: "Eliminar actividad",
+                                message: "¿Estás seguro de que quieres eliminar esta actividad?",
+                                confirmText: "Eliminar",
+                                cancelText: "Cancelar",
+                                variant: "danger",
+                                icon: "trash"
+                            });
+
+                            if (confirmed) {
                                 onDelete();
                                 onClose();
                             }
@@ -109,6 +120,7 @@ export function TripPlanDetailModal({ planId, onClose, onEdit, onDelete, onToggl
                     </button>
                 </div>
             </div>
+            <ConfirmModal />
         </MobileModal>
     );
 }

@@ -6,7 +6,7 @@
 
 import type { Player } from './types';
 
-export class PlayerManager<T = any> {
+export class PlayerManager<T = unknown> {
   private players: Map<string, Player<T>> = new Map();
 
   /**

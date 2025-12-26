@@ -8,6 +8,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Plus, Car, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Id } from "../../convex/_generated/dataModel";
+import { MobileModal } from "../components/ui/MobileModal";
 
 export function VehiclesPage() {
   const { currentFamily } = useFamily();
@@ -168,54 +169,54 @@ function NewVehicleModal({
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="font-bold text-lg mb-4">Nuevo vehículo</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <MobileModal
+      isOpen={true}
+      onClose={onClose}
+      title="Nuevo vehículo"
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="form-control">
+          <label className="label"><span className="label-text">Nombre *</span></label>
+          <input
+            type="text"
+            placeholder="Ej: Mazda rojo, Camioneta"
+            className="input input-bordered w-full"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
           <div className="form-control">
-            <label className="label"><span className="label-text">Nombre *</span></label>
-            <input 
-              type="text" 
-              placeholder="Ej: Mazda rojo, Camioneta" 
-              className="input input-bordered w-full" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-            />
+            <label className="label"><span className="label-text">Marca</span></label>
+            <input type="text" placeholder="Ej: Mazda" className="input input-bordered w-full" value={brand} onChange={(e) => setBrand(e.target.value)} />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="form-control">
-              <label className="label"><span className="label-text">Marca</span></label>
-              <input type="text" placeholder="Ej: Mazda" className="input input-bordered w-full" value={brand} onChange={(e) => setBrand(e.target.value)} />
-            </div>
-            <div className="form-control">
-              <label className="label"><span className="label-text">Modelo</span></label>
-              <input type="text" placeholder="Ej: 3" className="input input-bordered w-full" value={model} onChange={(e) => setModel(e.target.value)} />
-            </div>
+          <div className="form-control">
+            <label className="label"><span className="label-text">Modelo</span></label>
+            <input type="text" placeholder="Ej: 3" className="input input-bordered w-full" value={model} onChange={(e) => setModel(e.target.value)} />
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="form-control">
-              <label className="label"><span className="label-text">Año</span></label>
-              <input type="number" placeholder="2024" className="input input-bordered w-full" value={year} onChange={(e) => setYear(e.target.value)} />
-            </div>
-            <div className="form-control">
-              <label className="label"><span className="label-text">Color</span></label>
-              <input type="text" placeholder="Rojo" className="input input-bordered w-full" value={color} onChange={(e) => setColor(e.target.value)} />
-            </div>
-            <div className="form-control">
-              <label className="label"><span className="label-text">Placa</span></label>
-              <input type="text" placeholder="ABC-123" className="input input-bordered w-full" value={plate} onChange={(e) => setPlate(e.target.value)} />
-            </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="form-control">
+            <label className="label"><span className="label-text">Año</span></label>
+            <input type="number" placeholder="2024" className="input input-bordered w-full" value={year} onChange={(e) => setYear(e.target.value)} />
           </div>
-          <div className="modal-action">
-            <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading || !name.trim()}>
-              {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Crear"}
-            </button>
+          <div className="form-control">
+            <label className="label"><span className="label-text">Color</span></label>
+            <input type="text" placeholder="Rojo" className="input input-bordered w-full" value={color} onChange={(e) => setColor(e.target.value)} />
           </div>
-        </form>
-      </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+          <div className="form-control">
+            <label className="label"><span className="label-text">Placa</span></label>
+            <input type="text" placeholder="ABC-123" className="input input-bordered w-full" value={plate} onChange={(e) => setPlate(e.target.value)} />
+          </div>
+        </div>
+        <div className="modal-action">
+          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="btn btn-primary" disabled={isLoading || !name.trim()}>
+            {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Crear"}
+          </button>
+        </div>
+      </form>
+    </MobileModal>
   );
 }

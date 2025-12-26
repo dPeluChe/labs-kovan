@@ -19,5 +19,17 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Allow exporting hooks (use*) from component files - common pattern for React contexts
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowExportNames: ['useAuth', 'useFamily', 'useTheme', 'useToast', 'useConfirmModal'] }
+      ],
+      // Allow underscore-prefixed unused variables (common pattern for intentionally unused params)
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
+      ],
+    },
   },
 ])

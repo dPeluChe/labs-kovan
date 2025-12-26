@@ -13,11 +13,11 @@ import type {
   ValidationResult,
 } from './types';
 
-export class TurnManager<T = any, M = any> {
+export class TurnManager<T = unknown, M = unknown> {
   private currentPlayerIndex = 0;
   private turnCount = 0;
   private state: TurnState = 'waiting';
-  private timer?: any;
+  private timer?: ReturnType<typeof setTimeout>;
   private moves: Move<M>[] = [];
   private winner: Player<T> | null = null;
   private startTime: number | null = null;
@@ -224,9 +224,8 @@ export class TurnManager<T = any, M = any> {
   /**
    * Validar si una acción es válida (para ser extendido por juegos específicos)
    */
-  validateMove(_move: any): ValidationResult {
-    // Validación base - puede ser sobreescrita
-    // Prefijo _ para indicar que el parámetro se usa en extensiones
+  validateMove(_move: unknown): ValidationResult {
+    // Validación base - puede ser sobreescrita por clases hijas
     return {
       isValid: true,
     };

@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LucideIcon } from "lucide-react";
+import { MobileModal } from "../components/ui/MobileModal";
 
 type ContactCategory = "doctor" | "veterinarian" | "mechanic" | "plumber" | "electrician" | "dentist" | "emergency" | "other";
 
@@ -194,9 +195,8 @@ export function ContactsPage() {
                       <div className="flex flex-col gap-1">
                         <button
                           onClick={() => toggleFavorite({ contactId: contact._id })}
-                          className={`btn btn-ghost btn-xs btn-circle ${
-                            contact.isFavorite ? "text-amber-500" : ""
-                          }`}
+                          className={`btn btn-ghost btn-xs btn-circle ${contact.isFavorite ? "text-amber-500" : ""
+                            }`}
                         >
                           <Star className={`w-4 h-4 ${contact.isFavorite ? "fill-current" : ""}`} />
                         </button>
@@ -285,110 +285,105 @@ function NewContactModal({
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box max-h-[90vh] overflow-y-auto">
-        <h3 className="font-bold text-lg mb-4">Nuevo contacto</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Nombre *</span></label>
-            <input
-              type="text"
-              placeholder="Ej: Dr. Juan Pérez"
-              className="input input-bordered w-full"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
+    <MobileModal isOpen={true} onClose={onClose} title="Nuevo contacto">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="form-control">
+          <label className="label"><span className="label-text">Nombre *</span></label>
+          <input
+            type="text"
+            placeholder="Ej: Dr. Juan Pérez"
+            className="input input-bordered w-full"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
 
-          <div className="form-control">
-            <label className="label"><span className="label-text">Categoría</span></label>
-            <div className="grid grid-cols-4 gap-2">
-              {(Object.entries(CATEGORY_CONFIG) as [ContactCategory, typeof CATEGORY_CONFIG[ContactCategory]][]).map(
-                ([key, config]) => {
-                  const Icon = config.icon;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setCategory(key)}
-                      className={`btn btn-sm flex-col h-auto py-2 ${
-                        category === key ? "btn-primary" : "btn-ghost"
+        <div className="form-control">
+          <label className="label"><span className="label-text">Categoría</span></label>
+          <div className="grid grid-cols-4 gap-2">
+            {(Object.entries(CATEGORY_CONFIG) as [ContactCategory, typeof CATEGORY_CONFIG[ContactCategory]][]).map(
+              ([key, config]) => {
+                const Icon = config.icon;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setCategory(key)}
+                    className={`btn btn-sm flex-col h-auto py-2 ${category === key ? "btn-primary" : "btn-ghost"
                       }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span className="text-xs mt-1">{config.label}</span>
-                    </button>
-                  );
-                }
-              )}
-            </div>
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="text-xs mt-1">{config.label}</span>
+                  </button>
+                );
+              }
+            )}
           </div>
+        </div>
 
+        <div className="form-control">
+          <label className="label"><span className="label-text">Especialidad</span></label>
+          <input
+            type="text"
+            placeholder="Ej: Cardiólogo, Pediatra"
+            className="input input-bordered w-full"
+            value={specialty}
+            onChange={(e) => setSpecialty(e.target.value)}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
           <div className="form-control">
-            <label className="label"><span className="label-text">Especialidad</span></label>
+            <label className="label"><span className="label-text">Teléfono</span></label>
             <input
-              type="text"
-              placeholder="Ej: Cardiólogo, Pediatra"
+              type="tel"
+              placeholder="55 1234 5678"
               className="input input-bordered w-full"
-              value={specialty}
-              onChange={(e) => setSpecialty(e.target.value)}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
             />
           </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <div className="form-control">
-              <label className="label"><span className="label-text">Teléfono</span></label>
-              <input
-                type="tel"
-                placeholder="55 1234 5678"
-                className="input input-bordered w-full"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-            <div className="form-control">
-              <label className="label"><span className="label-text">Email</span></label>
-              <input
-                type="email"
-                placeholder="correo@ejemplo.com"
-                className="input input-bordered w-full"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </div>
-
           <div className="form-control">
-            <label className="label"><span className="label-text">Dirección</span></label>
+            <label className="label"><span className="label-text">Email</span></label>
             <input
-              type="text"
-              placeholder="Calle, número, colonia..."
+              type="email"
+              placeholder="correo@ejemplo.com"
               className="input input-bordered w-full"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
+        </div>
 
-          <div className="form-control">
-            <label className="label"><span className="label-text">Notas</span></label>
-            <textarea
-              placeholder="Horarios, recomendaciones..."
-              className="textarea textarea-bordered w-full"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-            />
-          </div>
+        <div className="form-control">
+          <label className="label"><span className="label-text">Dirección</span></label>
+          <input
+            type="text"
+            placeholder="Calle, número, colonia..."
+            className="input input-bordered w-full"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
+        </div>
 
-          <div className="modal-action">
-            <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading || !name.trim()}>
-              {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
-            </button>
-          </div>
-        </form>
-      </div>
-      <div className="modal-backdrop" onClick={onClose} />
-    </div>
+        <div className="form-control">
+          <label className="label"><span className="label-text">Notas</span></label>
+          <textarea
+            placeholder="Horarios, recomendaciones..."
+            className="textarea textarea-bordered w-full"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+          />
+        </div>
+
+        <div className="modal-action">
+          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="btn btn-primary" disabled={isLoading || !name.trim()}>
+            {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
+          </button>
+        </div>
+      </form>
+    </MobileModal>
   );
 }

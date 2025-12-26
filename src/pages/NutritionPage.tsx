@@ -24,12 +24,12 @@ import {
     User,
     ChevronLeft,
     ChevronRight,
-    ArrowLeft,
     Sparkles,
     ClipboardList,
     Bean,
     X,
 } from "lucide-react";
+import { DateInput } from "../components/ui/DateInput";
 
 // Helper to get local YYYY-MM-DD
 const getLocalDateString = (date = new Date()) => {
@@ -446,16 +446,15 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
                 <div className="mt-8">
                     <h3 className="font-bold text-sm opacity-50 uppercase tracking-wider mb-3">Historial de hoy</h3>
                     <div className="space-y-2">
-                        {todayMeals.map((meal: any) => (
+                        {todayMeals.map((meal: Doc<"nutritionMeals">) => (
                             <div key={meal._id} className="card bg-base-100 border border-base-200 p-3 flex-row justify-between items-center">
                                 <div>
                                     <p className="font-bold text-sm">{meal.name}</p>
                                     <p className="text-xs opacity-50 flex gap-2">
                                         {Object.entries(meal.content || {}).map(([k, v]) => {
                                             if (!v) return null;
-                                            // @ts-ignore
                                             const label = NUTRIENTS.find(n => n.key === k)?.label || (k === 'other' ? 'Cheat Meal' : k);
-                                            return <span key={k} className={k === 'other' ? 'text-red-500 font-bold' : ''}>{label}: {v as any}</span>
+                                            return <span key={k} className={k === 'other' ? 'text-red-500 font-bold' : ''}>{label}: {String(v)}</span>
                                         })}
                                     </p>
                                 </div>
@@ -610,7 +609,7 @@ function LogMealModal({ familyId, personId, date, plan, onClose }: { familyId: I
         }
     }
 
-    const renderNutrientRow = (n: typeof NUTRIENTS[number] | { key: string, label: string, icon: any }, isExtra = false) => {
+    const renderNutrientRow = (n: typeof NUTRIENTS[number] | { key: string, label: string, icon: string }, isExtra = false) => {
         const count = counts[n.key] || 0;
         return (
             <div key={n.key} className={`flex items-center justify-between p-2 rounded-lg border transition-colors ${count > 0 ? 'bg-primary/5 border-primary/20' : 'bg-base-100 border-base-200'}`}>
@@ -726,9 +725,9 @@ function PlanEditor({ familyId, plan, onClose }: { familyId: Id<"families">, pla
     // Determine initial active nutrients based on existing values > 0
     const [activeNutrients, setActiveNutrients] = useState<Set<string>>(() => {
         const active = new Set<string>();
+        const targets = plan?.targets as Record<string, number | undefined> | undefined;
         NUTRIENTS.forEach(n => {
-            // @ts-ignore
-            if ((plan?.targets?.[n.key] || 0) > 0) {
+            if ((targets?.[n.key] ?? 0) > 0) {
                 active.add(n.key);
             }
         });
@@ -754,15 +753,15 @@ function PlanEditor({ familyId, plan, onClose }: { familyId: Id<"families">, pla
         setIsLoading(true);
         setError("");
         try {
-            const targets: any = {
+            const targets: Record<string, number | undefined> = {
                 calories: Number(formData.calories) || undefined,
             };
 
             // Only include active nutrients
+            const formDataRecord = formData as Record<string, string | number>;
             activeNutrients.forEach(key => {
-                // @ts-ignore
-                const val = formData[key];
-                if (val > 0) targets[key] = val;
+                const val = formDataRecord[key];
+                if (typeof val === 'number' && val > 0) targets[key] = val;
             });
 
             if (plan) {
@@ -782,9 +781,9 @@ function PlanEditor({ familyId, plan, onClose }: { familyId: Id<"families">, pla
                 });
             }
             onClose();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            const msg = err.message || "Error al guardar";
+            const msg = err instanceof Error ? err.message : "Error al guardar";
             setError(msg.includes("Not authenticated")
                 ? "Sesión expirada. Por favor recarga la página o inicia sesión nuevamente."
                 : msg
@@ -797,143 +796,134 @@ function PlanEditor({ familyId, plan, onClose }: { familyId: Id<"families">, pla
     const availableNutrients = NUTRIENTS.filter(n => !activeNutrients.has(n.key));
 
     return (
-        <div className="fixed inset-0 z-50 bg-base-100 flex flex-col h-[100dvh]">
-            <PageHeader
-                title={plan ? "Editar Plan" : "Nuevo Plan"}
-                startAction={
-                    <button onClick={onClose} className="btn btn-ghost btn-circle btn-sm">
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
-                }
-            />
+        <MobileModal
+            isOpen={true}
+            onClose={onClose}
+            title={plan ? "Editar Plan" : "Nuevo Plan"}
+        >
+            <form id="plan-form" onSubmit={handleSubmit} className="space-y-6">
 
-            <div className="flex-1 overflow-y-auto px-4 py-6">
-                <form id="plan-form" onSubmit={handleSubmit} className="space-y-6 max-w-xl mx-auto">
+                {error && (
+                    <div role="alert" className="alert alert-error text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span>{error}</span>
+                    </div>
+                )}
 
-                    {error && (
-                        <div role="alert" className="alert alert-error text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span>{error}</span>
+                {/* Basic Info */}
+                <div className="card bg-base-100 shadow-sm border border-base-200">
+                    <div className="card-body p-4 gap-4">
+                        <h3 className="font-bold text-sm uppercase opacity-50 tracking-wider">Detalles</h3>
+                        <div className="form-control">
+                            <label className="label text-sm font-medium">Nombre</label>
+                            <input
+                                required
+                                className="input input-sm input-bordered w-full focus:input-primary"
+                                placeholder="Ej. Definición 2024"
+                                value={formData.name}
+                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            />
                         </div>
-                    )}
-
-                    {/* Basic Info */}
-                    <div className="card bg-base-100 shadow-sm border border-base-200">
-                        <div className="card-body p-4 gap-4">
-                            <h3 className="font-bold text-sm uppercase opacity-50 tracking-wider">Detalles</h3>
-                            <div className="form-control">
-                                <label className="label text-sm font-medium">Nombre</label>
-                                <input
-                                    required
-                                    className="input input-sm input-bordered w-full focus:input-primary"
-                                    placeholder="Ej. Definición 2024"
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label text-sm font-medium">Notas</label>
-                                <textarea
-                                    className="textarea textarea-sm textarea-bordered w-full focus:textarea-primary leading-tight min-h-[60px]"
-                                    rows={2}
-                                    placeholder="Notas del plan..."
-                                    value={formData.description}
-                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label text-sm font-medium">Calorías (Kcal)</label>
-                                <input
-                                    type="number"
-                                    className="input input-sm input-bordered w-full"
-                                    placeholder="2000"
-                                    value={formData.calories}
-                                    onChange={e => setFormData({ ...formData, calories: e.target.value })}
-                                />
-                            </div>
+                        <div className="form-control">
+                            <label className="label text-sm font-medium">Notas</label>
+                            <textarea
+                                className="textarea textarea-sm textarea-bordered w-full focus:textarea-primary leading-tight min-h-[60px]"
+                                rows={2}
+                                placeholder="Notas del plan..."
+                                value={formData.description}
+                                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="label text-sm font-medium">Calorías (Kcal)</label>
+                            <input
+                                type="number"
+                                className="input input-sm input-bordered w-full"
+                                placeholder="2000"
+                                value={formData.calories}
+                                onChange={e => setFormData({ ...formData, calories: e.target.value })}
+                            />
                         </div>
                     </div>
+                </div>
 
-                    {/* Dynamic Portions */}
-                    <div className="card bg-base-100 shadow-sm border border-base-200">
-                        <div className="card-body p-4">
-                            <h3 className="font-bold text-sm uppercase opacity-50 tracking-wider mb-2">Porciones Diarias</h3>
+                {/* Dynamic Portions */}
+                <div className="card bg-base-100 shadow-sm border border-base-200">
+                    <div className="card-body p-4">
+                        <h3 className="font-bold text-sm uppercase opacity-50 tracking-wider mb-2">Porciones Diarias</h3>
 
-                            {/* Active List */}
-                            <div className="space-y-3 mb-6">
-                                {Array.from(activeNutrients).map((key) => {
-                                    const nutrient = NUTRIENTS.find(n => n.key === key);
-                                    if (!nutrient) return null;
-                                    return (
-                                        <div key={key} className="flex items-center justify-between animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => toggleNutrient(key)}
-                                                    className="btn btn-xs btn-circle btn-ghost text-error opacity-50 hover:opacity-100"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
-                                                <span className="text-xl">{nutrient.icon}</span>
-                                                <span className="font-bold text-sm">{nutrient.label}</span>
-                                            </div>
-                                            <CounterInput
-                                                // @ts-ignore
-                                                value={formData[key]}
-                                                // @ts-ignore
-                                                onChange={(val) => setFormData({ ...formData, [key]: val })}
-                                            />
-                                        </div>
-                                    );
-                                })}
-                                {activeNutrients.size === 0 && (
-                                    <div className="text-center py-6 opacity-40 text-sm border-2 border-dashed border-base-200 rounded-xl">
-                                        Agrega los elementos que quieres controlar
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Available Badges */}
-                            {availableNutrients.length > 0 && (
-                                <div>
-                                    <p className="text-xs font-bold opacity-40 mb-3 uppercase tracking-wider">Agregar Elemento:</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {availableNutrients.map((n) => (
+                        {/* Active List */}
+                        <div className="space-y-3 mb-6">
+                            {Array.from(activeNutrients).map((key) => {
+                                const nutrient = NUTRIENTS.find(n => n.key === key);
+                                if (!nutrient) return null;
+                                return (
+                                    <div key={key} className="flex items-center justify-between animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <div className="flex items-center gap-2">
                                             <button
-                                                key={n.key}
                                                 type="button"
-                                                onClick={() => toggleNutrient(n.key)}
-                                                className={`btn btn-xs h-8 px-3 rounded-full border-0 bg-base-200 hover:bg-base-300 gap-1.5 font-medium`}
+                                                onClick={() => toggleNutrient(key)}
+                                                className="btn btn-xs btn-circle btn-ghost text-error opacity-50 hover:opacity-100"
                                             >
-                                                <span>{n.icon}</span>
-                                                {n.label}
-                                                <Plus className="w-3 h-3 opacity-50" />
+                                                <X className="w-4 h-4" />
                                             </button>
-                                        ))}
+                                            <span className="text-xl">{nutrient.icon}</span>
+                                            <span className="font-bold text-sm">{nutrient.label}</span>
+                                        </div>
+                                        <CounterInput
+                                            value={(formData as Record<string, string | number>)[key] as number}
+                                            onChange={(val) => setFormData({ ...formData, [key]: val })}
+                                        />
                                     </div>
+                                );
+                            })}
+                            {activeNutrients.size === 0 && (
+                                <div className="text-center py-6 opacity-40 text-sm border-2 border-dashed border-base-200 rounded-xl">
+                                    Agrega los elementos que quieres controlar
                                 </div>
                             )}
-
                         </div>
-                    </div>
 
-                    {/* BUTTONS INLINE */}
-                    <div className="flex gap-3 pt-6 pb-20">
-                        <button type="button" onClick={onClose} className="btn flex-1">
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isLoading || !formData.name}
-                            className="btn btn-primary flex-1"
-                        >
-                            {isLoading ? <span className="loading loading-spinner" /> : "Guardar"}
-                        </button>
-                    </div>
+                        {/* Available Badges */}
+                        {availableNutrients.length > 0 && (
+                            <div>
+                                <p className="text-xs font-bold opacity-40 mb-3 uppercase tracking-wider">Agregar Elemento:</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {availableNutrients.map((n) => (
+                                        <button
+                                            key={n.key}
+                                            type="button"
+                                            onClick={() => toggleNutrient(n.key)}
+                                            className={`btn btn-xs h-8 px-3 rounded-full border-0 bg-base-200 hover:bg-base-300 gap-1.5 font-medium`}
+                                        >
+                                            <span>{n.icon}</span>
+                                            {n.label}
+                                            <Plus className="w-3 h-3 opacity-50" />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
-                </form>
-            </div>
-        </div>
+                    </div>
+                </div>
+
+                {/* BUTTONS INLINE */}
+                <div className="flex gap-3 pt-6">
+                    <button type="button" onClick={onClose} className="btn flex-1">
+                        Cancelar
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={isLoading || !formData.name}
+                        className="btn btn-primary flex-1"
+                    >
+                        {isLoading ? <span className="loading loading-spinner" /> : "Guardar"}
+                    </button>
+                </div>
+
+            </form>
+        </MobileModal>
     );
 }
 
@@ -1005,8 +995,8 @@ function AssignPlanModal({ familyId, personId, plan, onClose }: { familyId: Id<"
                 endDate: endTs,
             });
             onClose();
-        } catch (err: any) {
-            setError(err.message || "Error al asignar");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Error al asignar");
         } finally {
             setIsLoading(false);
         }
@@ -1020,24 +1010,17 @@ function AssignPlanModal({ familyId, personId, plan, onClose }: { familyId: Id<"
                 {error && <div className="alert alert-error text-xs">{error}</div>}
 
                 <div className="space-y-4">
-                    <div className="form-control">
-                        <label className="label text-xs font-medium">Fecha Inicio</label>
-                        <input
-                            type="date"
-                            className="input input-bordered w-full"
-                            value={dates.start}
-                            onChange={e => setDates({ ...dates, start: e.target.value })}
-                        />
-                    </div>
-                    <div className="form-control">
-                        <label className="label text-xs font-medium">Fecha Fin</label>
-                        <input
-                            type="date"
-                            className="input input-bordered w-full"
-                            value={dates.end}
-                            onChange={e => setDates({ ...dates, end: e.target.value })}
-                        />
-                    </div>
+                    <DateInput
+                        label="Fecha de inicio"
+                        value={dates.start}
+                        onChange={(val) => setDates(prev => ({ ...prev, start: val }))}
+                    />
+
+                    <DateInput
+                        label="Fecha de término (opcional)"
+                        value={dates.end}
+                        onChange={(val) => setDates(prev => ({ ...prev, end: val }))}
+                    />
                 </div>
 
                 <div className="flex gap-3 pt-4">

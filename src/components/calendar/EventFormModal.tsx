@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Calendar as CalendarIcon, Clock, MapPin, AlignLeft } from "lucide-react";
+import { Clock, MapPin, AlignLeft } from "lucide-react";
 import { useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { useFamily } from "../../contexts/FamilyContext";
 import { useToast } from "../../components/ui/Toast";
 import { MobileModal } from "../ui/MobileModal";
+import { DateInput } from "../ui/DateInput";
 
 
 interface EventFormModalProps {
@@ -127,17 +128,11 @@ export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent
 
                 {/* Date & Time */}
                 <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-base-content/80">
-                        <CalendarIcon className="w-5 h-5 text-primary" />
-                        <input
-                            type="date"
-                            className="input input-ghost input-sm w-full font-medium appearance-none min-h-[2.5rem]"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            required
-                            style={{ WebkitAppearance: 'none' }}
-                        />
-                    </div>
+                    <DateInput
+                        value={date}
+                        onChange={setDate}
+                        required
+                    />
 
                     <div className="flex items-center gap-3 text-base-content/80 pl-[2px]">
                         <Clock className="w-5 h-5 text-primary" />

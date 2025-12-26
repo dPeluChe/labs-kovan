@@ -57,7 +57,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const processPendingInvite = async () => {
       if (!user || processingInvite) return;
-      
+
       const pendingInvite = localStorage.getItem(PENDING_INVITE_KEY);
       if (!pendingInvite) return;
 
@@ -68,7 +68,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
           familyId: pendingInvite as Id<"families">,
           userId: user._id,
         });
-        
+
         // Set as current family
         if (result.familyId) {
           localStorage.setItem(CURRENT_FAMILY_KEY, result.familyId);
@@ -125,7 +125,6 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function useFamily() {
   const context = useContext(FamilyContext);
   if (context === undefined) {
