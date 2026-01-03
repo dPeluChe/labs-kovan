@@ -9,12 +9,14 @@ import { PageHeader } from "../components/ui/PageHeader";
 import { FileText, Plus, User, AlertTriangle, Calendar } from "lucide-react";
 import { useFamily } from "../contexts/FamilyContext";
 import type { Doc } from "../../convex/_generated/dataModel";
+import { ResourceCard } from "../components/ui/ResourceCard";
+import { HorizontalSelector } from "../components/ui/HorizontalSelector";
 
 export function DocumentsPage() {
     const { currentFamily } = useFamily();
     const [showFormModal, setShowFormModal] = useState(false);
     const [docToEdit, setDocToEdit] = useState<Doc<"documents"> | null>(null);
-    const [selectedPersonId, setSelectedPersonId] = useState<string | "all" | "general">("all");
+    const [selectedPersonId, setSelectedPersonId] = useState<string>("all");
     const [selectedDoc, setSelectedDoc] = useState<Doc<"documents"> | null>(null);
 
     // Queries
@@ -56,6 +58,12 @@ export function DocumentsPage() {
         setShowFormModal(true);
     };
 
+    const filterOptions = [
+        { id: "all", label: "Todos" },
+        { id: "general", label: "General/Familia" },
+        ...profiles.map(p => ({ id: p._id, label: p.name }))
+    ];
+
     return (
         <div className="pb-20">
             <PageHeader
@@ -72,50 +80,31 @@ export function DocumentsPage() {
             />
 
             {/* Filter Tabs (Horizontal Scroll) */}
-            <div className="px-4 pb-4">
-                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-                    <button
-                        onClick={() => setSelectedPersonId("all")}
-                        className={`btn btn-sm rounded-full ${selectedPersonId === "all" ? "btn-primary" : "btn-ghost bg-base-200"}`}
-                    >
-                        Todos
-                    </button>
-                    <button
-                        onClick={() => setSelectedPersonId("general")}
-                        className={`btn btn-sm rounded-full ${selectedPersonId === "general" ? "btn-primary" : "btn-ghost bg-base-200"}`}
-                    >
-                        General/Familia
-                    </button>
-                    {profiles.map((p) => (
-                        <button
-                            key={p._id}
-                            onClick={() => setSelectedPersonId(p._id)}
-                            className={`btn btn-sm rounded-full whitespace-nowrap ${selectedPersonId === p._id ? "btn-primary" : "btn-ghost bg-base-200"}`}
-                        >
-                            {p.name}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            <HorizontalSelector
+                options={filterOptions}
+                value={selectedPersonId}
+                onChange={setSelectedPersonId}
+                className="px-4 pb-4"
+            />
 
             <div className="px-4 space-y-3">
                 {docs.length > 0 ? (
-                    docs.map((doc) => {
-                        const status = getExpiryStatus(doc.expiryDate);
-                        return (
-                            <div
-                                key={doc._id}
-                                onClick={() => setSelectedDoc(doc)}
-                                className="card bg-base-100 shadow-sm border border-base-200 p-4 active:scale-[0.98] transition-all cursor-pointer"
-                            >
-                                <div className="flex justify-between items-start">
-                                    <div className="flex gap-3">
+                    <div className="stagger-children space-y-3">
+                        {docs.map((doc) => {
+                            const status = getExpiryStatus(doc.expiryDate);
+                            return (
+                                <ResourceCard
+                                    key={doc._id}
+                                    onClick={() => setSelectedDoc(doc)}
+                                    title={doc.title}
+                                    icon={
                                         <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
                                             <FileText className="w-5 h-5" />
                                         </div>
-                                        <div>
-                                            <h3 className="font-semibold">{doc.title}</h3>
-                                            <div className="flex items-center gap-1.5 text-xs text-base-content/60 mt-0.5">
+                                    }
+                                    subtitle={
+                                        <div className="flex flex-col gap-1.5 mt-0.5">
+                                            <div className="flex items-center gap-1.5 text-xs text-base-content/60">
                                                 <User className="w-3 h-3" />
                                                 <span>{getPersonName(doc.personId)}</span>
                                                 {doc.documentNumber && (
@@ -125,20 +114,18 @@ export function DocumentsPage() {
                                                     </>
                                                 )}
                                             </div>
+                                            {status && (
+                                                <div className={`self-start px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 w-fit ${status.bg} ${status.color}`}>
+                                                    {status.label === "Vencido" || status.label === "Vence pronto" ? <AlertTriangle className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}
+                                                    {status.label}
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
-                                    {/* Action Dot or Menu would go here */}
-                                </div>
-
-                                {status && (
-                                    <div className={`mt-3 self-start px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 w-fit ${status.bg} ${status.color}`}>
-                                        {status.label === "Vencido" || status.label === "Vence pronto" ? <AlertTriangle className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}
-                                        {status.label}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })
+                                    }
+                                />
+                            );
+                        })}
+                    </div>
                 ) : (
                     <EmptyState
                         icon={FileText}

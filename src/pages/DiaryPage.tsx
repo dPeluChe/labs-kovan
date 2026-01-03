@@ -7,20 +7,14 @@ import { PageHeader } from "../components/ui/PageHeader";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { CreateDiaryEntryModal } from "../components/diary/CreateDiaryEntryModal";
 import { EditDiaryEntryModal } from "../components/diary/EditDiaryEntryModal";
+import { EmptyState } from "../components/ui/EmptyState";
+import { MOODS_MAP } from "../components/diary/constants";
 import { Plus, Users, Lock, Trash2, Calendar } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 
-const MOODS_MAP: Record<string, string> = {
-    happy: "😊",
-    grateful: "🙏",
-    excited: "🤩",
-    neutral: "😐",
-    sad: "😔",
-    tired: "😴",
-    sick: "🤒",
-};
+
 
 export function DiaryPage() {
     const { currentFamily } = useFamily();
@@ -72,13 +66,11 @@ export function DiaryPage() {
 
             <div className="px-4 py-2">
                 {entries.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
-                        <div className="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mb-4">
-                            <Calendar className="w-10 h-10 text-base-content/40" />
-                        </div>
-                        <h3 className="font-medium text-lg">Tu diario está vacío</h3>
-                        <p className="text-sm mt-1 max-w-[200px]">Agradece, reflexiona o comparte tus momentos con la familia.</p>
-                    </div>
+                    <EmptyState
+                        icon={Calendar}
+                        title="Tu diario está vacío"
+                        description="Agradece, reflexiona o comparte tus momentos con la familia."
+                    />
                 ) : (
                     <div className="space-y-8">
                         {Object.entries(entries.reduce((acc, entry) => {

@@ -6,11 +6,12 @@ import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { SkeletonPageContent } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
-import { Cat, Plus, ChevronRight } from "lucide-react";
+import { Cat, Plus } from "lucide-react";
 import { DateInput } from "../components/ui/DateInput";
-import { Link } from "react-router-dom";
 import type { Id } from "../../convex/_generated/dataModel";
 import { MobileModal } from "../components/ui/MobileModal";
+import { Input } from "../components/ui/Input";
+import { ResourceCard } from "../components/ui/ResourceCard";
 
 export function PetsPage() {
     const { currentFamily } = useFamily();
@@ -62,7 +63,17 @@ export function PetsPage() {
                 ) : (
                     <div className="space-y-3 stagger-children">
                         {petProfiles?.map((profile) => (
-                            <PetCard key={profile._id} profile={profile} />
+                            <ResourceCard
+                                key={profile._id}
+                                to={`/pets/${profile._id}`}
+                                title={profile.name}
+                                subtitle={profile.relation}
+                                icon={
+                                    <div className="p-2 rounded-lg bg-orange-500/10">
+                                        <Cat className="w-5 h-5 text-orange-600" />
+                                    </div>
+                                }
+                            />
                         ))}
                     </div>
                 )}
@@ -75,38 +86,6 @@ export function PetsPage() {
                 />
             )}
         </div>
-    );
-}
-
-function PetCard({
-    profile,
-}: {
-    profile: {
-        _id: Id<"personProfiles">;
-        type: "human" | "pet";
-        name: string;
-        relation: string;
-        birthDate?: number;
-    };
-}) {
-    return (
-        <Link
-            to={`/pets/${profile._id}`}
-            className="card bg-base-100 shadow-sm border border-base-300 card-interactive animate-fade-in"
-        >
-            <div className="card-body p-4">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-orange-500/10">
-                        <Cat className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold">{profile.name}</h3>
-                        <p className="text-sm text-base-content/60">{profile.relation}</p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-base-content/40" />
-                </div>
-            </div>
-        </Link>
     );
 }
 
@@ -152,48 +131,30 @@ function NewPetModal({
             title="Nueva Mascota"
         >
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="form-control">
-                    <label className="label">
-                        <span className="label-text">Nombre *</span>
-                    </label>
-                    <input
-                        type="text"
-                        placeholder="Ej: Max, Luna"
-                        className="input input-bordered w-full"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        disabled={isLoading}
-                        autoFocus
-                    />
-                </div>
+                <Input
+                    label="Nombre *"
+                    placeholder="Ej: Max, Luna"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={isLoading}
+                    autoFocus
+                />
 
-                <div className="form-control">
-                    <label className="label">
-                        <span className="label-text">Especie / Raza *</span>
-                    </label>
-                    <input
-                        type="text"
-                        placeholder="Ej: Perro, Gato, Golden Retriever"
-                        className="input input-bordered w-full"
-                        value={relation}
-                        onChange={(e) => setRelation(e.target.value)}
-                        disabled={isLoading}
-                    />
-                </div>
+                <Input
+                    label="Especie / Raza *"
+                    placeholder="Ej: Perro, Gato, Golden Retriever"
+                    value={relation}
+                    onChange={(e) => setRelation(e.target.value)}
+                    disabled={isLoading}
+                />
 
-                <div className="form-control">
-                    <label className="label">
-                        <span className="label-text">Apodo (opcional)</span>
-                    </label>
-                    <input
-                        type="text"
-                        placeholder="Ej: Peluchin, Firulais"
-                        className="input input-bordered w-full"
-                        value={nickname}
-                        onChange={(e) => setNickname(e.target.value)}
-                        disabled={isLoading}
-                    />
-                </div>
+                <Input
+                    label="Apodo (opcional)"
+                    placeholder="Ej: Peluchin, Firulais"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    disabled={isLoading}
+                />
 
                 <DateInput
                     label="Fecha de nacimiento (opcional)"

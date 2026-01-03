@@ -13,6 +13,7 @@ import { DateInput } from "../components/ui/DateInput";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { motion } from "framer-motion";
 import type { Id } from "../../convex/_generated/dataModel";
+import { AnimatedTabs } from "../components/ui/AnimatedTabs";
 
 export function TripsPage() {
     const { currentFamily } = useFamily();
@@ -46,22 +47,15 @@ export function TripsPage() {
             />
 
             <div className="px-4 mb-4">
-                <div role="tablist" className="tabs tabs-boxed bg-base-200/50 p-1 w-fit">
-                    <a
-                        role="tab"
-                        className={`tab ${filter === 'upcoming' ? 'tab-active bg-base-100 shadow-sm transition-all' : ''}`}
-                        onClick={() => setFilter('upcoming')}
-                    >
-                        Próximos
-                    </a>
-                    <a
-                        role="tab"
-                        className={`tab ${filter === 'past' ? 'tab-active bg-base-100 shadow-sm transition-all' : ''}`}
-                        onClick={() => setFilter('past')}
-                    >
-                        Historial
-                    </a>
-                </div>
+                <AnimatedTabs
+                    tabs={[
+                        { id: 'upcoming', label: 'Próximos' },
+                        { id: 'past', label: 'Historial' }
+                    ]}
+                    activeTab={filter}
+                    onTabChange={(id) => setFilter(id as 'upcoming' | 'past')}
+                    className="w-full max-w-sm"
+                />
             </div>
 
             <div className="px-4">

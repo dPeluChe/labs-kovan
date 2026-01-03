@@ -5,10 +5,11 @@ import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { SkeletonPageContent } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
-import { Plus, Car, ChevronRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Plus, Car } from "lucide-react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { MobileModal } from "../components/ui/MobileModal";
+import { Input } from "../components/ui/Input";
+import { ResourceCard } from "../components/ui/ResourceCard";
 
 export function VehiclesPage() {
   const { currentFamily } = useFamily();
@@ -94,27 +95,17 @@ export function VehiclesPage() {
         ) : (
           <div className="space-y-3 stagger-children">
             {vehicles.map((vehicle) => (
-              <Link
+              <ResourceCard
                 key={vehicle._id}
                 to={`/vehicles/${vehicle._id}`}
-                className="card bg-base-100 shadow-sm border border-base-300 animate-fade-in"
-              >
-                <div className="card-body p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-green-500/10 p-2 rounded-lg">
-                      <Car className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold">{vehicle.name}</h3>
-                      <p className="text-sm text-base-content/60">
-                        {[vehicle.brand, vehicle.model, vehicle.year].filter(Boolean).join(" ") || "Sin detalles"}
-                        {vehicle.plate && ` • ${vehicle.plate}`}
-                      </p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-base-content/40" />
+                title={vehicle.name}
+                subtitle={[vehicle.brand, vehicle.model, vehicle.year].filter(Boolean).join(" ") || "Sin detalles"}
+                icon={
+                  <div className="bg-green-500/10 p-2 rounded-lg">
+                    <Car className="w-5 h-5 text-green-600" />
                   </div>
-                </div>
-              </Link>
+                }
+              />
             ))}
           </div>
         )}
@@ -175,40 +166,47 @@ function NewVehicleModal({
       title="Nuevo vehículo"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="form-control">
-          <label className="label"><span className="label-text">Nombre *</span></label>
-          <input
-            type="text"
-            placeholder="Ej: Mazda rojo, Camioneta"
-            className="input input-bordered w-full"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoFocus
+        <Input
+          label="Nombre *"
+          placeholder="Ej: Mazda rojo, Camioneta"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoFocus
+        />
+        <div className="grid grid-cols-2 gap-2">
+          <Input
+            label="Marca"
+            placeholder="Ej: Mazda"
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+          />
+          <Input
+            label="Modelo"
+            placeholder="Ej: 3"
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
           />
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Marca</span></label>
-            <input type="text" placeholder="Ej: Mazda" className="input input-bordered w-full" value={brand} onChange={(e) => setBrand(e.target.value)} />
-          </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">Modelo</span></label>
-            <input type="text" placeholder="Ej: 3" className="input input-bordered w-full" value={model} onChange={(e) => setModel(e.target.value)} />
-          </div>
-        </div>
         <div className="grid grid-cols-3 gap-2">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Año</span></label>
-            <input type="number" placeholder="2024" className="input input-bordered w-full" value={year} onChange={(e) => setYear(e.target.value)} />
-          </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">Color</span></label>
-            <input type="text" placeholder="Rojo" className="input input-bordered w-full" value={color} onChange={(e) => setColor(e.target.value)} />
-          </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">Placa</span></label>
-            <input type="text" placeholder="ABC-123" className="input input-bordered w-full" value={plate} onChange={(e) => setPlate(e.target.value)} />
-          </div>
+          <Input
+            label="Año"
+            type="number"
+            placeholder="2024"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+          />
+          <Input
+            label="Color"
+            placeholder="Rojo"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+          />
+          <Input
+            label="Placa"
+            placeholder="ABC-123"
+            value={plate}
+            onChange={(e) => setPlate(e.target.value)}
+          />
         </div>
         <div className="modal-action">
           <button type="button" className="btn" onClick={onClose}>Cancelar</button>

@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { MobileModal } from "../ui/MobileModal";
-import { Users, Lock } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { DateInput } from "../ui/DateInput";
+import { VisibilitySelector } from "../ui/VisibilitySelector";
+import { MoodSelector } from "./MoodSelector";
+import { MOODS } from "./constants";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
 interface EditDiaryEntryModalProps {
@@ -12,17 +14,6 @@ interface EditDiaryEntryModalProps {
     onClose: () => void;
     entry: Doc<"diaryEntries">;
 }
-
-const MOODS = [
-    { id: "custom", emoji: "✨", label: "Custom" },
-    { id: "grateful", emoji: "🙏", label: "Agradecido" },
-    { id: "happy", emoji: "😊", label: "Feliz" },
-    { id: "excited", emoji: "🤩", label: "Emocionado" },
-    { id: "neutral", emoji: "😐", label: "Normal" },
-    { id: "sad", emoji: "😔", label: "Triste" },
-    { id: "tired", emoji: "😴", label: "Cansado" },
-    { id: "sick", emoji: "🤒", label: "Enfermo" },
-];
 
 export function EditDiaryEntryModal({ isOpen, onClose, entry }: EditDiaryEntryModalProps) {
     const { user } = useAuth();
@@ -110,78 +101,19 @@ export function EditDiaryEntryModal({ isOpen, onClose, entry }: EditDiaryEntryMo
                         />
                     </div>
 
-                    {/* Visibility - Compact */}
-                    <div className="flex-none">
-                        <label className="label text-xs font-medium text-base-content/60">Visibilidad</label>
-                        <div className="flex bg-base-200 rounded-lg p-1 h-[48px] items-center">
-                            <button
-                                type="button"
-                                onClick={() => setVisibility("private")}
-                                className={`h-full px-3 rounded-md flex items-center justify-center gap-1.5 transition-all text-sm font-medium ${visibility === "private" ? "bg-white shadow-sm text-primary" : "text-base-content/50 hover:text-base-content"
-                                    }`}
-                                title="Solo yo"
-                            >
-                                <Lock className="w-4 h-4" />
-                                <span className="hidden sm:inline">Privado</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setVisibility("family")}
-                                className={`h-full px-3 rounded-md flex items-center justify-center gap-1.5 transition-all text-sm font-medium ${visibility === "family" ? "bg-white shadow-sm text-primary" : "text-base-content/50 hover:text-base-content"
-                                    }`}
-                                title="Familia"
-                            >
-                                <Users className="w-4 h-4" />
-                                <span className="hidden sm:inline">Familia</span>
-                            </button>
-                        </div>
-                    </div>
+                    {/* Visibility */}
+                    <VisibilitySelector value={visibility} onChange={setVisibility} />
                 </div>
 
                 {/* Mood Selector */}
-                <div>
-                    <label className="label text-xs font-medium text-base-content/60">¿Cómo te sentiste?</label>
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar snap-x">
-                        {MOODS.map((m) => (
-                            <button
-                                key={m.id}
-                                type="button"
-                                onClick={() => setMood(m.id)}
-                                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all min-w-[64px] snap-center ${mood === m.id ? "bg-primary/10 border-primary shadow-sm" : "bg-base-200 border-transparent hover:bg-base-300"
-                                    } border`}
-                            >
-                                <span className="text-2xl">{m.emoji}</span>
-                                <span className="text-[10px] whitespace-nowrap">{m.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Custom Mood Inputs */}
-                {mood === "custom" && (
-                    <div className="flex gap-3 animate-fade-in bg-primary/5 border border-primary/20 p-3 rounded-xl transition-all">
-                        <div className="w-16">
-                            <label className="label text-[10px] font-medium text-base-content/60 pt-0">Emoji</label>
-                            <input
-                                type="text"
-                                className="input input-sm input-bordered w-full text-center text-xl px-1 bg-white"
-                                value={customEmoji}
-                                onChange={(e) => setCustomEmoji(e.target.value)}
-                                maxLength={2}
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <label className="label text-[10px] font-medium text-base-content/60 pt-0">Etiqueta</label>
-                            <input
-                                type="text"
-                                className="input input-sm input-bordered w-full bg-white"
-                                placeholder="Ej: Productivo, Zen..."
-                                value={customLabel}
-                                onChange={(e) => setCustomLabel(e.target.value)}
-                            />
-                        </div>
-                    </div>
-                )}
+                <MoodSelector
+                    mood={mood}
+                    onMoodChange={setMood}
+                    customEmoji={customEmoji}
+                    onCustomEmojiChange={setCustomEmoji}
+                    customLabel={customLabel}
+                    onCustomLabelChange={setCustomLabel}
+                />
 
                 {/* Content */}
                 <div>

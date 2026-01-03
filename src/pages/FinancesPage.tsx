@@ -8,6 +8,8 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { useConfirmModal } from "../hooks/useConfirmModal";
 import { DollarSign, Plus, Trash2, HandCoins, Repeat } from "lucide-react";
 import { DateInput } from "../components/ui/DateInput";
+import { Input } from "../components/ui/Input";
+import { Select } from "../components/ui/Select";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 import { MobileModal } from "../components/ui/MobileModal";
@@ -218,16 +220,23 @@ function NewLoanModal({ familyId, onClose }: { familyId: Id<"families">, onClose
           <a className={`tab flex-1 ${type === "borrowed" ? "tab-active" : ""}`} onClick={() => setType("borrowed")}>Me prestaron</a>
         </div>
 
-        <div className="form-control">
-          <label className="label"><span className="label-text">¿A quién / Quién?</span></label>
-          <input className="input input-bordered" placeholder="Nombre de la persona" value={person} onChange={e => setPerson(e.target.value)} autoFocus />
-        </div>
+        <Input
+          label="¿A quién / Quién?"
+          placeholder="Nombre de la persona"
+          value={person}
+          onChange={e => setPerson(e.target.value)}
+          autoFocus
+        />
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Monto</span></label>
-            <input className="input input-bordered" type="number" step="0.01" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} />
-          </div>
+          <Input
+            label="Monto"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+            value={amount}
+            onChange={e => setAmount(e.target.value)}
+          />
           <DateInput label="Fecha" value={date} onChange={setDate} />
         </div>
 
@@ -268,10 +277,14 @@ function PaymentModal({ loanId, familyId, onClose }: { loanId: Id<"loans">, fami
   return (
     <MobileModal isOpen={true} onClose={onClose} title="Registrar Abono">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="form-control">
-          <label className="label"><span className="label-text">Monto abonado</span></label>
-          <input className="input input-bordered" type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} autoFocus />
-        </div>
+        <Input
+          label="Monto abonado"
+          type="number"
+          step="0.01"
+          value={amount}
+          onChange={e => setAmount(e.target.value)}
+          autoFocus
+        />
         <DateInput label="Fecha" value={date} onChange={setDate} />
         <div className="modal-action">
           <button type="button" className="btn" onClick={onClose}>Cancelar</button>
@@ -595,70 +608,54 @@ function NewSubscriptionModal({
   return (
     <MobileModal isOpen={true} onClose={onClose} title="Nueva suscripción">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="form-control">
-          <label className="label"><span className="label-text">Nombre *</span></label>
-          <input
-            type="text"
-            placeholder="Ej: Netflix, Spotify, CFE"
-            className="input input-bordered w-full"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoFocus
-          />
-        </div>
+        <Input
+          label="Nombre *"
+          placeholder="Ej: Netflix, Spotify, CFE"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoFocus
+        />
 
-        <div className="form-control">
-          <label className="label"><span className="label-text">Tipo</span></label>
-          <select
-            className="select select-bordered w-full"
-            value={type}
-            onChange={(e) => setType(e.target.value as typeof type)}
-          >
-            {Object.entries(SUBSCRIPTION_TYPES).map(([key, config]) => (
-              <option key={key} value={key}>{config.icon} {config.label}</option>
-            ))}
-          </select>
-        </div>
+        <Select
+          label="Tipo"
+          value={type}
+          onChange={(e) => setType(e.target.value as typeof type)}
+        >
+          {Object.entries(SUBSCRIPTION_TYPES).map(([key, config]) => (
+            <option key={key} value={key}>{config.label} {config.icon}</option>
+          ))}
+        </Select>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Monto</span></label>
-            <input
-              type="number"
-              placeholder="0.00"
-              className="input input-bordered w-full"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              step="0.01"
-            />
-          </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">Ciclo</span></label>
-            <select
-              className="select select-bordered w-full"
-              value={billingCycle}
-              onChange={(e) => setBillingCycle(e.target.value as typeof billingCycle)}
-            >
-              <option value="monthly">Mensual</option>
-              <option value="bimonthly">Bimestral</option>
-              <option value="annual">Anual</option>
-              <option value="variable">Variable</option>
-            </select>
-          </div>
+          <Input
+            label="Monto"
+            type="number"
+            placeholder="0.00"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            step="0.01"
+          />
+          <Select
+            label="Ciclo"
+            value={billingCycle}
+            onChange={(e) => setBillingCycle(e.target.value as typeof billingCycle)}
+          >
+            <option value="monthly">Mensual</option>
+            <option value="bimonthly">Bimestral</option>
+            <option value="annual">Anual</option>
+            <option value="variable">Variable</option>
+          </Select>
         </div>
 
-        <div className="form-control">
-          <label className="label"><span className="label-text">Día de pago (1-31)</span></label>
-          <input
-            type="number"
-            placeholder="Ej: 15"
-            className="input input-bordered w-full"
-            value={dueDay}
-            onChange={(e) => setDueDay(e.target.value)}
-            min="1"
-            max="31"
-          />
-        </div>
+        <Input
+          label="Día de pago (1-31)"
+          type="number"
+          placeholder="Ej: 15"
+          value={dueDay}
+          onChange={(e) => setDueDay(e.target.value)}
+          min={1}
+          max={31}
+        />
 
         <div className="modal-action">
           <button type="button" className="btn" onClick={onClose}>Cancelar</button>
@@ -716,17 +713,14 @@ function PaySubscriptionModal({
   return (
     <MobileModal isOpen={true} onClose={onClose} title={`Registrar pago de ${sub.name}`}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="form-control">
-          <label className="label"><span className="label-text">Monto a pagar</span></label>
-          <input
-            type="number"
-            className="input input-bordered w-full"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            step="0.01"
-            autoFocus
-          />
-        </div>
+        <Input
+          label="Monto a pagar"
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          step="0.01"
+          autoFocus
+        />
         <DateInput
           label="Fecha del pago"
           value={date}

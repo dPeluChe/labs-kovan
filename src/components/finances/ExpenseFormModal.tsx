@@ -3,6 +3,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { MobileModal } from "../ui/MobileModal";
 import { DateInput } from "../ui/DateInput";
+import { Input } from "../ui/Input";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { CATEGORY_CONFIG, GENERAL_EXPENSE_CATEGORIES } from "./constants";
 import type { ExpenseCategory } from "./constants";
@@ -82,29 +83,22 @@ export function ExpenseFormModal({
     return (
         <MobileModal isOpen={isOpen} onClose={onClose} title={expenseToEdit ? "Editar gasto" : "Nuevo gasto"}>
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="form-control">
-                    <label className="label"><span className="label-text">Descripción *</span></label>
-                    <input
-                        type="text"
-                        placeholder="¿En qué gastaste?"
-                        className="input input-bordered w-full"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    />
-                </div>
+                <Input
+                    label="Descripción *"
+                    placeholder="¿En qué gastaste?"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                />
 
                 <div className="grid grid-cols-2 gap-2">
-                    <div className="form-control">
-                        <label className="label"><span className="label-text">Monto *</span></label>
-                        <input
-                            type="number"
-                            placeholder="0.00"
-                            className="input input-bordered w-full"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                            step="0.01"
-                        />
-                    </div>
+                    <Input
+                        label="Monto *"
+                        type="number"
+                        placeholder="0.00"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        step="0.01"
+                    />
                     <DateInput
                         label="Fecha"
                         value={date}
@@ -113,7 +107,7 @@ export function ExpenseFormModal({
                 </div>
 
                 <div className="form-control">
-                    <label className="label"><span className="label-text">Categoría</span></label>
+                    <label className="label"><span className="label-text font-medium text-base-content/80">Categoría</span></label>
                     <div className="grid grid-cols-3 gap-2">
                         {GENERAL_EXPENSE_CATEGORIES.map((key) => {
                             const config = CATEGORY_CONFIG[key];
@@ -122,7 +116,7 @@ export function ExpenseFormModal({
                                     key={key}
                                     type="button"
                                     onClick={() => setCategory(key)}
-                                    className={`btn btn - sm gap - 1 ${category === key ? "btn-primary" : "btn-ghost"} `}
+                                    className={`btn btn-sm gap-1 ${category === key ? "btn-primary" : "btn-ghost bg-base-200/50"} `}
                                 >
                                     <span>{config.icon}</span>
                                     <span className="text-xs truncate">{config.label}</span>
