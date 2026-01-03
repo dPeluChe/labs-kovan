@@ -12,19 +12,22 @@ export function Header() {
 
   return (
     <header className="navbar bg-base-100/90 backdrop-blur-md border-b border-base-300 px-4 min-h-14 sticky top-0 z-40 transition-all duration-300">
-      <div className="flex-1">
-        <div className="dropdown">
-          <div tabIndex={0} role="button" className="btn btn-ghost btn-sm gap-1 px-2">
-            <span className="text-lg">{currentFamily?.emoji || "🏠"}</span>
-            <span className="font-semibold truncate max-w-32">
-              {currentFamily?.name || "Kovan"}
-            </span>
-            {families.length > 1 && <ChevronDown className="w-4 h-4" />}
-          </div>
-          {families.length > 1 && (
+      <div className="flex-1 flex items-center gap-0.5">
+        <Link to="/" className="btn btn-ghost btn-sm gap-2 px-2 normal-case">
+          <span className="text-lg">{currentFamily?.emoji || "🏠"}</span>
+          <span className="font-semibold truncate max-w-32 text-lg">
+            {currentFamily?.name || "Kovan"}
+          </span>
+        </Link>
+
+        {families.length > 1 && (
+          <div className="dropdown dropdown-bottom">
+            <div tabIndex={0} role="button" className="btn btn-ghost btn-sm px-1 min-h-0 h-8 w-8 rounded-full opacity-60 hover:opacity-100">
+              <ChevronDown className="w-4 h-4" />
+            </div>
             <ul
               tabIndex={0}
-              className="dropdown-content menu bg-base-100 rounded-box z-50 w-52 p-2 shadow-lg border border-base-300"
+              className="dropdown-content menu bg-base-100 rounded-box z-[60] w-52 p-2 shadow-lg border border-base-300 mt-2"
             >
               {families.map((family) => (
                 <li key={family._id}>
@@ -43,8 +46,8 @@ export function Header() {
                 </Link>
               </li>
             </ul>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-none gap-1">

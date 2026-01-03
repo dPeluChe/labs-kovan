@@ -667,4 +667,21 @@ export default defineSchema({
     }),
   })
     .index("by_person_date", ["personId", "date"]),
+
+  // ==================== DIARY ====================
+  diaryEntries: defineTable({
+    familyId: v.id("families"),
+    userId: v.id("users"), // Author
+    content: v.optional(v.string()), // Text content
+    mood: v.optional(v.string()), // e.g., "happy", "grateful", "sad"
+    moodEmoji: v.optional(v.string()), // 🚀
+    moodLabel: v.optional(v.string()), // "Proyectazo"
+    visibility: v.union(v.literal("private"), v.literal("family")),
+    date: v.number(), // Timestamp of the entry
+    images: v.optional(v.array(v.string())),
+    imageStorageIds: v.optional(v.array(v.id("_storage"))),
+  })
+    .index("by_family", ["familyId"])
+    .index("by_user", ["userId"])
+    .index("by_family_date", ["familyId", "date"]),
 });

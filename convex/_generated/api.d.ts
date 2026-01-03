@@ -14,6 +14,7 @@ import type * as calendar from "../calendar.js";
 import type * as cloudinary from "../cloudinary.js";
 import type * as collections from "../collections.js";
 import type * as contacts from "../contacts.js";
+import type * as diary from "../diary.js";
 import type * as documents from "../documents.js";
 import type * as expenses from "../expenses.js";
 import type * as families from "../families.js";
@@ -49,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   cloudinary: typeof cloudinary;
   collections: typeof collections;
   contacts: typeof contacts;
+  diary: typeof diary;
   documents: typeof documents;
   expenses: typeof expenses;
   families: typeof families;

@@ -21,10 +21,11 @@ import {
   List,
   Cat,
   Plane,
-  CheckSquare,
+  CheckSquare, // Added back
   FileText,
   CreditCard,
   Utensils,
+  BookHeart,
 } from "lucide-react";
 
 const menuItems = [
@@ -141,12 +142,20 @@ const menuItems = [
     color: "bg-indigo-500/10 text-indigo-600",
   },
   {
+    to: "/diary",
+    icon: BookHeart,
+    label: "Diario",
+    description: "Momentos y gratitud",
+    color: "bg-rose-500/10 text-rose-600",
+  },
+  {
     to: "/family",
     icon: Users,
     label: "Familia",
     description: "Miembros",
     color: "bg-purple-500/10 text-purple-600",
   },
+
   {
     to: "/settings",
     icon: Settings,
