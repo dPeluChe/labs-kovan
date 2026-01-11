@@ -33,6 +33,7 @@ import { FinancesPage } from "./pages/FinancesPage";
 import { RecipesPage } from "./pages/RecipesPage";
 import { PlacesPage } from "./pages/PlacesPage";
 import { PlaceVisitsPage } from "./pages/PlaceVisitsPage";
+import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ContactsPage } from "./pages/ContactsPage";
 import { ActivitiesPage } from "./pages/ActivitiesPage";
@@ -92,6 +93,7 @@ function AppRoutes() {
         <Route path="/finances" element={<FinancesPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/nutrition" element={<NutritionPage />} />
+        <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/places/visits" element={<PlaceVisitsPage />} />
         <Route path="/places" element={<PlacesPage />} />
         <Route path="/trips" element={<TripsPage />} />

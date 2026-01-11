@@ -41,11 +41,11 @@ export const getFamilyMembers = query({
         const user = await ctx.db.get(m.userId);
         return user
           ? {
-              ...user,
-              membershipId: m._id,
-              role: m.role,
-              status: m.status,
-            }
+            ...user,
+            membershipId: m._id,
+            role: m.role,
+            status: m.status,
+          }
           : null;
       })
     );
@@ -297,9 +297,9 @@ export const cancelInvite = mutation({
 
 // Join family by ID (for invite links) - validates pending invite by email
 export const joinFamilyById = mutation({
-  args: { 
-    familyId: v.id("families"), 
-    userId: v.id("users") 
+  args: {
+    familyId: v.id("families"),
+    userId: v.id("users")
   },
   handler: async (ctx, args) => {
     // Check if family exists
@@ -323,7 +323,8 @@ export const joinFamilyById = mutation({
       return { familyId: args.familyId, alreadyMember: true, success: true };
     }
 
-    // Check if there's a pending invite for this email
+    // Check if there's a pending invite for this email (Optional security check)
+    // For this version, we allow joining via Link directly (Family ID matches)
     const pendingInvite = await ctx.db
       .query("familyInvites")
       .withIndex("by_email", (q) => q.eq("email", user.email))
@@ -335,21 +336,18 @@ export const joinFamilyById = mutation({
       )
       .first();
 
-    if (!pendingInvite) {
-      // No valid invite found - reject
-      throw new Error("No tienes una invitación válida para esta familia. Pide que te inviten usando tu email.");
+    // If there IS a pending invite, mark it as accepted
+    if (pendingInvite) {
+      await ctx.db.patch(pendingInvite._id, { status: "accepted" });
     }
 
-    // Valid invite found - add as member
+    // Join the family
     await ctx.db.insert("familyMembers", {
       familyId: args.familyId,
       userId: args.userId,
       role: "member",
       status: "active",
     });
-
-    // Mark invite as accepted
-    await ctx.db.patch(pendingInvite._id, { status: "accepted" });
 
     return { familyId: args.familyId, alreadyMember: false, success: true };
   },

@@ -72,6 +72,7 @@ export const createDemoUser = mutation({
   args: {
     name: v.string(),
     email: v.string(),
+    password: v.string(),
   },
   handler: async (ctx, args) => {
     // Check if demo user exists
@@ -81,12 +82,28 @@ export const createDemoUser = mutation({
       .first();
 
     if (existingUser) {
+      // Validate password
+      // Legacy support: if user has no password, allow "holahola1234" and set it
+      if (!existingUser.password) {
+        if (args.password === "holahola1234") {
+          await ctx.db.patch(existingUser._id, { password: args.password });
+          return existingUser._id;
+        } else {
+          throw new Error("Contraseña incorrecta. (Usuario existente sin contraseña asignada, prueba la por defecto)");
+        }
+      }
+
+      if (existingUser.password !== args.password) {
+        throw new Error("Contraseña incorrecta");
+      }
+
       return existingUser._id;
     }
 
     const userId = await ctx.db.insert("users", {
       name: args.name,
       email: args.email,
+      password: args.password,
     });
 
     return userId;

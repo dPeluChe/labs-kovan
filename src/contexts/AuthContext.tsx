@@ -20,7 +20,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, name: string) => Promise<void>;
+  login: (email: string, name: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -47,10 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return user === undefined;
   }, [demoEmail, user, isLoggingIn]);
 
-  const login = useCallback(async (email: string, name: string) => {
+  const login = useCallback(async (email: string, name: string, password: string) => {
     setIsLoggingIn(true);
     try {
-      await createDemoUser({ email, name });
+      await createDemoUser({ email, name, password });
       localStorage.setItem(DEMO_USER_KEY, email);
       setDemoEmail(email);
     } finally {

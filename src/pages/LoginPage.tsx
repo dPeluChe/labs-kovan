@@ -16,6 +16,7 @@ export function LoginPage() {
   const { theme, toggleTheme } = useTheme();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   // Get family info if invite link
@@ -35,7 +36,7 @@ export function LoginPage() {
     e.preventDefault();
     setError("");
 
-    if (!name.trim() || !email.trim()) {
+    if (!name.trim() || !email.trim() || !password.trim()) {
       setError("Por favor completa todos los campos");
       return;
     }
@@ -46,7 +47,7 @@ export function LoginPage() {
     }
 
     try {
-      await login(email.trim().toLowerCase(), name.trim());
+      await login(email.trim().toLowerCase(), name.trim(), password.trim());
     } catch {
       setError("Error al iniciar sesión. Intenta de nuevo.");
     }
@@ -145,6 +146,21 @@ export function LoginPage() {
                 />
               </div>
 
+              <div className="form-control">
+                <label className="label pt-0">
+                  <span className="label-text font-bold text-xs uppercase tracking-wide opacity-70">Contraseña</span>
+                </label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  className="input input-lg input-bordered w-full focus:input-primary rounded-2xl bg-base-200/50 focus:bg-base-100 transition-all font-medium placeholder:font-normal placeholder:opacity-50"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  autoComplete="current-password"
+                />
+              </div>
+
               {error && (
                 <div className="alert alert-error text-sm py-3 rounded-2xl animate-shake shadow-sm">
                   <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -170,7 +186,7 @@ export function LoginPage() {
         <p className="mt-8 text-center text-xs text-base-content/40">
           Labs Kovan v1.0 BETA
         </p>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

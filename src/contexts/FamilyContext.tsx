@@ -53,7 +53,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
 
   const clearInviteError = useCallback(() => setInviteError(null), []);
 
-  // Process pending invite after login
+  // Process pending invite from localStorage (Link click)
   useEffect(() => {
     const processPendingInvite = async () => {
       if (!user || processingInvite) return;
@@ -86,6 +86,31 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
 
     processPendingInvite();
   }, [user, joinFamily, processingInvite]);
+
+  // Auto-accept invites for my email (Direct login without link)
+  const myPendingInvites = useQuery(
+    api.families.getMyInvites,
+    user ? { email: user.email } : "skip"
+  );
+
+  const acceptInvite = useMutation(api.families.acceptFamilyInvite);
+
+  useEffect(() => {
+    if (myPendingInvites && myPendingInvites.length > 0 && user) {
+      // Auto-accept all pending invites
+      const acceptAll = async () => {
+        for (const invite of myPendingInvites) {
+          try {
+            await acceptInvite({ inviteId: invite._id, userId: user._id });
+            // Optionally notify user or just let it happen
+          } catch (err) {
+            console.error("Error auto-accepting invite:", err);
+          }
+        }
+      };
+      acceptAll();
+    }
+  }, [myPendingInvites, user, acceptInvite]);
 
   // Derive current family - prefer selected, fall back to first
   const currentFamily = useMemo(() => {

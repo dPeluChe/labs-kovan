@@ -7,12 +7,14 @@ export default defineSchema({
   users: defineTable({
     name: v.string(),
     email: v.string(),
+    password: v.optional(v.string()),
     photoUrl: v.optional(v.string()),
     photoStorageId: v.optional(v.id("_storage")),
     // Using Convex's built-in auth token subject
     tokenIdentifier: v.optional(v.string()),
     // Navigation preferences
     navOrder: v.optional(v.array(v.string())),
+    isSuperAdmin: v.optional(v.boolean()),
   })
     .index("by_email", ["email"])
     .index("by_token", ["tokenIdentifier"]),

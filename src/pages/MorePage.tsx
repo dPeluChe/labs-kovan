@@ -9,6 +9,7 @@ import {
   Users,
   Calendar,
   Settings,
+  User,
   ChevronRight,
   DollarSign,
   ChefHat,
@@ -155,7 +156,13 @@ const menuItems = [
     description: "Miembros",
     color: "bg-purple-500/10 text-purple-600",
   },
-
+  {
+    to: "/settings",
+    icon: User,
+    label: "Perfil",
+    description: "Mi cuenta",
+    color: "bg-blue-500/10 text-blue-600",
+  },
   {
     to: "/settings",
     icon: Settings,
