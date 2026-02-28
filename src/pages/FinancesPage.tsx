@@ -297,7 +297,7 @@ function PaymentModal({ loanId, familyId, onClose }: { loanId: Id<"loans">, fami
 
 function ExpensesView() {
   const { currentFamily } = useFamily();
-  const { user } = useAuth();
+  const { user, sessionToken } = useAuth();
   const [activeTab, setActiveTab] = useState<ExpenseType>("all");
   const [dateFilter, setDateFilter] = useState<DateFilter>("thisMonth");
   const [showNewExpense, setShowNewExpense] = useState(false);
@@ -308,19 +308,19 @@ function ExpensesView() {
 
   const expenses = useQuery(
     api.expenses.getExpenses,
-    currentFamily
-      ? { familyId: currentFamily._id, type: activeTab === "all" ? undefined : activeTab }
+    currentFamily && sessionToken
+      ? { sessionToken, familyId: currentFamily._id, type: activeTab === "all" ? undefined : activeTab }
       : "skip"
   );
 
   const subscriptions = useQuery(
     api.expenses.getSubscriptions,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const summary = useQuery(
     api.expenses.getExpenseSummary,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const deleteExpense = useMutation(api.expenses.deleteExpense);
@@ -484,7 +484,8 @@ function ExpensesView() {
                           variant: "danger",
                         });
                         if (confirmed) {
-                          await deleteSubscription({ subscriptionId: sub._id });
+                          if (!sessionToken) return;
+                          await deleteSubscription({ sessionToken, subscriptionId: sub._id });
                         }
                       }}
                       className="btn btn-ghost btn-xs text-error"
@@ -529,7 +530,10 @@ function ExpensesView() {
                 key={expense._id}
                 expense={expense}
                 onEdit={handleEditExpense}
-                onDelete={async (id) => await deleteExpense({ expenseId: id })}
+                onDelete={async (id) => {
+                  if (!sessionToken) return;
+                  await deleteExpense({ sessionToken, expenseId: id });
+                }}
               />
             ))}
           </div>
@@ -547,6 +551,7 @@ function ExpensesView() {
 
       {showNewSubscription && currentFamily && (
         <NewSubscriptionModal
+          sessionToken={sessionToken}
           familyId={currentFamily._id}
           onClose={() => setShowNewSubscription(false)}
         />
@@ -554,6 +559,7 @@ function ExpensesView() {
 
       {showPaySubscription && currentFamily && user && (
         <PaySubscriptionModal
+          sessionToken={sessionToken}
           subscriptionId={showPaySubscription}
           familyId={currentFamily._id}
           subscriptions={subscriptions || []}
@@ -570,9 +576,11 @@ function ExpensesView() {
 
 // New Subscription Modal
 function NewSubscriptionModal({
+  sessionToken,
   familyId,
   onClose,
 }: {
+  sessionToken: string | null;
   familyId: Id<"families">;
   onClose: () => void;
 }) {
@@ -591,7 +599,9 @@ function NewSubscriptionModal({
 
     setIsLoading(true);
     try {
+      if (!sessionToken) return;
       await createSubscription({
+        sessionToken,
         familyId,
         name: name.trim(),
         type,
@@ -669,11 +679,13 @@ function NewSubscriptionModal({
 }
 
 function PaySubscriptionModal({
+  sessionToken,
   subscriptionId,
   familyId,
   subscriptions,
   onClose,
 }: {
+  sessionToken: string | null;
   subscriptionId: Id<"subscriptions">;
   familyId: Id<"families">;
   userId?: Id<"users">;
@@ -695,7 +707,9 @@ function PaySubscriptionModal({
 
     setIsLoading(true);
     try {
+      if (!sessionToken) return;
       await createExpense({
+        sessionToken,
         familyId,
         type: "subscription",
         description: `Pago de ${sub.name}`,

@@ -14,7 +14,7 @@ export const getExpenseSummaryTool: ToolDefinition = {
 };
 
 export async function handleGetExpenseSummary(context: ToolContext) {
-    const summary = await context.ctx.runQuery(api.expenses.getExpenseSummary, {
+    const summary = await context.ctx.runQuery(api.expenses.agentGetExpenseSummary, {
         familyId: context.familyId
     });
 
@@ -97,7 +97,7 @@ export const registerExpenseTool: ToolDefinition = {
 export async function handleRegisterExpense(context: ToolContext, args: Record<string, unknown>) {
     const { description, amount, category, date } = args as { description: string; amount: number; category: string; date?: string };
 
-    await context.ctx.runMutation(api.expenses.createExpense, {
+    await context.ctx.runMutation(api.expenses.agentCreateExpense, {
         familyId: context.familyId,
         description,
         amount,

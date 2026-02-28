@@ -4,12 +4,14 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { DollarSign, Plus } from "lucide-react";
 import { useState } from "react";
 import { AddTripExpenseModal } from "../modals/AddTripExpenseModal";
+import { useAuth } from "../../../contexts/AuthContext";
 // Reuse existing Expense Creation components? 
 // Or make a simple one here. Better to reuse eventually, but for speed, create simple modal wrapper.
 // Actually, let's just list expenses and have a simpler "Add Expense" inline or modal.
 
 export function TripFinancesTab({ tripId }: { tripId: Id<"trips"> }) {
-    const expenses = useQuery(api.expenses.getExpensesByTrip, { tripId });
+    const { sessionToken } = useAuth();
+    const expenses = useQuery(api.expenses.getExpensesByTrip, sessionToken ? { sessionToken, tripId } : "skip");
     const trip = useQuery(api.trips.getTrip, { tripId });
     const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
     // Assuming we have a modal to add expense linked to trip.

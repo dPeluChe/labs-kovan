@@ -51,7 +51,7 @@ export function DashboardPage() {
   // New queries
   const expensesSummary = useQuery(
     api.expenses.getExpenseSummary,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const recipesSummary = useQuery(

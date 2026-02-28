@@ -2,6 +2,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Plane, Calendar, DollarSign, ArrowRight, Building, Car, Ticket, FileText } from "lucide-react";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const BOOKING_ICONS = {
     flight: Plane,
@@ -13,9 +14,10 @@ const BOOKING_ICONS = {
 };
 
 export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, onChangeTab: (tab: string) => void }) {
+    const { sessionToken } = useAuth();
     const trip = useQuery(api.trips.getTrip, { tripId });
     const plans = useQuery(api.trips.getTripPlans, { tripId });
-    const expenses = useQuery(api.expenses.getExpensesByTrip, { tripId });
+    const expenses = useQuery(api.expenses.getExpensesByTrip, sessionToken ? { sessionToken, tripId } : "skip");
     const bookings = useQuery(api.trips.getTripBookings, { tripId });
 
     if (!trip) return null;

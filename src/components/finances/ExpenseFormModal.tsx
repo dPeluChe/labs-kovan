@@ -7,6 +7,7 @@ import { Input } from "../ui/Input";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { CATEGORY_CONFIG, GENERAL_EXPENSE_CATEGORIES } from "./constants";
 import type { ExpenseCategory } from "./constants";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface ExpenseFormModalProps {
     familyId: Id<"families">;
@@ -21,6 +22,7 @@ export function ExpenseFormModal({
     isOpen = true,
     expenseToEdit,
 }: ExpenseFormModalProps) {
+    const { sessionToken } = useAuth();
     const [description, setDescription] = useState("");
     const [amount, setAmount] = useState("");
     const [category, setCategory] = useState<ExpenseCategory>("food");
@@ -52,7 +54,9 @@ export function ExpenseFormModal({
         setIsLoading(true);
         try {
             if (expenseToEdit) {
+                if (!sessionToken) return;
                 await updateExpense({
+                    sessionToken,
                     expenseId: expenseToEdit._id,
                     // familyId is usually not required for update if using per-doc auth or separate checks
                     // Removing it as lint complains
@@ -63,7 +67,9 @@ export function ExpenseFormModal({
                     // Persist other fields if necessary or let backend handle merge
                 });
             } else {
+                if (!sessionToken) return;
                 await createExpense({
+                    sessionToken,
                     familyId,
                     type: "general",
                     description: description.trim(),

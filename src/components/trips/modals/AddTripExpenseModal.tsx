@@ -5,6 +5,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
 import { Input } from "../../ui/Input";
 import { DateInput } from "../../ui/DateInput";
+import { useAuth } from "../../../contexts/AuthContext";
 
 // We can reuse the category config from FinancesPage or redefine/import it.
 // For now, let's redefine a simple list relevant for trips.
@@ -22,6 +23,7 @@ const TRIP_CATEGORIES = [
 
 export function AddTripExpenseModal({ tripId, familyId, onClose }: { tripId: Id<"trips">, familyId: Id<"families">, onClose: () => void }) {
     const createExpense = useMutation(api.expenses.createExpense);
+    const { sessionToken } = useAuth();
 
     const [description, setDescription] = useState("");
     const [amount, setAmount] = useState("");
@@ -35,7 +37,9 @@ export function AddTripExpenseModal({ tripId, familyId, onClose }: { tripId: Id<
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await createExpense({
+                sessionToken,
                 familyId,
                 type: "trip", // Explicitly trip type
                 tripId,       // Link to trip
