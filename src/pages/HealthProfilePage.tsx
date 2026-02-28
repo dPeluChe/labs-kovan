@@ -34,6 +34,7 @@ import { AddNutritionModal } from "../components/health/modals/AddNutritionModal
 import { RecordDetailModal } from "../components/health/modals/RecordDetailModal";
 import { StudyDetailModal } from "../components/health/modals/StudyDetailModal";
 import { EditProfileModal } from "../components/health/modals/EditProfileModal";
+import { useAuth } from "../contexts/AuthContext";
 
 type Tab = "records" | "medications" | "studies" | "nutrition";
 
@@ -53,25 +54,26 @@ export function HealthProfilePage() {
   const [selectedStudy, setSelectedStudy] = useState<Doc<"medicalStudies"> | null>(null);
 
   const { confirm, ConfirmModal } = useConfirmModal();
+  const { sessionToken } = useAuth();
 
   const profile = useQuery(
     api.health.getPersonProfile,
-    profileId ? { personId: profileId as Id<"personProfiles"> } : "skip"
+    profileId && sessionToken ? { sessionToken, personId: profileId as Id<"personProfiles"> } : "skip"
   );
 
   const records = useQuery(
     api.health.getMedicalRecords,
-    profileId ? { personId: profileId as Id<"personProfiles"> } : "skip"
+    profileId && sessionToken ? { sessionToken, personId: profileId as Id<"personProfiles"> } : "skip"
   );
 
   const medications = useQuery(
     api.health.getAllMedications,
-    profileId ? { personId: profileId as Id<"personProfiles"> } : "skip"
+    profileId && sessionToken ? { sessionToken, personId: profileId as Id<"personProfiles"> } : "skip"
   );
 
   const studies = useQuery(
     api.health.getStudies,
-    profileId ? { personId: profileId as Id<"personProfiles"> } : "skip"
+    profileId && sessionToken ? { sessionToken, personId: profileId as Id<"personProfiles"> } : "skip"
   );
 
   const deleteProfile = useMutation(api.health.deletePersonProfile);
@@ -95,7 +97,8 @@ export function HealthProfilePage() {
     });
 
     if (confirmed) {
-      await deleteProfile({ personId: profileId as Id<"personProfiles"> });
+      if (!sessionToken) return;
+      await deleteProfile({ sessionToken, personId: profileId as Id<"personProfiles"> });
       navigate("/health");
     }
   };

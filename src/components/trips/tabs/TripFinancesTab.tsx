@@ -12,7 +12,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 export function TripFinancesTab({ tripId }: { tripId: Id<"trips"> }) {
     const { sessionToken } = useAuth();
     const expenses = useQuery(api.expenses.getExpensesByTrip, sessionToken ? { sessionToken, tripId } : "skip");
-    const trip = useQuery(api.trips.getTrip, { tripId });
+    const trip = useQuery(api.trips.getTrip, sessionToken ? { sessionToken, tripId } : "skip");
     const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
     // Assuming we have a modal to add expense linked to trip.
 

@@ -54,6 +54,7 @@ export async function handleAddVehicleEvent(context: ToolContext, args: Record<s
 
     // Find or create vehicle
     const vehicles = await context.ctx.runQuery(api.vehicles.getVehicles, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId
     });
 
@@ -65,25 +66,29 @@ export async function handleAddVehicleEvent(context: ToolContext, args: Record<s
     if (!vehicle) {
         // Create new vehicle
         const vehicleId = await context.ctx.runMutation(api.vehicles.createVehicle, {
+            sessionToken: context.sessionToken,
             familyId: context.familyId,
             name: vehicleName
         });
-        const fetchedVehicle = await context.ctx.runQuery(api.vehicles.getVehicle, { vehicleId });
+        const fetchedVehicle = await context.ctx.runQuery(api.vehicles.getVehicle, {
+            sessionToken: context.sessionToken,
+            vehicleId
+        });
         if (!fetchedVehicle) throw new Error("Vehicle not found after creation");
         vehicle = fetchedVehicle;
     }
+    if (!vehicle) throw new Error("Vehicle not found");
 
     // Create event
     await context.ctx.runMutation(api.vehicles.createVehicleEvent, {
+        sessionToken: context.sessionToken,
         vehicleId: vehicle._id,
-        familyId: context.familyId,
         type: type as "verification" | "service" | "insurance" | "fuel" | "repair" | "other",
         title,
         date: date ? new Date(date).getTime() : Date.now(),
         nextDate: nextDate ? new Date(nextDate).getTime() : undefined,
         amount,
-        notes,
-        paidBy: context.userId
+        notes
     });
 
     return {

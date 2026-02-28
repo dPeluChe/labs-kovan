@@ -9,6 +9,7 @@ import { PageHeader } from "../components/ui/PageHeader";
 import { Plus, Zap, Wifi, Tv, Shield, CreditCard, Smartphone, HelpCircle, DollarSign, Calendar } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useFamily } from "../contexts/FamilyContext";
+import { useAuth } from "../contexts/AuthContext";
 import type { Doc } from "../../convex/_generated/dataModel";
 
 const TYPE_ICONS: Record<string, LucideIcon> = {
@@ -23,10 +24,14 @@ const TYPE_ICONS: Record<string, LucideIcon> = {
 
 export function SubscriptionsPage() {
     const { currentFamily } = useFamily();
+    const { sessionToken } = useAuth();
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [selectedSub, setSelectedSub] = useState<Doc<"subscriptions"> | null>(null);
 
-    const subscriptions = useQuery(api.subscriptions.list, currentFamily ? { familyId: currentFamily._id } : "skip");
+    const subscriptions = useQuery(
+        api.subscriptions.list,
+        currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
+    );
 
     if (subscriptions === undefined) return <PageLoader />;
 

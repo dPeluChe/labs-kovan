@@ -8,11 +8,12 @@ import { DateInput } from "../../ui/DateInput";
 import { TextArea } from "../../ui/TextArea";
 
 interface EditTripModalProps {
+    sessionToken: string;
     trip: Doc<"trips">;
     onClose: () => void;
 }
 
-export function EditTripModal({ trip, onClose }: EditTripModalProps) {
+export function EditTripModal({ sessionToken, trip, onClose }: EditTripModalProps) {
     const updateTrip = useMutation(api.trips.updateTrip);
 
     // Initial State pre-filled
@@ -31,7 +32,9 @@ export function EditTripModal({ trip, onClose }: EditTripModalProps) {
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await updateTrip({
+                sessionToken,
                 tripId: trip._id,
                 name: name.trim(),
                 destination: destination.trim() || undefined,

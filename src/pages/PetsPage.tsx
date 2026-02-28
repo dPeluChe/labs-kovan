@@ -12,14 +12,16 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { MobileModal } from "../components/ui/MobileModal";
 import { Input } from "../components/ui/Input";
 import { ResourceCard } from "../components/ui/ResourceCard";
+import { useAuth } from "../contexts/AuthContext";
 
 export function PetsPage() {
     const { currentFamily } = useFamily();
+    const { sessionToken } = useAuth();
     const [showNewProfile, setShowNewProfile] = useState(false);
 
     const profiles = useQuery(
         api.health.getPersonProfiles,
-        currentFamily ? { familyId: currentFamily._id } : "skip"
+        currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
     );
 
     if (!currentFamily) return null;
@@ -81,6 +83,7 @@ export function PetsPage() {
 
             {showNewProfile && currentFamily && (
                 <NewPetModal
+                    sessionToken={sessionToken ?? ""}
                     familyId={currentFamily._id}
                     onClose={() => setShowNewProfile(false)}
                 />
@@ -90,9 +93,11 @@ export function PetsPage() {
 }
 
 function NewPetModal({
+    sessionToken,
     familyId,
     onClose,
 }: {
+    sessionToken: string;
     familyId: Id<"families">;
     onClose: () => void;
 }) {
@@ -110,7 +115,9 @@ function NewPetModal({
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await createProfile({
+                sessionToken,
                 familyId,
                 type: "pet",
                 name: name.trim(),

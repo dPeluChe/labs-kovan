@@ -7,6 +7,7 @@ import { Input } from "../../ui/Input";
 import { DateInput } from "../../ui/DateInput";
 import { TextArea } from "../../ui/TextArea";
 import { Trash2 } from "lucide-react";
+import { useAuth } from "../../../contexts/AuthContext";
 
 interface AddBookingModalProps {
     tripId: Id<"trips">;
@@ -15,6 +16,7 @@ interface AddBookingModalProps {
 }
 
 export function AddBookingModal({ tripId, booking, onClose }: AddBookingModalProps) {
+    const { sessionToken } = useAuth();
     const addBooking = useMutation(api.trips.addTripBooking);
     const updateBooking = useMutation(api.trips.updateTripBooking);
     const deleteBooking = useMutation(api.trips.deleteTripBooking);
@@ -44,6 +46,7 @@ export function AddBookingModal({ tripId, booking, onClose }: AddBookingModalPro
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             const commonData = {
                 type: type as "flight" | "hotel" | "transport" | "rental" | "activity" | "other",
                 provider: provider.trim(),
@@ -55,11 +58,13 @@ export function AddBookingModal({ tripId, booking, onClose }: AddBookingModalPro
 
             if (booking) {
                 await updateBooking({
+                    sessionToken,
                     bookingId: booking._id,
                     ...commonData,
                 });
             } else {
                 await addBooking({
+                    sessionToken,
                     tripId,
                     ...commonData,
                 });
@@ -76,7 +81,8 @@ export function AddBookingModal({ tripId, booking, onClose }: AddBookingModalPro
 
         setIsLoading(true);
         try {
-            await deleteBooking({ bookingId: booking._id });
+            if (!sessionToken) return;
+            await deleteBooking({ sessionToken, bookingId: booking._id });
             onClose();
         } finally {
             setIsLoading(false);

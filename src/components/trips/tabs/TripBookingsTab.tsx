@@ -5,6 +5,7 @@ import { Plane, Building, Car, Ticket, FileText } from "lucide-react";
 import { EmptyState } from "../../ui/EmptyState";
 import { AddBookingModal } from "../modals/AddBookingModal"; // We will create this
 import { useState } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const TYPE_ICONS = {
     flight: Plane,
@@ -16,7 +17,8 @@ const TYPE_ICONS = {
 };
 
 export function TripBookingsTab({ tripId }: { tripId: Id<"trips"> }) {
-    const bookings = useQuery(api.trips.getTripBookings, { tripId });
+    const { sessionToken } = useAuth();
+    const bookings = useQuery(api.trips.getTripBookings, sessionToken ? { sessionToken, tripId } : "skip");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState<Doc<"tripBookings"> | undefined>(undefined);
 

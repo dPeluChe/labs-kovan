@@ -5,6 +5,7 @@ import { Download, Trash2 } from "lucide-react";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import type { ConfirmOptions } from "../../../hooks/useConfirmModal";
 import { MobileModal } from "../../ui/MobileModal";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export function StudyDetailModal({
     study,
@@ -16,6 +17,7 @@ export function StudyDetailModal({
     confirm: (options: ConfirmOptions) => Promise<boolean>;
 }) {
     const deleteStudy = useMutation(api.health.deleteStudy);
+    const { sessionToken } = useAuth();
 
     const handleDelete = async () => {
         const confirmed = await confirm({
@@ -27,7 +29,8 @@ export function StudyDetailModal({
             icon: "trash",
         });
         if (confirmed) {
-            await deleteStudy({ studyId: study._id });
+            if (!sessionToken) return;
+            await deleteStudy({ sessionToken, studyId: study._id });
             onClose();
         }
     };

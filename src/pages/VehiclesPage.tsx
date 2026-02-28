@@ -10,19 +10,21 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { MobileModal } from "../components/ui/MobileModal";
 import { Input } from "../components/ui/Input";
 import { ResourceCard } from "../components/ui/ResourceCard";
+import { useAuth } from "../contexts/AuthContext";
 
 export function VehiclesPage() {
   const { currentFamily } = useFamily();
+  const { sessionToken } = useAuth();
   const [showNewVehicle, setShowNewVehicle] = useState(false);
 
   const vehicles = useQuery(
     api.vehicles.getVehicles,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const summary = useQuery(
     api.vehicles.getVehiclesSummary,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   if (!currentFamily) return null;
@@ -113,6 +115,7 @@ export function VehiclesPage() {
 
       {showNewVehicle && currentFamily && (
         <NewVehicleModal
+          sessionToken={sessionToken ?? ""}
           familyId={currentFamily._id}
           onClose={() => setShowNewVehicle(false)}
         />
@@ -122,9 +125,11 @@ export function VehiclesPage() {
 }
 
 function NewVehicleModal({
+  sessionToken,
   familyId,
   onClose,
 }: {
+  sessionToken: string;
   familyId: Id<"families">;
   onClose: () => void;
 }) {
@@ -144,7 +149,9 @@ function NewVehicleModal({
 
     setIsLoading(true);
     try {
+      if (!sessionToken) return;
       await createVehicle({
+        sessionToken,
         familyId,
         name: name.trim(),
         plate: plate.trim() || undefined,

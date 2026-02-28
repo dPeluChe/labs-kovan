@@ -27,7 +27,7 @@ const SERVICE_TYPES = [
 
 export function CreateSubscriptionModal({ isOpen, onClose }: CreateSubscriptionModalProps) {
     const { currentFamily } = useFamily();
-    const { user } = useAuth();
+    const { sessionToken } = useAuth();
     const create = useMutation(api.subscriptions.create);
 
     const [name, setName] = useState("");
@@ -41,13 +41,13 @@ export function CreateSubscriptionModal({ isOpen, onClose }: CreateSubscriptionM
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name.trim() || !currentFamily || !user) return;
+        if (!name.trim() || !currentFamily || !sessionToken) return;
 
         setIsLoading(true);
         try {
             await create({
+                sessionToken,
                 familyId: currentFamily._id,
-                userId: user._id,
                 name: name.trim(),
                 type: type as "utility" | "internet" | "streaming" | "insurance" | "membership" | "software" | "other",
                 referenceNumber: referenceNumber.trim() || undefined,

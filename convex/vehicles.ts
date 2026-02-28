@@ -1,10 +1,28 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireFamilyAccessFromSession, requireUserFromSessionToken } from "./lib/auth";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getVehicleWithAccessOrThrow(ctx: any, sessionToken: string, vehicleId: any) {
+  const vehicle = await ctx.db.get(vehicleId);
+  if (!vehicle) throw new Error("Vehículo no encontrado");
+  await requireFamilyAccessFromSession(ctx, sessionToken, vehicle.familyId);
+  return vehicle;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getVehicleEventWithAccessOrThrow(ctx: any, sessionToken: string, eventId: any) {
+  const event = await ctx.db.get(eventId);
+  if (!event) throw new Error("Evento no encontrado");
+  const vehicle = await getVehicleWithAccessOrThrow(ctx, sessionToken, event.vehicleId);
+  return { event, vehicle };
+}
 
 // ==================== VEHICLES ====================
 export const getVehicles = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     return await ctx.db
       .query("vehicles")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -13,14 +31,15 @@ export const getVehicles = query({
 });
 
 export const getVehicle = query({
-  args: { vehicleId: v.id("vehicles") },
+  args: { sessionToken: v.string(), vehicleId: v.id("vehicles") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.vehicleId);
+    return await getVehicleWithAccessOrThrow(ctx, args.sessionToken, args.vehicleId);
   },
 });
 
 export const createVehicle = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     name: v.string(),
     plate: v.optional(v.string()),
@@ -32,12 +51,15 @@ export const createVehicle = mutation({
     imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("vehicles", args);
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+    const { sessionToken: _sessionToken, ...payload } = args;
+    return await ctx.db.insert("vehicles", payload);
   },
 });
 
 export const updateVehicle = mutation({
   args: {
+    sessionToken: v.string(),
     vehicleId: v.id("vehicles"),
     name: v.optional(v.string()),
     plate: v.optional(v.string()),
@@ -49,7 +71,8 @@ export const updateVehicle = mutation({
     imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { vehicleId, ...updates } = args;
+    await getVehicleWithAccessOrThrow(ctx, args.sessionToken, args.vehicleId);
+    const { vehicleId, sessionToken: _sessionToken, ...updates } = args;
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([, v]) => v !== undefined)
     );
@@ -59,8 +82,9 @@ export const updateVehicle = mutation({
 });
 
 export const deleteVehicle = mutation({
-  args: { vehicleId: v.id("vehicles") },
+  args: { sessionToken: v.string(), vehicleId: v.id("vehicles") },
   handler: async (ctx, args) => {
+    await getVehicleWithAccessOrThrow(ctx, args.sessionToken, args.vehicleId);
     // Delete all events
     const events = await ctx.db
       .query("vehicleEvents")
@@ -75,8 +99,9 @@ export const deleteVehicle = mutation({
 
 // ==================== VEHICLE EVENTS ====================
 export const getVehicleEvents = query({
-  args: { vehicleId: v.id("vehicles") },
+  args: { sessionToken: v.string(), vehicleId: v.id("vehicles") },
   handler: async (ctx, args) => {
+    await getVehicleWithAccessOrThrow(ctx, args.sessionToken, args.vehicleId);
     return await ctx.db
       .query("vehicleEvents")
       .withIndex("by_vehicle", (q) => q.eq("vehicleId", args.vehicleId))
@@ -86,8 +111,8 @@ export const getVehicleEvents = query({
 
 export const createVehicleEvent = mutation({
   args: {
+    sessionToken: v.string(),
     vehicleId: v.id("vehicles"),
-    familyId: v.id("families"), // Needed for creating expense
     type: v.union(
       v.literal("verification"),
       v.literal("service"),
@@ -102,25 +127,25 @@ export const createVehicleEvent = mutation({
     odometer: v.optional(v.number()), // Kilometraje
     amount: v.optional(v.number()),
     notes: v.optional(v.string()),
-    paidBy: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
-    const { familyId, paidBy, ...eventData } = args;
+    const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+    const vehicle = await getVehicleWithAccessOrThrow(ctx, args.sessionToken, args.vehicleId);
+    const { sessionToken: _sessionToken, ...eventData } = args;
     
     // Create the vehicle event (including amount)
     const eventId = await ctx.db.insert("vehicleEvents", eventData);
     
     // If there's an amount, also create an expense
     if (args.amount && args.amount > 0) {
-      const vehicle = await ctx.db.get(args.vehicleId);
       await ctx.db.insert("expenses", {
-        familyId,
+        familyId: vehicle.familyId,
         type: "vehicle",
         category: "vehicle",
         description: `${vehicle?.name || "Auto"}: ${args.title}`,
         amount: args.amount,
         date: args.date,
-        paidBy,
+        paidBy: user._id,
         vehicleId: args.vehicleId,
         vehicleEventId: eventId,
         notes: args.notes,
@@ -133,6 +158,7 @@ export const createVehicleEvent = mutation({
 
 export const updateVehicleEvent = mutation({
   args: {
+    sessionToken: v.string(),
     eventId: v.id("vehicleEvents"),
     type: v.optional(
       v.union(
@@ -151,7 +177,8 @@ export const updateVehicleEvent = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { eventId, ...updates } = args;
+    await getVehicleEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
+    const { eventId, sessionToken: _sessionToken, ...updates } = args;
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([, v]) => v !== undefined)
     );
@@ -161,8 +188,9 @@ export const updateVehicleEvent = mutation({
 });
 
 export const deleteVehicleEvent = mutation({
-  args: { eventId: v.id("vehicleEvents") },
+  args: { sessionToken: v.string(), eventId: v.id("vehicleEvents") },
   handler: async (ctx, args) => {
+    await getVehicleEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
     // Also delete related expense
     const expenses = await ctx.db
       .query("expenses")
@@ -179,8 +207,9 @@ export const deleteVehicleEvent = mutation({
 
 // ==================== SUMMARY ====================
 export const getVehiclesSummary = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const vehicles = await ctx.db
       .query("vehicles")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))

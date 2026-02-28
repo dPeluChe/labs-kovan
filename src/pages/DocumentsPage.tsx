@@ -27,7 +27,10 @@ export function DocumentsPage() {
         api.documents.list,
         currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
     );
-    const profiles = useQuery(api.health.getPersonProfiles, currentFamily ? { familyId: currentFamily._id } : "skip");
+    const profiles = useQuery(
+        api.health.getPersonProfiles,
+        currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
+    );
 
     if (allDocs === undefined || profiles === undefined) return <PageLoader />;
 

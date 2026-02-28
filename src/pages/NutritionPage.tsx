@@ -70,7 +70,7 @@ export function NutritionPage() {
 
     // 2. Fetch Health Profiles (to link to users)
     const healthProfiles = useQuery(api.health.getPersonProfiles,
-        currentFamily ? { familyId: currentFamily._id } : "skip"
+        currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
     );
 
     const createProfile = useMutation(api.health.createPersonProfile);
@@ -125,7 +125,7 @@ export function NutritionPage() {
 
     // Smart Assign Flow
     const handleInitiateAssign = async (plan: Doc<"nutritionPlans">) => {
-        if (!activeParticipant || !currentFamily) return;
+        if (!activeParticipant || !currentFamily || !sessionToken) return;
 
         let pid = activeParticipant.personId;
 
@@ -133,6 +133,7 @@ export function NutritionPage() {
         if (!pid) {
             try {
                 pid = await createProfile({
+                    sessionToken,
                     familyId: currentFamily._id,
                     type: "human",
                     name: activeParticipant.name,

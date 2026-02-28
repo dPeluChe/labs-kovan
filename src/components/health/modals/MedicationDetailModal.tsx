@@ -9,6 +9,7 @@ import { DateInput } from "../../ui/DateInput";
 import { TextArea } from "../../ui/TextArea";
 import { Trash2, Pill, CheckCircle, PauseCircle, StopCircle, Clock } from "lucide-react";
 import type { Doc } from "../../../../convex/_generated/dataModel";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export function MedicationDetailModal({
     medication,
@@ -21,6 +22,7 @@ export function MedicationDetailModal({
 }) {
     const updateMedication = useMutation(api.health.updateMedication);
     const deleteMedication = useMutation(api.health.deleteMedication);
+    const { sessionToken } = useAuth();
 
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +56,8 @@ export function MedicationDetailModal({
         });
 
         if (confirmed) {
-            await deleteMedication({ medicationId: medication._id });
+            if (!sessionToken) return;
+            await deleteMedication({ sessionToken, medicationId: medication._id });
             onClose();
         }
     };
@@ -65,7 +68,9 @@ export function MedicationDetailModal({
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await updateMedication({
+                sessionToken,
                 medicationId: medication._id,
                 name: name.trim(),
                 dosage: dosage.trim(),

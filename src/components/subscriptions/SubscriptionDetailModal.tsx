@@ -8,6 +8,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Zap, Wifi, Tv, Shield, CreditCard, Smartphone, HelpCircle, Calendar, Edit2, Trash2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Doc } from "../../../convex/_generated/dataModel";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface SubscriptionDetailModalProps {
     subscription: Doc<"subscriptions"> | null;
@@ -33,6 +34,7 @@ const CYCLE_LABELS: Record<string, string> = {
 };
 
 export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionDetailModalProps) {
+    const { sessionToken } = useAuth();
     const update = useMutation(api.subscriptions.update);
     const remove = useMutation(api.subscriptions.deleteSubscription);
     const [isEditing, setIsEditing] = useState(false);
@@ -60,10 +62,11 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
     };
 
     const handleSave = async () => {
+        if (!sessionToken) return;
         try {
             await update({
+                sessionToken,
                 subscriptionId: subscription._id,
-                familyId: subscription.familyId,
                 ...formData
             });
             setIsEditing(false);
@@ -73,11 +76,12 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
     };
 
     const handleDelete = async () => {
+        if (!sessionToken) return;
         if (confirm("¿Estás seguro de eliminar esta suscripción?")) {
             try {
                 await remove({
-                    subscriptionId: subscription._id,
-                    familyId: subscription.familyId
+                    sessionToken,
+                    subscriptionId: subscription._id
                 });
                 onClose();
             } catch (error) {

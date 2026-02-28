@@ -1,12 +1,38 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireFamilyAccessFromSession } from "./lib/auth";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getTripWithAccessOrThrow(ctx: any, sessionToken: string, tripId: any) {
+    const trip = await ctx.db.get(tripId);
+    if (!trip) throw new Error("Viaje no encontrado");
+    await requireFamilyAccessFromSession(ctx, sessionToken, trip.familyId);
+    return trip;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getTripPlanWithAccessOrThrow(ctx: any, sessionToken: string, planId: any) {
+    const plan = await ctx.db.get(planId);
+    if (!plan) throw new Error("Plan no encontrado");
+    await getTripWithAccessOrThrow(ctx, sessionToken, plan.tripId);
+    return plan;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getTripBookingWithAccessOrThrow(ctx: any, sessionToken: string, bookingId: any) {
+    const booking = await ctx.db.get(bookingId);
+    if (!booking) throw new Error("Reserva no encontrada");
+    await getTripWithAccessOrThrow(ctx, sessionToken, booking.tripId);
+    return booking;
+}
 
 // ==================== TRIPS ====================
 
 export const getTrips = query({
-    args: { familyId: v.id("families") },
+    args: { sessionToken: v.string(), familyId: v.id("families") },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         return await ctx.db
             .query("trips")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -16,14 +42,15 @@ export const getTrips = query({
 });
 
 export const getTrip = query({
-    args: { tripId: v.id("trips") },
+    args: { sessionToken: v.string(), tripId: v.id("trips") },
     handler: async (ctx, args) => {
-        return await ctx.db.get(args.tripId);
+        return await getTripWithAccessOrThrow(ctx, args.sessionToken, args.tripId);
     },
 });
 
 export const createTrip = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
         name: v.string(),
         destination: v.optional(v.string()),
@@ -34,6 +61,7 @@ export const createTrip = mutation({
         placeListId: v.optional(v.id("placeLists")),
     },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         return await ctx.db.insert("trips", {
             familyId: args.familyId,
             name: args.name,
@@ -50,6 +78,7 @@ export const createTrip = mutation({
 
 export const updateTrip = mutation({
     args: {
+        sessionToken: v.string(),
         tripId: v.id("trips"),
         name: v.optional(v.string()),
         destination: v.optional(v.string()),
@@ -62,14 +91,16 @@ export const updateTrip = mutation({
         placeListId: v.optional(v.union(v.id("placeLists"), v.null())),
     },
     handler: async (ctx, args) => {
-        const { tripId, ...updates } = args;
+        await getTripWithAccessOrThrow(ctx, args.sessionToken, args.tripId);
+        const { tripId, sessionToken: _sessionToken, ...updates } = args;
         await ctx.db.patch(tripId, updates);
     },
 });
 
 export const deleteTrip = mutation({
-    args: { tripId: v.id("trips") },
+    args: { sessionToken: v.string(), tripId: v.id("trips") },
     handler: async (ctx, args) => {
+        await getTripWithAccessOrThrow(ctx, args.sessionToken, args.tripId);
         // Delete all plans associated with the trip
         const plans = await ctx.db
             .query("tripPlans")
@@ -97,8 +128,9 @@ export const deleteTrip = mutation({
 // ==================== TRIP BOOKINGS (COMMODITIES) ====================
 
 export const getTripBookings = query({
-    args: { tripId: v.id("trips") },
+    args: { sessionToken: v.string(), tripId: v.id("trips") },
     handler: async (ctx, args) => {
+        await getTripWithAccessOrThrow(ctx, args.sessionToken, args.tripId);
         return await ctx.db
             .query("tripBookings")
             .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
@@ -108,6 +140,7 @@ export const getTripBookings = query({
 
 export const addTripBooking = mutation({
     args: {
+        sessionToken: v.string(),
         tripId: v.id("trips"),
         type: v.union(
             v.literal("flight"),
@@ -127,12 +160,15 @@ export const addTripBooking = mutation({
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        return await ctx.db.insert("tripBookings", args);
+        await getTripWithAccessOrThrow(ctx, args.sessionToken, args.tripId);
+        const { sessionToken: _sessionToken, ...payload } = args;
+        return await ctx.db.insert("tripBookings", payload);
     },
 });
 
 export const updateTripBooking = mutation({
     args: {
+        sessionToken: v.string(),
         bookingId: v.id("tripBookings"),
         type: v.optional(v.union(
             v.literal("flight"),
@@ -152,14 +188,16 @@ export const updateTripBooking = mutation({
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const { bookingId, ...updates } = args;
+        await getTripBookingWithAccessOrThrow(ctx, args.sessionToken, args.bookingId);
+        const { bookingId, sessionToken: _sessionToken, ...updates } = args;
         await ctx.db.patch(bookingId, updates);
     },
 });
 
 export const deleteTripBooking = mutation({
-    args: { bookingId: v.id("tripBookings") },
+    args: { sessionToken: v.string(), bookingId: v.id("tripBookings") },
     handler: async (ctx, args) => {
+        await getTripBookingWithAccessOrThrow(ctx, args.sessionToken, args.bookingId);
         await ctx.db.delete(args.bookingId);
     },
 });
@@ -167,8 +205,9 @@ export const deleteTripBooking = mutation({
 // ==================== TRIP PLANS (ITINERARY) ====================
 
 export const getTripPlans = query({
-    args: { tripId: v.id("trips") },
+    args: { sessionToken: v.string(), tripId: v.id("trips") },
     handler: async (ctx, args) => {
+        await getTripWithAccessOrThrow(ctx, args.sessionToken, args.tripId);
         const plans = await ctx.db
             .query("tripPlans")
             .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
@@ -186,14 +225,15 @@ export const getTripPlans = query({
 });
 
 export const getTripPlan = query({
-    args: { planId: v.id("tripPlans") },
+    args: { sessionToken: v.string(), planId: v.id("tripPlans") },
     handler: async (ctx, args) => {
-        return await ctx.db.get(args.planId);
+        return await getTripPlanWithAccessOrThrow(ctx, args.sessionToken, args.planId);
     },
 });
 
 export const addTripPlan = mutation({
     args: {
+        sessionToken: v.string(),
         tripId: v.id("trips"),
         dayDate: v.optional(v.number()),
         time: v.optional(v.string()),
@@ -203,6 +243,7 @@ export const addTripPlan = mutation({
         cost: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
+        await getTripWithAccessOrThrow(ctx, args.sessionToken, args.tripId);
         // Find highest order for this day/bucket to append
         const existing = await ctx.db
             .query("tripPlans")
@@ -227,6 +268,7 @@ export const addTripPlan = mutation({
 
 export const updateTripPlan = mutation({
     args: {
+        sessionToken: v.string(),
         planId: v.id("tripPlans"),
         dayDate: v.optional(v.number()),
         time: v.optional(v.string()),
@@ -238,22 +280,24 @@ export const updateTripPlan = mutation({
         placeId: v.optional(v.id("places")),
     },
     handler: async (ctx, args) => {
-        const { planId, ...updates } = args;
+        await getTripPlanWithAccessOrThrow(ctx, args.sessionToken, args.planId);
+        const { planId, sessionToken: _sessionToken, ...updates } = args;
         await ctx.db.patch(planId, updates);
     },
 });
 
 export const deleteTripPlan = mutation({
-    args: { planId: v.id("tripPlans") },
+    args: { sessionToken: v.string(), planId: v.id("tripPlans") },
     handler: async (ctx, args) => {
+        await getTripPlanWithAccessOrThrow(ctx, args.sessionToken, args.planId);
         await ctx.db.delete(args.planId);
     },
 });
 
 export const togglePlanCompletion = mutation({
-    args: { planId: v.id("tripPlans") },
+    args: { sessionToken: v.string(), planId: v.id("tripPlans") },
     handler: async (ctx, args) => {
-        const plan = await ctx.db.get(args.planId);
+        const plan = await getTripPlanWithAccessOrThrow(ctx, args.sessionToken, args.planId);
         if (plan) {
             await ctx.db.patch(args.planId, { isCompleted: !plan.isCompleted });
         }

@@ -26,9 +26,10 @@ type ItineraryItemType =
 export function TripDetailPage() {
     const { tripId } = useParams();
     const navigate = useNavigate();
-    const trip = useQuery(api.trips.getTrip, { tripId: tripId as Id<"trips"> });
-    const plans = useQuery(api.trips.getTripPlans, { tripId: tripId as Id<"trips"> });
-    const bookings = useQuery(api.trips.getTripBookings, { tripId: tripId as Id<"trips"> }); // Need bookings here
+    const { sessionToken } = useAuth();
+    const trip = useQuery(api.trips.getTrip, tripId && sessionToken ? { sessionToken, tripId: tripId as Id<"trips"> } : "skip");
+    const plans = useQuery(api.trips.getTripPlans, tripId && sessionToken ? { sessionToken, tripId: tripId as Id<"trips"> } : "skip");
+    const bookings = useQuery(api.trips.getTripBookings, tripId && sessionToken ? { sessionToken, tripId: tripId as Id<"trips"> } : "skip"); // Need bookings here
     const deletePlan = useMutation(api.trips.deleteTripPlan);
     const toggleCompletion = useMutation(api.trips.togglePlanCompletion);
 
@@ -172,8 +173,8 @@ export function TripDetailPage() {
                                                         <PlanItem
                                                             key={item._id}
                                                             plan={item}
-                                                            onDelete={() => deletePlan({ planId: item._id })}
-                                                            onCheckIn={() => toggleCompletion({ planId: item._id })}
+                                                            onDelete={() => sessionToken && deletePlan({ sessionToken, planId: item._id })}
+                                                            onCheckIn={() => sessionToken && toggleCompletion({ sessionToken, planId: item._id })}
                                                             onSelect={() => setSelectedPlanId(item._id)}
                                                         />
                                                     );
@@ -243,6 +244,7 @@ export function TripDetailPage() {
 
             {isEditOpen && (
                 <EditTripModal
+                    sessionToken={sessionToken ?? ""}
                     trip={trip}
                     onClose={() => setIsEditOpen(false)}
                 />
@@ -258,11 +260,11 @@ export function TripDetailPage() {
                         setIsAddPlanOpen(true);
                     }}
                     onDelete={() => {
-                        deletePlan({ planId: selectedPlanId });
+                        if (sessionToken) deletePlan({ sessionToken, planId: selectedPlanId });
                         setSelectedPlanId(undefined);
                     }}
                     onToggleCompletion={() => {
-                        toggleCompletion({ planId: selectedPlanId });
+                        if (sessionToken) toggleCompletion({ sessionToken, planId: selectedPlanId });
                         // Don't close, let user see status change? Or close.
                         // User might want to toggle and stay.
                         // But modal has button inside.
@@ -378,7 +380,10 @@ function AddPlanModal({ tripId, familyId, placeListId, initialPlaceId, minDate, 
         api.places.getPlaces,
         sessionToken ? { sessionToken, familyId, listId: placeListId || undefined } : "skip"
     );
-    const planToEdit = useQuery(api.trips.getTripPlan, editPlanId ? { planId: editPlanId } : "skip");
+    const planToEdit = useQuery(
+        api.trips.getTripPlan,
+        editPlanId && sessionToken ? { sessionToken, planId: editPlanId } : "skip"
+    );
 
     const [activity, setActivity] = useState("");
     const [placeId, setPlaceId] = useState<Id<"places"> | "">(initialPlaceId || "");
@@ -436,7 +441,9 @@ function AddPlanModal({ tripId, familyId, placeListId, initialPlaceId, minDate, 
             const dayTimestamp = date ? new Date(date + "T12:00:00").getTime() : undefined;
 
             if (editPlanId) {
+                if (!sessionToken) return;
                 await updatePlan({
+                    sessionToken,
                     planId: editPlanId,
                     activity: activity.trim(),
                     placeId: placeId && placeId !== "" ? (placeId as Id<"places">) : undefined,
@@ -445,7 +452,9 @@ function AddPlanModal({ tripId, familyId, placeListId, initialPlaceId, minDate, 
                     notes: notes.trim() || undefined,
                 });
             } else {
+                if (!sessionToken) return;
                 await addPlan({
+                    sessionToken,
                     tripId,
                     placeId: placeId && placeId !== "" ? (placeId as Id<"places">) : undefined,
                     activity: activity.trim(),

@@ -33,7 +33,10 @@ export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormMod
     const { user, sessionToken } = useAuth();
     const create = useMutation(api.documents.create);
     const update = useMutation(api.documents.update);
-    const profiles = useQuery(api.health.getPersonProfiles, currentFamily ? { familyId: currentFamily._id } : "skip");
+    const profiles = useQuery(
+        api.health.getPersonProfiles,
+        currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
+    );
 
     const [title, setTitle] = useState("");
     const [type, setType] = useState<string>("other");

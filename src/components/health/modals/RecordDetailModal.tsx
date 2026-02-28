@@ -5,6 +5,7 @@ import { Stethoscope, Trash2 } from "lucide-react";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import type { ConfirmOptions } from "../../../hooks/useConfirmModal";
 import { MobileModal } from "../../ui/MobileModal";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export function RecordDetailModal({
     record,
@@ -16,6 +17,7 @@ export function RecordDetailModal({
     confirm: (options: ConfirmOptions) => Promise<boolean>;
 }) {
     const deleteRecord = useMutation(api.health.deleteMedicalRecord);
+    const { sessionToken } = useAuth();
 
     const handleDelete = async () => {
         const confirmed = await confirm({
@@ -27,7 +29,8 @@ export function RecordDetailModal({
             icon: "trash",
         });
         if (confirmed) {
-            await deleteRecord({ recordId: record._id });
+            if (!sessionToken) return;
+            await deleteRecord({ sessionToken, recordId: record._id });
             onClose();
         }
     };

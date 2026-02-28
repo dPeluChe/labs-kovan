@@ -8,6 +8,7 @@ import { ImageUpload } from "../../ui/ImageUpload";
 import { Plus, X } from "lucide-react";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export function AddStudyModal({
     personId,
@@ -22,6 +23,7 @@ export function AddStudyModal({
     const [storageId, setStorageId] = useState<Id<"_storage"> | null>(null);
     const [results, setResults] = useState<Array<{ parameter: string, value: string, unit: string, status: string }>>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const { sessionToken } = useAuth();
 
     const createStudy = useMutation(api.health.createStudy);
 
@@ -45,7 +47,9 @@ export function AddStudyModal({
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await createStudy({
+                sessionToken,
                 personId,
                 title: title.trim(),
                 date: new Date(date).getTime(),

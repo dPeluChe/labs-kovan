@@ -16,7 +16,7 @@ interface TripPlanDetailModalProps {
 
 export function TripPlanDetailModal({ planId, onClose, onEdit, onDelete, onToggleCompletion }: TripPlanDetailModalProps) {
     const { sessionToken } = useAuth();
-    const plan = useQuery(api.trips.getTripPlan, { planId });
+    const plan = useQuery(api.trips.getTripPlan, sessionToken ? { sessionToken, planId } : "skip");
     // Assuming we might need place details. Plan usually has placeId.
     // If not joined in getTripPlan, we fetch place separately.
     // Let's assume getTripPlan returns the plan doc.

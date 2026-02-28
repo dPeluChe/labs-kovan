@@ -7,6 +7,7 @@ import { DateInput } from "../../ui/DateInput";
 import { TextArea } from "../../ui/TextArea";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export function AddRecordModal({
     personId,
@@ -22,6 +23,7 @@ export function AddRecordModal({
     const [doctorName, setDoctorName] = useState("");
     const [clinicName, setClinicName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const { sessionToken } = useAuth();
 
     const createRecord = useMutation(api.health.createMedicalRecord);
 
@@ -31,7 +33,9 @@ export function AddRecordModal({
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await createRecord({
+                sessionToken,
                 personId,
                 type,
                 title: title.trim(),

@@ -8,14 +8,16 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Heart, Plus, User } from "lucide-react";
 import { NewProfileModal } from "../components/health/modals/NewProfileModal";
 import { ResourceCard } from "../components/ui/ResourceCard";
+import { useAuth } from "../contexts/AuthContext";
 
 export function HealthPage() {
   const { currentFamily } = useFamily();
+  const { sessionToken } = useAuth();
   const [showNewProfile, setShowNewProfile] = useState(false);
 
   const profiles = useQuery(
     api.health.getPersonProfiles,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   if (!currentFamily) return null;

@@ -30,7 +30,7 @@ export function DashboardPage() {
 
   const healthSummary = useQuery(
     api.health.getHealthSummary,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const librarySummary = useQuery(
@@ -40,7 +40,7 @@ export function DashboardPage() {
 
   const vehiclesSummary = useQuery(
     api.vehicles.getVehiclesSummary,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const upcomingEvents = useQuery(
@@ -66,7 +66,7 @@ export function DashboardPage() {
 
   const subscriptions = useQuery(
     api.subscriptions.list,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const documents = useQuery(

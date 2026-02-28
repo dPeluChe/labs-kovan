@@ -7,6 +7,7 @@ import { DateInput } from "../../ui/DateInput";
 import { TextArea } from "../../ui/TextArea";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export function AddMedicationModal({
     personId,
@@ -22,6 +23,7 @@ export function AddMedicationModal({
     const [status, setStatus] = useState<"active" | "completed" | "paused">("active");
     const [notes, setNotes] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const { sessionToken } = useAuth();
 
     const createMedication = useMutation(api.health.createMedication);
 
@@ -40,7 +42,9 @@ export function AddMedicationModal({
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await createMedication({
+                sessionToken,
                 personId,
                 name: name.trim(),
                 dosage: dosage.trim(),

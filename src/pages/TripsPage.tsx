@@ -14,11 +14,13 @@ import { PageLoader } from "../components/ui/LoadingSpinner";
 import { motion } from "framer-motion";
 import type { Id } from "../../convex/_generated/dataModel";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
+import { useAuth } from "../contexts/AuthContext";
 
 export function TripsPage() {
     const { currentFamily } = useFamily();
+    const { sessionToken } = useAuth();
     const familyId = currentFamily?._id;
-    const trips = useQuery(api.trips.getTrips, familyId ? { familyId } : "skip");
+    const trips = useQuery(api.trips.getTrips, familyId && sessionToken ? { sessionToken, familyId } : "skip");
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
 
@@ -143,6 +145,7 @@ export function TripsPage() {
 
             {isCreateOpen && (
                 <CreateTripModal
+                    sessionToken={sessionToken ?? ""}
                     familyId={familyId!}
                     onClose={() => setIsCreateOpen(false)}
                 />
@@ -151,7 +154,7 @@ export function TripsPage() {
     );
 }
 
-function CreateTripModal({ familyId, onClose }: { familyId: string, onClose: () => void }) {
+function CreateTripModal({ sessionToken, familyId, onClose }: { sessionToken: string, familyId: string, onClose: () => void }) {
     const createTrip = useMutation(api.trips.createTrip);
     const [name, setName] = useState("");
     const [destination, setDestination] = useState("");
@@ -164,7 +167,9 @@ function CreateTripModal({ familyId, onClose }: { familyId: string, onClose: () 
         e.preventDefault();
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await createTrip({
+                sessionToken,
                 familyId: familyId as Id<"families">,
                 name,
                 destination: destination || undefined,

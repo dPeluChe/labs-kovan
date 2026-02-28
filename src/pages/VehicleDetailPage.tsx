@@ -40,19 +40,19 @@ export function VehicleDetailPage() {
   const { vehicleId } = useParams<{ vehicleId: string }>();
   const navigate = useNavigate();
   const { currentFamily } = useFamily();
-  const { user } = useAuth();
+  const { sessionToken } = useAuth();
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(false);
   const { confirm, ConfirmModal } = useConfirmModal();
 
   const vehicle = useQuery(
     api.vehicles.getVehicle,
-    vehicleId ? { vehicleId: vehicleId as Id<"vehicles"> } : "skip"
+    vehicleId && sessionToken ? { sessionToken, vehicleId: vehicleId as Id<"vehicles"> } : "skip"
   );
 
   const events = useQuery(
     api.vehicles.getVehicleEvents,
-    vehicleId ? { vehicleId: vehicleId as Id<"vehicles"> } : "skip"
+    vehicleId && sessionToken ? { sessionToken, vehicleId: vehicleId as Id<"vehicles"> } : "skip"
   );
 
   const deleteVehicle = useMutation(api.vehicles.deleteVehicle);
@@ -88,7 +88,8 @@ export function VehicleDetailPage() {
       icon: "trash",
     });
     if (confirmed) {
-      await deleteVehicle({ vehicleId: vehicle._id });
+      if (!sessionToken) return;
+      await deleteVehicle({ sessionToken, vehicleId: vehicle._id });
       navigate("/vehicles");
     }
   };
@@ -101,7 +102,8 @@ export function VehicleDetailPage() {
       variant: "danger",
     });
     if (confirmed) {
-      await deleteEvent({ eventId });
+      if (!sessionToken) return;
+      await deleteEvent({ sessionToken, eventId });
     }
   };
 
@@ -239,12 +241,11 @@ export function VehicleDetailPage() {
       </div>
 
       {/* Add Event Modal */}
-      {showAddEvent && currentFamily && user && (
+      {showAddEvent && currentFamily && sessionToken && (
         <AddEventModal
+          sessionToken={sessionToken}
           vehicleId={vehicle._id}
           vehicleName={vehicle.name}
-          familyId={currentFamily._id}
-          userId={user._id}
           onClose={() => setShowAddEvent(false)}
         />
       )}
@@ -252,6 +253,7 @@ export function VehicleDetailPage() {
       {/* Edit Vehicle Modal */}
       {editingVehicle && (
         <EditVehicleModal
+          sessionToken={sessionToken ?? ""}
           vehicle={vehicle}
           onClose={() => setEditingVehicle(false)}
         />
@@ -263,16 +265,14 @@ export function VehicleDetailPage() {
 }
 
 function AddEventModal({
+  sessionToken,
   vehicleId,
   vehicleName,
-  familyId,
-  userId,
   onClose,
 }: {
+  sessionToken: string;
   vehicleId: Id<"vehicles">;
   vehicleName: string;
-  familyId: Id<"families">;
-  userId: Id<"users">;
   onClose: () => void;
 }) {
   const [type, setType] = useState<EventType>("service");
@@ -292,17 +292,17 @@ function AddEventModal({
 
     setIsLoading(true);
     try {
+      if (!sessionToken) return;
       await createEvent({
+        sessionToken,
         vehicleId,
-        familyId,
         type,
         title: title.trim(),
         date: new Date(date).getTime(),
         amount: amount ? parseFloat(amount) : undefined,
         odometer: odometer ? parseInt(odometer) : undefined,
         nextDate: nextDate ? new Date(nextDate).getTime() : undefined,
-        notes: notes.trim() || undefined,
-        paidBy: amount ? userId : undefined,
+        notes: notes.trim() || undefined
       });
       onClose();
     } finally {
@@ -427,9 +427,11 @@ function AddEventModal({
 }
 
 function EditVehicleModal({
+  sessionToken,
   vehicle,
   onClose,
 }: {
+  sessionToken: string;
   vehicle: {
     _id: Id<"vehicles">;
     name: string;
@@ -458,7 +460,9 @@ function EditVehicleModal({
 
     setIsLoading(true);
     try {
+      if (!sessionToken) return;
       await updateVehicle({
+        sessionToken,
         vehicleId: vehicle._id,
         name: name.trim(),
         plate: plate.trim() || undefined,

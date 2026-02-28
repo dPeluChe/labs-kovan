@@ -6,6 +6,7 @@ import { Input } from "../../ui/Input";
 import { DateInput } from "../../ui/DateInput";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export function EditProfileModal({
     profile,
@@ -21,6 +22,7 @@ export function EditProfileModal({
         profile.birthDate ? new Date(profile.birthDate).toISOString().split("T")[0] : ""
     );
     const [isLoading, setIsLoading] = useState(false);
+    const { sessionToken } = useAuth();
 
     const updateProfile = useMutation(api.health.updatePersonProfile);
 
@@ -30,7 +32,9 @@ export function EditProfileModal({
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await updateProfile({
+                sessionToken,
                 personId: profile._id,
                 name: name.trim(),
                 relation: relation.trim(),

@@ -1,9 +1,11 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireFamilyAccessFromSession } from "./lib/auth";
 
 export const list = query({
-    args: { familyId: v.id("families") },
+    args: { sessionToken: v.string(), familyId: v.id("families") },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         return await ctx.db
             .query("subscriptions")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -13,8 +15,8 @@ export const list = query({
 
 export const create = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
-        userId: v.id("users"),
         name: v.string(),
         type: v.union(
             v.literal("streaming"),
@@ -40,6 +42,7 @@ export const create = mutation({
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         return await ctx.db.insert("subscriptions", {
             familyId: args.familyId,
             name: args.name,
@@ -58,8 +61,8 @@ export const create = mutation({
 
 export const update = mutation({
     args: {
+        sessionToken: v.string(),
         subscriptionId: v.id("subscriptions"),
-        familyId: v.id("families"),
         name: v.optional(v.string()),
         type: v.optional(v.union(
             v.literal("streaming"),
@@ -86,23 +89,23 @@ export const update = mutation({
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const { subscriptionId, familyId, ...updates } = args;
+        const { subscriptionId, sessionToken: _sessionToken, ...updates } = args;
         const sub = await ctx.db.get(subscriptionId);
         if (!sub) throw new Error("Subscription not found");
-        if (sub.familyId !== familyId) throw new Error("Unauthorized");
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, sub.familyId);
         await ctx.db.patch(subscriptionId, updates);
     },
 });
 
 export const deleteSubscription = mutation({
     args: {
+        sessionToken: v.string(),
         subscriptionId: v.id("subscriptions"),
-        familyId: v.id("families"),
     },
     handler: async (ctx, args) => {
         const sub = await ctx.db.get(args.subscriptionId);
         if (!sub) throw new Error("Subscription not found");
-        if (sub.familyId !== args.familyId) throw new Error("Unauthorized");
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, sub.familyId);
         await ctx.db.delete(args.subscriptionId);
     },
 });

@@ -1,11 +1,45 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireFamilyAccessFromSession } from "./lib/auth";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getPersonWithAccessOrThrow(ctx: any, sessionToken: string, personId: any) {
+  const person = await ctx.db.get(personId);
+  if (!person) throw new Error("Perfil no encontrado");
+  await requireFamilyAccessFromSession(ctx, sessionToken, person.familyId);
+  return person;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getRecordWithAccessOrThrow(ctx: any, sessionToken: string, recordId: any) {
+  const record = await ctx.db.get(recordId);
+  if (!record) throw new Error("Registro no encontrado");
+  await getPersonWithAccessOrThrow(ctx, sessionToken, record.personId);
+  return record;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getMedicationWithAccessOrThrow(ctx: any, sessionToken: string, medicationId: any) {
+  const medication = await ctx.db.get(medicationId);
+  if (!medication) throw new Error("Medicamento no encontrado");
+  await getPersonWithAccessOrThrow(ctx, sessionToken, medication.personId);
+  return medication;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getStudyWithAccessOrThrow(ctx: any, sessionToken: string, studyId: any) {
+  const study = await ctx.db.get(studyId);
+  if (!study) throw new Error("Estudio no encontrado");
+  await getPersonWithAccessOrThrow(ctx, sessionToken, study.personId);
+  return study;
+}
 
 // ==================== PERSON PROFILES ====================
 export const getPersonProfiles = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     return await ctx.db
       .query("personProfiles")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -14,14 +48,15 @@ export const getPersonProfiles = query({
 });
 
 export const getPersonProfile = query({
-  args: { personId: v.id("personProfiles") },
+  args: { sessionToken: v.string(), personId: v.id("personProfiles") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.personId);
+    return await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
   },
 });
 
 export const createPersonProfile = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     type: v.union(v.literal("human"), v.literal("pet")),
     name: v.string(),
@@ -32,12 +67,15 @@ export const createPersonProfile = mutation({
     imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("personProfiles", args);
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+    const { sessionToken: _sessionToken, ...payload } = args;
+    return await ctx.db.insert("personProfiles", payload);
   },
 });
 
 export const updatePersonProfile = mutation({
   args: {
+    sessionToken: v.string(),
     personId: v.id("personProfiles"),
     name: v.optional(v.string()),
     relation: v.optional(v.string()),
@@ -47,15 +85,17 @@ export const updatePersonProfile = mutation({
     imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { personId, ...updates } = args;
+    await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
+    const { personId, sessionToken: _sessionToken, ...updates } = args;
     await ctx.db.patch(personId, updates);
     return personId;
   },
 });
 
 export const deletePersonProfile = mutation({
-  args: { personId: v.id("personProfiles") },
+  args: { sessionToken: v.string(), personId: v.id("personProfiles") },
   handler: async (ctx, args) => {
+    await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
     // Delete all medical records
     const records = await ctx.db
       .query("medicalRecords")
@@ -80,8 +120,9 @@ export const deletePersonProfile = mutation({
 
 // ==================== MEDICAL RECORDS ====================
 export const getMedicalRecords = query({
-  args: { personId: v.id("personProfiles") },
+  args: { sessionToken: v.string(), personId: v.id("personProfiles") },
   handler: async (ctx, args) => {
+    await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
     return await ctx.db
       .query("medicalRecords")
       .withIndex("by_person", (q) => q.eq("personId", args.personId))
@@ -91,6 +132,7 @@ export const getMedicalRecords = query({
 
 export const createMedicalRecord = mutation({
   args: {
+    sessionToken: v.string(),
     personId: v.id("personProfiles"),
     type: v.union(
       v.literal("consultation"),
@@ -105,12 +147,15 @@ export const createMedicalRecord = mutation({
     imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("medicalRecords", args);
+    await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
+    const { sessionToken: _sessionToken, ...payload } = args;
+    return await ctx.db.insert("medicalRecords", payload);
   },
 });
 
 export const updateMedicalRecord = mutation({
   args: {
+    sessionToken: v.string(),
     recordId: v.id("medicalRecords"),
     type: v.optional(
       v.union(
@@ -127,23 +172,26 @@ export const updateMedicalRecord = mutation({
     imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { recordId, ...updates } = args;
+    await getRecordWithAccessOrThrow(ctx, args.sessionToken, args.recordId);
+    const { recordId, sessionToken: _sessionToken, ...updates } = args;
     await ctx.db.patch(recordId, updates);
     return recordId;
   },
 });
 
 export const deleteMedicalRecord = mutation({
-  args: { recordId: v.id("medicalRecords") },
+  args: { sessionToken: v.string(), recordId: v.id("medicalRecords") },
   handler: async (ctx, args) => {
+    await getRecordWithAccessOrThrow(ctx, args.sessionToken, args.recordId);
     await ctx.db.delete(args.recordId);
   },
 });
 
 // ==================== MEDICATIONS ====================
 export const getMedications = query({
-  args: { personId: v.id("personProfiles") },
+  args: { sessionToken: v.string(), personId: v.id("personProfiles") },
   handler: async (ctx, args) => {
+    await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
     return await ctx.db
       .query("medications")
       .withIndex("by_person", (q) => q.eq("personId", args.personId))
@@ -152,8 +200,9 @@ export const getMedications = query({
 });
 
 export const getActiveMedications = query({
-  args: { personId: v.id("personProfiles") },
+  args: { sessionToken: v.string(), personId: v.id("personProfiles") },
   handler: async (ctx, args) => {
+    await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
     const now = Date.now();
     const meds = await ctx.db
       .query("medications")
@@ -170,6 +219,7 @@ export const getActiveMedications = query({
 
 export const createMedication = mutation({
   args: {
+    sessionToken: v.string(),
     personId: v.id("personProfiles"),
     name: v.string(),
     dosage: v.string(),
@@ -179,15 +229,18 @@ export const createMedication = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
+    const { sessionToken: _sessionToken, ...payload } = args;
     return await ctx.db.insert("medications", {
-      ...args,
-      status: args.status || "active",
+      ...payload,
+      status: payload.status || "active",
     });
   },
 });
 
 export const updateMedication = mutation({
   args: {
+    sessionToken: v.string(),
     medicationId: v.id("medications"),
     name: v.optional(v.string()),
     dosage: v.optional(v.string()),
@@ -197,23 +250,26 @@ export const updateMedication = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { medicationId, ...updates } = args;
+    await getMedicationWithAccessOrThrow(ctx, args.sessionToken, args.medicationId);
+    const { medicationId, sessionToken: _sessionToken, ...updates } = args;
     await ctx.db.patch(medicationId, updates);
     return medicationId;
   },
 });
 
 export const deleteMedication = mutation({
-  args: { medicationId: v.id("medications") },
+  args: { sessionToken: v.string(), medicationId: v.id("medications") },
   handler: async (ctx, args) => {
+    await getMedicationWithAccessOrThrow(ctx, args.sessionToken, args.medicationId);
     await ctx.db.delete(args.medicationId);
   },
 });
 
 // Get all medications for a person (active and inactive)
 export const getAllMedications = query({
-  args: { personId: v.id("personProfiles") },
+  args: { sessionToken: v.string(), personId: v.id("personProfiles") },
   handler: async (ctx, args) => {
+    await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
     const meds = await ctx.db
       .query("medications")
       .withIndex("by_person", (q) => q.eq("personId", args.personId))
@@ -234,8 +290,9 @@ export const getAllMedications = query({
 
 // ==================== MEDICAL STUDIES ====================
 export const getStudies = query({
-  args: { personId: v.id("personProfiles") },
+  args: { sessionToken: v.string(), personId: v.id("personProfiles") },
   handler: async (ctx, args) => {
+    await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
     return await ctx.db
       .query("medicalStudies")
       .withIndex("by_person", (q) => q.eq("personId", args.personId))
@@ -245,6 +302,7 @@ export const getStudies = query({
 
 export const createStudy = mutation({
   args: {
+    sessionToken: v.string(),
     personId: v.id("personProfiles"),
     title: v.string(),
     date: v.number(),
@@ -261,21 +319,25 @@ export const createStudy = mutation({
     fileStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("medicalStudies", args);
+    await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
+    const { sessionToken: _sessionToken, ...payload } = args;
+    return await ctx.db.insert("medicalStudies", payload);
   },
 });
 
 export const deleteStudy = mutation({
-  args: { studyId: v.id("medicalStudies") },
+  args: { sessionToken: v.string(), studyId: v.id("medicalStudies") },
   handler: async (ctx, args) => {
+    await getStudyWithAccessOrThrow(ctx, args.sessionToken, args.studyId);
     return await ctx.db.delete(args.studyId);
   },
 });
 
 // ==================== SUMMARY ====================
 export const getHealthSummary = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const profiles = await ctx.db
       .query("personProfiles")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))

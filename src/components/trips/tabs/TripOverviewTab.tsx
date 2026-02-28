@@ -15,10 +15,10 @@ const BOOKING_ICONS = {
 
 export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, onChangeTab: (tab: string) => void }) {
     const { sessionToken } = useAuth();
-    const trip = useQuery(api.trips.getTrip, { tripId });
-    const plans = useQuery(api.trips.getTripPlans, { tripId });
+    const trip = useQuery(api.trips.getTrip, sessionToken ? { sessionToken, tripId } : "skip");
+    const plans = useQuery(api.trips.getTripPlans, sessionToken ? { sessionToken, tripId } : "skip");
     const expenses = useQuery(api.expenses.getExpensesByTrip, sessionToken ? { sessionToken, tripId } : "skip");
-    const bookings = useQuery(api.trips.getTripBookings, { tripId });
+    const bookings = useQuery(api.trips.getTripBookings, sessionToken ? { sessionToken, tripId } : "skip");
 
     if (!trip) return null;
 

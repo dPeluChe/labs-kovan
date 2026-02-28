@@ -4,6 +4,7 @@ import { api } from "../../../../convex/_generated/api";
 import { MobileModal } from "../../ui/MobileModal";
 import { DateInput } from "../../ui/DateInput";
 import type { Id } from "../../../../convex/_generated/dataModel";
+import { useAuth } from "../../../contexts/AuthContext";
 
 interface NewProfileModalProps {
     familyId: Id<"families">;
@@ -23,6 +24,7 @@ export function NewProfileModal({
     // Removed unused setType since type doesn't change here
     const [type] = useState<"human" | "pet">(initialType);
     const [isLoading, setIsLoading] = useState(false);
+    const { sessionToken } = useAuth();
 
     const createProfile = useMutation(api.health.createPersonProfile);
 
@@ -32,7 +34,9 @@ export function NewProfileModal({
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await createProfile({
+                sessionToken,
                 familyId,
                 type,
                 name: name.trim(),

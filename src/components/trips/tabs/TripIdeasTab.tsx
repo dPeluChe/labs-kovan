@@ -16,7 +16,7 @@ interface TripIdeasTabProps {
 
 export function TripIdeasTab({ tripId, onAddToItinerary }: TripIdeasTabProps) {
     const { sessionToken } = useAuth();
-    const trip = useQuery(api.trips.getTrip, { tripId });
+    const trip = useQuery(api.trips.getTrip, sessionToken ? { sessionToken, tripId } : "skip");
     // If trip has placeListId, fetch places
     const places = useQuery(api.places.getPlaces,
         trip?.placeListId && sessionToken
@@ -35,7 +35,8 @@ export function TripIdeasTab({ tripId, onAddToItinerary }: TripIdeasTabProps) {
 
     // Logic to link a list
     const handleLinkList = async (listId: Id<"placeLists"> | null) => {
-        await updateTrip({ tripId, placeListId: listId });
+        if (!sessionToken) return;
+        await updateTrip({ sessionToken, tripId, placeListId: listId });
     };
 
     if (trip === undefined) return <div className="p-10 flex justify-center"><span className="loading loading-dots loading-md" /></div>;
