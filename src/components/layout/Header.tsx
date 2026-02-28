@@ -94,7 +94,7 @@ export function Header() {
               </Link>
             </li>
             <li>
-              <button onClick={logout} className="text-error">
+              <button onClick={() => void logout()} className="text-error">
                 <LogOut className="w-4 h-4" />
                 Cerrar sesión
               </button>

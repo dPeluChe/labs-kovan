@@ -7,7 +7,8 @@ export default defineSchema({
   users: defineTable({
     name: v.string(),
     email: v.string(),
-    password: v.optional(v.string()),
+    passwordHash: v.optional(v.string()),
+    passwordSalt: v.optional(v.string()),
     photoUrl: v.optional(v.string()),
     photoStorageId: v.optional(v.id("_storage")),
     // Using Convex's built-in auth token subject
@@ -18,6 +19,16 @@ export default defineSchema({
   })
     .index("by_email", ["email"])
     .index("by_token", ["tokenIdentifier"]),
+
+  sessions: defineTable({
+    userId: v.id("users"),
+    tokenHash: v.string(),
+    createdAt: v.number(),
+    expiresAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_token_hash", ["tokenHash"])
+    .index("by_expires_at", ["expiresAt"]),
 
   families: defineTable({
     name: v.string(),
@@ -457,12 +468,15 @@ export default defineSchema({
   familyInvites: defineTable({
     familyId: v.id("families"),
     email: v.string(),
+    tokenHash: v.string(),
     invitedBy: v.id("users"),
     status: v.union(v.literal("pending"), v.literal("accepted"), v.literal("declined")),
     createdAt: v.number(),
+    expiresAt: v.number(),
   })
     .index("by_family", ["familyId"])
-    .index("by_email", ["email"]),
+    .index("by_email", ["email"])
+    .index("by_token_hash", ["tokenHash"]),
 
   // ==================== CONTACTS DIRECTORY ====================
   contacts: defineTable({

@@ -31,29 +31,28 @@ interface FamilyContextType {
 const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
 
 const CURRENT_FAMILY_KEY = "kovan_current_family";
-const PENDING_INVITE_KEY = "kovan_pending_invite";
+const PENDING_INVITE_KEY = "kovan_pending_invite_token";
 
 export function FamilyProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, sessionToken } = useAuth();
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(() => {
     return localStorage.getItem(CURRENT_FAMILY_KEY);
   });
   const [processingInvite, setProcessingInvite] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
 
-  const joinFamily = useMutation(api.families.joinFamilyById);
+  const joinFamilyByToken = useMutation(api.families.joinFamilyByToken);
 
   const familiesData = useQuery(
     api.families.getUserFamilies,
-    user ? { userId: user._id } : "skip"
+    sessionToken ? { sessionToken } : "skip"
   );
 
   const families = useMemo(() => (familiesData ?? []) as Family[], [familiesData]);
-  const isLoading = familiesData === undefined && user !== null;
+  const isLoading = familiesData === undefined && sessionToken !== null;
 
   const clearInviteError = useCallback(() => setInviteError(null), []);
 
-  // Process pending invite from localStorage (Link click)
   useEffect(() => {
     const processPendingInvite = async () => {
       if (!user || processingInvite) return;
@@ -64,12 +63,13 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       setProcessingInvite(true);
       setInviteError(null);
       try {
-        const result = await joinFamily({
-          familyId: pendingInvite as Id<"families">,
-          userId: user._id,
+        if (!sessionToken) throw new Error("Sesión inválida");
+        const result = await joinFamilyByToken({
+          sessionToken,
+          inviteToken: pendingInvite,
+          email: user.email,
         });
 
-        // Set as current family
         if (result.familyId) {
           localStorage.setItem(CURRENT_FAMILY_KEY, result.familyId);
           setSelectedFamilyId(result.familyId);
@@ -85,39 +85,12 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     };
 
     processPendingInvite();
-  }, [user, joinFamily, processingInvite]);
+  }, [user, sessionToken, joinFamilyByToken, processingInvite]);
 
-  // Auto-accept invites for my email (Direct login without link)
-  const myPendingInvites = useQuery(
-    api.families.getMyInvites,
-    user ? { email: user.email } : "skip"
-  );
-
-  const acceptInvite = useMutation(api.families.acceptFamilyInvite);
-
-  useEffect(() => {
-    if (myPendingInvites && myPendingInvites.length > 0 && user) {
-      // Auto-accept all pending invites
-      const acceptAll = async () => {
-        for (const invite of myPendingInvites) {
-          try {
-            await acceptInvite({ inviteId: invite._id, userId: user._id });
-            // Optionally notify user or just let it happen
-          } catch (err) {
-            console.error("Error auto-accepting invite:", err);
-          }
-        }
-      };
-      acceptAll();
-    }
-  }, [myPendingInvites, user, acceptInvite]);
-
-  // Derive current family - prefer selected, fall back to first
   const currentFamily = useMemo(() => {
     const selected = families.find((f) => f._id === selectedFamilyId);
     if (selected) return selected;
     const first = families[0] ?? null;
-    // Sync to localStorage if we're using default
     if (first && first._id !== selectedFamilyId) {
       localStorage.setItem(CURRENT_FAMILY_KEY, first._id);
     }

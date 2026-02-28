@@ -46,11 +46,11 @@ const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string; 
 const DEFAULT_NAV_ORDER = ["home", "agent", "finances", "places"];
 
 export function BottomNav() {
-  const { user } = useAuth();
+  const { sessionToken } = useAuth();
 
   const savedNavOrder = useQuery(
     api.users.getNavOrder,
-    user ? { userId: user._id } : "skip"
+    sessionToken ? { sessionToken } : "skip"
   );
 
   // Use saved order or default

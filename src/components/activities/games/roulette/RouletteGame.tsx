@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { useFamily } from "../../../../contexts/FamilyContext";
+import { useAuth } from "../../../../contexts/AuthContext";
 import { Dices, Trophy, Plus } from "lucide-react";
 import type { Doc } from "../../../../../convex/_generated/dataModel";
 import type { RoulettePresetType } from "../../types";
@@ -17,9 +18,10 @@ const SPIN_INTERVAL = 100;
 
 export function RouletteGame({ onComplete }: RouletteGameProps) {
   const { currentFamily } = useFamily();
+  const { sessionToken } = useAuth();
   const members = useQuery(
     api.families.getFamilyMembers,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
   );
 
   // Estado del juego

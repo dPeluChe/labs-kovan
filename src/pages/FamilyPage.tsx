@@ -28,18 +28,18 @@ import { MobileModal } from "../components/ui/MobileModal";
 export function FamilyPage() {
   const navigate = useNavigate();
   const { currentFamily } = useFamily();
-  const { user } = useAuth();
+  const { user, sessionToken } = useAuth();
   const [showInvite, setShowInvite] = useState(false);
   const { confirm, ConfirmModal } = useConfirmModal();
 
   const members = useQuery(
     api.families.getFamilyMembers,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
   );
 
   const pendingInvites = useQuery(
     api.families.getPendingInvites,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
   );
 
   const removeMember = useMutation(api.families.removeMember);
@@ -150,7 +150,8 @@ export function FamilyPage() {
                               });
 
                               if (confirmed) {
-                                removeMember({ membershipId: member.membershipId });
+                                if (!sessionToken) return;
+                                removeMember({ membershipId: member.membershipId, sessionToken });
                               }
                             }}
                             className="btn btn-ghost btn-xs btn-circle text-error"
@@ -193,7 +194,10 @@ export function FamilyPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => cancelInvite({ inviteId: invite._id })}
+                        onClick={() => {
+                          if (!sessionToken) return;
+                          cancelInvite({ inviteId: invite._id, sessionToken });
+                        }}
                         className="btn btn-ghost btn-xs btn-circle text-error"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -211,7 +215,7 @@ export function FamilyPage() {
         <InviteModal
           familyId={currentFamily._id}
           familyName={currentFamily.name}
-          userId={user._id}
+          sessionToken={sessionToken}
           onClose={() => setShowInvite(false)}
         />
       )}
@@ -225,25 +229,26 @@ export function FamilyPage() {
 function InviteModal({
   familyId,
   familyName,
-  userId,
+  sessionToken,
   onClose,
 }: {
   familyId: string;
   familyName: string;
-  userId: string;
+  sessionToken: string | null;
   onClose: () => void;
 }) {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
+  const [generatedInviteLink, setGeneratedInviteLink] = useState<string>("");
   const { success } = useToast();
 
   const sendInvite = useMutation(api.families.sendInvite);
 
   // Generate invite link
   const baseUrl = window.location.origin;
-  const inviteLink = `${baseUrl}/?invite=${familyId}`;
+  const inviteLink = generatedInviteLink || `${baseUrl}/login`;
   const registerLink = `${baseUrl}/`;
 
   const handleCopyLink = async (link: string, type: string) => {
@@ -289,19 +294,17 @@ function InviteModal({
     setIsLoading(true);
     setMessage("");
     try {
+      if (!sessionToken) throw new Error("Sesión inválida");
       const result = await sendInvite({
+        sessionToken,
         familyId: familyId as Parameters<typeof sendInvite>[0]["familyId"],
         email: email.trim().toLowerCase(),
-        invitedBy: userId as Parameters<typeof sendInvite>[0]["invitedBy"],
       });
+      const tokenInviteLink = `${baseUrl}/login?inviteToken=${result.inviteToken}`;
+      setGeneratedInviteLink(tokenInviteLink);
 
-      if (result.added) {
-        setMessage("✅ Usuario agregado a la familia");
-        setTimeout(onClose, 1500);
-      } else {
-        setMessage("📧 Invitación creada. El usuario podrá unirse cuando inicie sesión.");
-        setTimeout(onClose, 2000);
-      }
+      setMessage("📧 Invitación creada. Comparte el link seguro generado abajo.");
+      await handleCopyLink(tokenInviteLink, "Invitación segura");
     } catch (error) {
       setMessage(`❌ ${error instanceof Error ? error.message : "Error al invitar"}`);
     } finally {
@@ -391,7 +394,7 @@ function InviteModal({
           />
           <label className="label">
             <span className="label-text-alt text-base-content/60">
-              Si ya tiene cuenta, se agregará automáticamente.
+              Se enviará una invitación segura atada a este correo.
             </span>
           </label>
         </div>

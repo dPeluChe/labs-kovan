@@ -50,7 +50,8 @@ interface Participant {
 }
 
 export function NutritionPage() {
-    const { currentFamily } = useFamily();
+  const { currentFamily } = useFamily();
+  const { sessionToken } = useAuth();
     // Replaced selectedPersonId with selectedParticipantId to handle both users and profiles
     const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
     const [view, setView] = useState<ViewMode>("tracker");
@@ -64,7 +65,7 @@ export function NutritionPage() {
 
     // 1. Fetch Family Members (Users) - Source of Truth
     const familyMembers = useQuery(api.families.getFamilyMembers,
-        currentFamily ? { familyId: currentFamily._id } : "skip"
+        currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
     );
 
     // 2. Fetch Health Profiles (to link to users)

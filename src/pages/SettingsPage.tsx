@@ -54,7 +54,7 @@ const DEFAULT_NAV_ORDER = ["home", "agent", "finances", "places"];
 
 export function SettingsPage() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, sessionToken, logout } = useAuth();
   const { success } = useToast();
 
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
@@ -65,7 +65,7 @@ export function SettingsPage() {
 
   const savedNavOrder = useQuery(
     api.users.getNavOrder,
-    user ? { userId: user._id } : "skip"
+    sessionToken ? { sessionToken } : "skip"
   );
 
   const updateNavOrder = useMutation(api.users.updateNavOrder);
@@ -156,7 +156,8 @@ export function SettingsPage() {
   };
 
   const handleSave = async () => {
-    await updateNavOrder({ userId: user._id, navOrder });
+    if (!sessionToken) return;
+    await updateNavOrder({ sessionToken, navOrder });
     setHasChanges(false);
     success("Navegación guardada");
   };
@@ -329,7 +330,7 @@ export function SettingsPage() {
 
         {/* Logout */}
         <button
-          onClick={logout}
+          onClick={() => void logout()}
           className="card bg-base-100 shadow-sm border border-error/30 w-full text-left card-interactive"
         >
           <div className="card-body p-4">
@@ -353,7 +354,8 @@ export function SettingsPage() {
             onSubmit={async (e) => {
               e.preventDefault();
               if (!editName.trim()) return;
-              await updateUser({ userId: user._id, name: editName.trim() });
+              if (!sessionToken) return;
+              await updateUser({ sessionToken, name: editName.trim() });
               success("Perfil actualizado");
               setShowEditProfile(false);
             }}

@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { useFamily } from "../../../../contexts/FamilyContext";
+import { useAuth } from "../../../../contexts/AuthContext";
 import { Crown, RotateCcw, Sparkles, UserPlus, UserMinus } from "lucide-react";
 import type { HighCardPlayer, HighCardGameState } from "./types";
 import { createDeck, getHigherCard } from "./types";
@@ -44,9 +45,10 @@ const ANONYMOUS_COLORS = [
 
 export function HighCardGame({ onComplete }: HighCardGameProps) {
   const { currentFamily } = useFamily();
+  const { sessionToken } = useAuth();
   const members = useQuery(
     api.families.getFamilyMembers,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
   );
 
   // Estados del juego

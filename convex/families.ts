@@ -1,12 +1,23 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import {
+  generateRandomToken,
+  normalizeEmail,
+  requireFamilyMembership,
+  requireUserFromSessionToken,
+  sha256Hex,
+} from "./lib/auth";
+
+const INVITE_DURATION_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 export const getUserFamilies = query({
-  args: { userId: v.id("users") },
+  args: { sessionToken: v.string() },
   handler: async (ctx, args) => {
+    const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+
     const memberships = await ctx.db
       .query("familyMembers")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
       .filter((q) => q.eq(q.field("status"), "active"))
       .collect();
 
@@ -21,16 +32,39 @@ export const getUserFamilies = query({
   },
 });
 
-export const getFamily = query({
-  args: { familyId: v.id("families") },
+export const getFamilyByInviteToken = query({
+  args: { inviteToken: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.familyId);
+    const tokenHash = await sha256Hex(args.inviteToken);
+    const invite = await ctx.db
+      .query("familyInvites")
+      .withIndex("by_token_hash", (q) => q.eq("tokenHash", tokenHash))
+      .first();
+
+    if (!invite || invite.status !== "pending" || invite.expiresAt < Date.now()) {
+      return null;
+    }
+
+    const family = await ctx.db.get(invite.familyId);
+    if (!family) return null;
+
+    return {
+      familyId: family._id,
+      familyName: family.name,
+      familyEmoji: family.emoji,
+      invitedEmail: invite.email,
+      expiresAt: invite.expiresAt,
+    };
   },
 });
 
 export const getFamilyMembers = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireUserFromSessionToken(ctx, args.sessionToken).then((user) =>
+      requireFamilyMembership(ctx, args.familyId, user._id)
+    );
+
     const memberships = await ctx.db
       .query("familyMembers")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -39,14 +73,17 @@ export const getFamilyMembers = query({
     const members = await Promise.all(
       memberships.map(async (m) => {
         const user = await ctx.db.get(m.userId);
-        return user
-          ? {
-            ...user,
-            membershipId: m._id,
-            role: m.role,
-            status: m.status,
-          }
-          : null;
+        if (!user) return null;
+        return {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          photoUrl: user.photoUrl,
+          isSuperAdmin: user.isSuperAdmin,
+          membershipId: m._id,
+          role: m.role,
+          status: m.status,
+        };
       })
     );
 
@@ -56,22 +93,22 @@ export const getFamilyMembers = query({
 
 export const createFamily = mutation({
   args: {
+    sessionToken: v.string(),
     name: v.string(),
     emoji: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
-    userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    const user = await requireUserFromSessionToken(ctx, args.sessionToken);
     const familyId = await ctx.db.insert("families", {
-      name: args.name,
+      name: args.name.trim(),
       emoji: args.emoji,
       imageUrl: args.imageUrl,
     });
 
-    // Add creator as owner
     await ctx.db.insert("familyMembers", {
       familyId,
-      userId: args.userId,
+      userId: user._id,
       role: "owner",
       status: "active",
     });
@@ -82,162 +119,101 @@ export const createFamily = mutation({
 
 export const updateFamily = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     name: v.optional(v.string()),
     emoji: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { familyId, ...updates } = args;
+    const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+    const membership = await requireFamilyMembership(ctx, args.familyId, user._id);
+    if (membership.role !== "owner" && membership.role !== "admin") {
+      throw new Error("Solo owner/admin pueden editar la familia");
+    }
+
+    const { familyId, sessionToken: _sessionToken, ...updates } = args;
     await ctx.db.patch(familyId, updates);
     return familyId;
   },
 });
 
-export const inviteMember = mutation({
-  args: {
-    familyId: v.id("families"),
-    email: v.string(),
-    role: v.union(v.literal("admin"), v.literal("member")),
-  },
-  handler: async (ctx, args) => {
-    // Find user by email
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .first();
-
-    if (!user) {
-      throw new Error("User not found with that email");
-    }
-
-    // Check if already a member
-    const existing = await ctx.db
-      .query("familyMembers")
-      .withIndex("by_family_user", (q) =>
-        q.eq("familyId", args.familyId).eq("userId", user._id)
-      )
-      .first();
-
-    if (existing) {
-      throw new Error("User is already a member of this family");
-    }
-
-    const membershipId = await ctx.db.insert("familyMembers", {
-      familyId: args.familyId,
-      userId: user._id,
-      role: args.role,
-      status: "invited",
-    });
-
-    return membershipId;
-  },
-});
-
-export const acceptInvite = mutation({
-  args: { membershipId: v.id("familyMembers") },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.membershipId, { status: "active" });
-    return args.membershipId;
-  },
-});
-
-export const removeMember = mutation({
-  args: { membershipId: v.id("familyMembers") },
-  handler: async (ctx, args) => {
-    const membership = await ctx.db.get(args.membershipId);
-    if (!membership) throw new Error("Membership not found");
-    if (membership.role === "owner") {
-      throw new Error("Cannot remove the owner");
-    }
-    await ctx.db.delete(args.membershipId);
-  },
-});
-
-export const updateMemberRole = mutation({
-  args: {
-    membershipId: v.id("familyMembers"),
-    role: v.union(v.literal("admin"), v.literal("member")),
-  },
-  handler: async (ctx, args) => {
-    const membership = await ctx.db.get(args.membershipId);
-    if (!membership) throw new Error("Membership not found");
-    if (membership.role === "owner") {
-      throw new Error("Cannot change owner role");
-    }
-    await ctx.db.patch(args.membershipId, { role: args.role });
-  },
-});
-
-// ==================== FAMILY INVITES ====================
 export const sendInvite = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     email: v.string(),
-    invitedBy: v.id("users"),
   },
   handler: async (ctx, args) => {
-    // Check if user already exists
+    const actor = await requireUserFromSessionToken(ctx, args.sessionToken);
+    const membership = await requireFamilyMembership(ctx, args.familyId, actor._id);
+    if (membership.role !== "owner" && membership.role !== "admin") {
+      throw new Error("Solo owner/admin pueden invitar miembros");
+    }
+
+    const inviteEmail = normalizeEmail(args.email);
     const existingUser = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .withIndex("by_email", (q) => q.eq("email", inviteEmail))
       .first();
 
     if (existingUser) {
-      // Check if already a member
       const existingMember = await ctx.db
         .query("familyMembers")
-        .withIndex("by_family_user", (q) =>
-          q.eq("familyId", args.familyId).eq("userId", existingUser._id)
-        )
+        .withIndex("by_family_user", (q) => q.eq("familyId", args.familyId).eq("userId", existingUser._id))
         .first();
-
-      if (existingMember) {
-        throw new Error("Este usuario ya es miembro de la familia");
+      if (existingMember && existingMember.status === "active") {
+        throw new Error("Ese usuario ya es miembro activo de la familia");
       }
-
-      // Add directly as member
-      await ctx.db.insert("familyMembers", {
-        familyId: args.familyId,
-        userId: existingUser._id,
-        role: "member",
-        status: "active",
-      });
-
-      return { added: true, userId: existingUser._id };
     }
 
-    // Create pending invite
-    const existingInvite = await ctx.db
+    const currentPending = await ctx.db
       .query("familyInvites")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .withIndex("by_email", (q) => q.eq("email", inviteEmail))
       .filter((q) =>
-        q.and(
-          q.eq(q.field("familyId"), args.familyId),
-          q.eq(q.field("status"), "pending")
-        )
+        q.and(q.eq(q.field("familyId"), args.familyId), q.eq(q.field("status"), "pending"))
       )
-      .first();
+      .collect();
 
-    if (existingInvite) {
-      throw new Error("Ya hay una invitación pendiente para este email");
+    for (const invite of currentPending) {
+      if (invite.expiresAt < Date.now()) {
+        await ctx.db.patch(invite._id, { status: "declined" });
+      } else {
+        throw new Error("Ya existe una invitación pendiente para ese correo");
+      }
     }
+
+    const rawInviteToken = generateRandomToken(32);
+    const tokenHash = await sha256Hex(rawInviteToken);
+    const now = Date.now();
 
     const inviteId = await ctx.db.insert("familyInvites", {
       familyId: args.familyId,
-      email: args.email,
-      invitedBy: args.invitedBy,
+      email: inviteEmail,
+      tokenHash,
+      invitedBy: actor._id,
       status: "pending",
-      createdAt: Date.now(),
+      createdAt: now,
+      expiresAt: now + INVITE_DURATION_MS,
     });
 
-    return { added: false, inviteId };
+    return {
+      inviteId,
+      inviteToken: rawInviteToken,
+      expiresAt: now + INVITE_DURATION_MS,
+    };
   },
 });
 
 export const getPendingInvites = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+    const membership = await requireFamilyMembership(ctx, args.familyId, user._id);
+    if (membership.role !== "owner" && membership.role !== "admin") {
+      throw new Error("Solo owner/admin pueden ver invitaciones");
+    }
+
     return await ctx.db
       .query("familyInvites")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -246,109 +222,117 @@ export const getPendingInvites = query({
   },
 });
 
-export const getMyInvites = query({
-  args: { email: v.string() },
-  handler: async (ctx, args) => {
-    const invites = await ctx.db
-      .query("familyInvites")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .filter((q) => q.eq(q.field("status"), "pending"))
-      .collect();
-
-    const withFamilies = await Promise.all(
-      invites.map(async (invite) => {
-        const family = await ctx.db.get(invite.familyId);
-        return { ...invite, family };
-      })
-    );
-
-    return withFamilies;
+export const joinFamilyByToken = mutation({
+  args: {
+    sessionToken: v.string(),
+    inviteToken: v.string(),
+    email: v.string(),
   },
-});
-
-export const acceptFamilyInvite = mutation({
-  args: { inviteId: v.id("familyInvites"), userId: v.id("users") },
   handler: async (ctx, args) => {
-    const invite = await ctx.db.get(args.inviteId);
-    if (!invite) throw new Error("Invitación no encontrada");
-    if (invite.status !== "pending") throw new Error("Invitación ya procesada");
+    const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+    const normalizedEmail = normalizeEmail(args.email);
 
-    // Add as member
-    await ctx.db.insert("familyMembers", {
-      familyId: invite.familyId,
-      userId: args.userId,
-      role: "member",
-      status: "active",
-    });
+    if (normalizeEmail(user.email) !== normalizedEmail) {
+      throw new Error("El correo no coincide con la cuenta activa");
+    }
 
-    // Mark invite as accepted
-    await ctx.db.patch(args.inviteId, { status: "accepted" });
+    const tokenHash = await sha256Hex(args.inviteToken);
+    const invite = await ctx.db
+      .query("familyInvites")
+      .withIndex("by_token_hash", (q) => q.eq("tokenHash", tokenHash))
+      .first();
 
-    return invite.familyId;
+    if (!invite) {
+      throw new Error("Invitación inválida");
+    }
+    if (invite.status !== "pending") {
+      throw new Error("La invitación ya fue usada");
+    }
+    if (invite.expiresAt < Date.now()) {
+      await ctx.db.patch(invite._id, { status: "declined" });
+      throw new Error("La invitación expiró");
+    }
+    if (normalizeEmail(invite.email) !== normalizedEmail) {
+      throw new Error("La invitación fue emitida para otro correo");
+    }
+
+    const existingMember = await ctx.db
+      .query("familyMembers")
+      .withIndex("by_family_user", (q) => q.eq("familyId", invite.familyId).eq("userId", user._id))
+      .first();
+
+    if (existingMember) {
+      if (existingMember.status !== "active") {
+        await ctx.db.patch(existingMember._id, { status: "active" });
+      }
+    } else {
+      await ctx.db.insert("familyMembers", {
+        familyId: invite.familyId,
+        userId: user._id,
+        role: "member",
+        status: "active",
+      });
+    }
+
+    await ctx.db.patch(invite._id, { status: "accepted" });
+    return { familyId: invite.familyId, success: true };
   },
 });
 
 export const cancelInvite = mutation({
-  args: { inviteId: v.id("familyInvites") },
+  args: { sessionToken: v.string(), inviteId: v.id("familyInvites") },
   handler: async (ctx, args) => {
+    const actor = await requireUserFromSessionToken(ctx, args.sessionToken);
+    const invite = await ctx.db.get(args.inviteId);
+    if (!invite) throw new Error("Invitación no encontrada");
+
+    const membership = await requireFamilyMembership(ctx, invite.familyId, actor._id);
+    if (membership.role !== "owner" && membership.role !== "admin") {
+      throw new Error("No autorizado");
+    }
+
     await ctx.db.delete(args.inviteId);
   },
 });
 
-// Join family by ID (for invite links) - validates pending invite by email
-export const joinFamilyById = mutation({
+export const removeMember = mutation({
+  args: { sessionToken: v.string(), membershipId: v.id("familyMembers") },
+  handler: async (ctx, args) => {
+    const actor = await requireUserFromSessionToken(ctx, args.sessionToken);
+    const targetMembership = await ctx.db.get(args.membershipId);
+    if (!targetMembership) throw new Error("Membership not found");
+    if (targetMembership.role === "owner") {
+      throw new Error("No se puede eliminar al owner");
+    }
+
+    const actorMembership = await requireFamilyMembership(ctx, targetMembership.familyId, actor._id);
+    if (actorMembership.role !== "owner") {
+      throw new Error("Solo el owner puede eliminar miembros");
+    }
+
+    await ctx.db.delete(args.membershipId);
+  },
+});
+
+export const updateMemberRole = mutation({
   args: {
-    familyId: v.id("families"),
-    userId: v.id("users")
+    sessionToken: v.string(),
+    membershipId: v.id("familyMembers"),
+    role: v.union(v.literal("admin"), v.literal("member")),
   },
   handler: async (ctx, args) => {
-    // Check if family exists
-    const family = await ctx.db.get(args.familyId);
-    if (!family) throw new Error("Familia no encontrada");
-
-    // Get user to check email
-    const user = await ctx.db.get(args.userId);
-    if (!user) throw new Error("Usuario no encontrado");
-
-    // Check if already a member
-    const existingMember = await ctx.db
-      .query("familyMembers")
-      .withIndex("by_family_user", (q) =>
-        q.eq("familyId", args.familyId).eq("userId", args.userId)
-      )
-      .first();
-
-    if (existingMember) {
-      // Already a member, just return the family
-      return { familyId: args.familyId, alreadyMember: true, success: true };
+    const actor = await requireUserFromSessionToken(ctx, args.sessionToken);
+    const targetMembership = await ctx.db.get(args.membershipId);
+    if (!targetMembership) throw new Error("Membership not found");
+    if (targetMembership.role === "owner") {
+      throw new Error("No se puede cambiar el rol del owner");
     }
 
-    // Check if there's a pending invite for this email (Optional security check)
-    // For this version, we allow joining via Link directly (Family ID matches)
-    const pendingInvite = await ctx.db
-      .query("familyInvites")
-      .withIndex("by_email", (q) => q.eq("email", user.email))
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("familyId"), args.familyId),
-          q.eq(q.field("status"), "pending")
-        )
-      )
-      .first();
-
-    // If there IS a pending invite, mark it as accepted
-    if (pendingInvite) {
-      await ctx.db.patch(pendingInvite._id, { status: "accepted" });
+    const actorMembership = await requireFamilyMembership(ctx, targetMembership.familyId, actor._id);
+    if (actorMembership.role !== "owner") {
+      throw new Error("Solo el owner puede cambiar roles");
     }
 
-    // Join the family
-    await ctx.db.insert("familyMembers", {
-      familyId: args.familyId,
-      userId: args.userId,
-      role: "member",
-      status: "active",
-    });
-
-    return { familyId: args.familyId, alreadyMember: false, success: true };
+    await ctx.db.patch(args.membershipId, { role: args.role });
   },
 });

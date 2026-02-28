@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { useFamily } from "../../../../contexts/FamilyContext";
+import { useAuth } from "../../../../contexts/AuthContext";
 import { Trophy, RotateCcw } from "lucide-react";
 import type { HeadsUpCategory, HeadsUpCard } from "../../types";
 import { HEADS_UP_CATEGORIES } from "./types";
@@ -20,9 +21,10 @@ const GAME_DURATION = 60; // 60 segundos
 
 export function HeadsUpGame({ onComplete }: HeadsUpGameProps) {
   const { currentFamily } = useFamily();
+  const { sessionToken } = useAuth();
   const members = useQuery(
     api.families.getFamilyMembers,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
   );
 
   // Estado del juego

@@ -8,7 +8,7 @@ import { LogOut } from "lucide-react";
 const EMOJIS = ["🏠", "🏡", "🏢", "❤️", "👨‍👩‍👧‍👦", "🐕", "🌟", "🌈"];
 
 export function FamilySetupPage() {
-  const { user, logout } = useAuth();
+  const { user, sessionToken, logout } = useAuth();
   const { setCurrentFamily, clearInviteError } = useFamily();
   const createFamily = useMutation(api.families.createFamily);
 
@@ -25,10 +25,11 @@ export function FamilySetupPage() {
     setError("");
 
     try {
+      if (!sessionToken) throw new Error("Sesión inválida");
       const familyId = await createFamily({
+        sessionToken,
         name: name.trim(),
         emoji,
-        userId: user._id,
       });
 
       // The FamilyContext will automatically pick up the new family
@@ -53,7 +54,7 @@ export function FamilySetupPage() {
           <button
             onClick={() => {
               clearInviteError();
-              logout();
+              void logout();
             }}
             className="btn btn-ghost btn-sm btn-circle absolute top-4 left-4"
             title="Cerrar sesión"
@@ -114,7 +115,7 @@ export function FamilySetupPage() {
                 type="button"
                 onClick={() => {
                   clearInviteError();
-                  logout();
+                  void logout();
                 }}
                 className="btn btn-ghost flex-1"
                 disabled={isLoading}

@@ -5,39 +5,41 @@ import { api } from "../../convex/_generated/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { Moon, Sun, Users, Home } from "lucide-react";
-import type { Id } from "../../convex/_generated/dataModel";
 
 export function LoginPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const inviteFamilyId = searchParams.get("invite");
+  const inviteToken = searchParams.get("inviteToken");
 
-  const { login, isLoading } = useAuth();
+  const { login, register, isLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Get family info if invite link
-  const inviteFamily = useQuery(
-    api.families.getFamily,
-    inviteFamilyId ? { familyId: inviteFamilyId as Id<"families"> } : "skip"
+  const inviteData = useQuery(
+    api.families.getFamilyByInviteToken,
+    inviteToken ? { inviteToken } : "skip"
   );
 
-  // Store invite in localStorage to process after login
   useEffect(() => {
-    if (inviteFamilyId) {
-      localStorage.setItem("kovan_pending_invite", inviteFamilyId);
+    if (inviteToken) {
+      localStorage.setItem("kovan_pending_invite_token", inviteToken);
     }
-  }, [inviteFamilyId]);
+  }, [inviteToken]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!name.trim() || !email.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim()) {
       setError("Por favor completa todos los campos");
+      return;
+    }
+    if (mode === "register" && !name.trim()) {
+      setError("Por favor ingresa tu nombre");
       return;
     }
 
@@ -47,9 +49,15 @@ export function LoginPage() {
     }
 
     try {
-      await login(email.trim().toLowerCase(), name.trim(), password.trim());
-    } catch {
-      setError("Error al iniciar sesión. Intenta de nuevo.");
+      const normalizedEmail = email.trim().toLowerCase();
+      const normalizedPassword = password.trim();
+      if (mode === "register") {
+        await register(name.trim(), normalizedEmail, normalizedPassword);
+      } else {
+        await login(normalizedEmail, normalizedPassword);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al iniciar sesión. Intenta de nuevo.");
     }
   };
 
@@ -90,46 +98,50 @@ export function LoginPage() {
           <div className="card-body p-6 sm:p-8">
             <div className="text-center mb-8">
               <div className="bg-primary/10 w-20 h-20 rounded-3xl rotate-3 flex items-center justify-center mx-auto mb-6 animate-bounce-in shadow-lg shadow-primary/20">
-                <span className="text-4xl filter drop-shadow-sm">{inviteFamily ? "👋" : "🏠"}</span>
+                <span className="text-4xl filter drop-shadow-sm">{inviteData ? "👋" : "🏠"}</span>
               </div>
               <h1 className="text-2xl font-bold mb-2">
-                {inviteFamily ? "¡Te invitaron!" : "Bienvenido a Casa"}
+                {inviteData ? "¡Te invitaron!" : (mode === "register" ? "Crear cuenta" : "Bienvenido de nuevo")}
               </h1>
               <p className="text-base-content/60 text-sm">
-                {inviteFamily
-                  ? `Únete a la familia "${inviteFamily.name}"`
-                  : "Tu hogar digital te espera"
+                {inviteData
+                  ? `Únete a la familia "${inviteData.familyName}"`
+                  : mode === "register"
+                    ? "Crea tu cuenta para empezar"
+                    : "Tu hogar digital te espera"
                 }
               </p>
             </div>
 
             {/* Invite banner */}
-            {inviteFamily && (
+            {inviteData && (
               <div className="alert alert-info mb-6 animate-fade-in shadow-sm">
                 <Users className="w-5 h-5" />
                 <div>
-                  <p className="font-bold text-sm">Invitación a "{inviteFamily.name}"</p>
-                  <p className="text-xs opacity-90">Ingresa tus datos para unirte</p>
+                  <p className="font-bold text-sm">Invitación a "{inviteData.familyName}"</p>
+                  <p className="text-xs opacity-90">Debes entrar con el correo invitado: {inviteData.invitedEmail}</p>
                 </div>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="form-control">
-                <label className="label pt-0">
-                  <span className="label-text font-bold text-xs uppercase tracking-wide opacity-70">Nombre</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="¿Cómo te decimos?"
-                  className="input input-lg input-bordered w-full focus:input-primary rounded-2xl bg-base-200/50 focus:bg-base-100 transition-all font-medium placeholder:font-normal placeholder:opacity-50"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={isLoading}
-                  autoComplete="name"
-                  autoFocus
-                />
-              </div>
+              {mode === "register" && (
+                <div className="form-control">
+                  <label className="label pt-0">
+                    <span className="label-text font-bold text-xs uppercase tracking-wide opacity-70">Nombre</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="¿Cómo te decimos?"
+                    className="input input-lg input-bordered w-full focus:input-primary rounded-2xl bg-base-200/50 focus:bg-base-100 transition-all font-medium placeholder:font-normal placeholder:opacity-50"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={isLoading}
+                    autoComplete="name"
+                    autoFocus
+                  />
+                </div>
+              )}
 
               <div className="form-control">
                 <label className="label pt-0">
@@ -176,10 +188,18 @@ export function LoginPage() {
                 {isLoading ? (
                   <span className="loading loading-spinner loading-md" />
                 ) : (
-                  "Abrir la Puerta"
+                  mode === "register" ? "Crear cuenta" : "Iniciar sesión"
                 )}
               </button>
             </form>
+
+            <button
+              type="button"
+              onClick={() => setMode((prev) => (prev === "login" ? "register" : "login"))}
+              className="btn btn-ghost btn-sm w-full mt-3"
+            >
+              {mode === "login" ? "¿No tienes cuenta? Crear cuenta" : "¿Ya tienes cuenta? Iniciar sesión"}
+            </button>
           </div>
         </div>
 

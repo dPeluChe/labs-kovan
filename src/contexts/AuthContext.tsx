@@ -15,60 +15,85 @@ interface User {
   name: string;
   email: string;
   photoUrl?: string;
+  isSuperAdmin?: boolean;
+  navOrder?: string[];
 }
 
 interface AuthContextType {
   user: User | null;
+  sessionToken: string | null;
   isLoading: boolean;
-  login: (email: string, name: string, password: string) => Promise<void>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DEMO_USER_KEY = "kovan_demo_user";
+const SESSION_TOKEN_KEY = "kovan_session_token";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [demoEmail, setDemoEmail] = useState<string | null>(() => {
-    return localStorage.getItem(DEMO_USER_KEY);
+  const [sessionToken, setSessionToken] = useState<string | null>(() => {
+    return localStorage.getItem(SESSION_TOKEN_KEY);
   });
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const createDemoUser = useMutation(api.users.createDemoUser);
+  const loginUser = useMutation(api.users.loginUser);
+  const registerUser = useMutation(api.users.registerUser);
+  const logoutUser = useMutation(api.users.logoutUser);
   const user = useQuery(
-    api.users.getDemoUser,
-    demoEmail ? { email: demoEmail } : "skip"
+    api.users.getSessionUser,
+    sessionToken ? { sessionToken } : "skip"
   );
 
-  // Derive isLoading from state instead of using effect
   const isLoading = useMemo(() => {
-    if (isLoggingIn) return true;
-    if (demoEmail === null) return false;
+    if (isSubmitting) return true;
+    if (sessionToken === null) return false;
     return user === undefined;
-  }, [demoEmail, user, isLoggingIn]);
+  }, [sessionToken, user, isSubmitting]);
 
-  const login = useCallback(async (email: string, name: string, password: string) => {
-    setIsLoggingIn(true);
+  const login = useCallback(async (email: string, password: string) => {
+    setIsSubmitting(true);
     try {
-      await createDemoUser({ email, name, password });
-      localStorage.setItem(DEMO_USER_KEY, email);
-      setDemoEmail(email);
+      const result = await loginUser({ email, password });
+      localStorage.setItem(SESSION_TOKEN_KEY, result.sessionToken);
+      setSessionToken(result.sessionToken);
     } finally {
-      setIsLoggingIn(false);
+      setIsSubmitting(false);
     }
-  }, [createDemoUser]);
+  }, [loginUser]);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(DEMO_USER_KEY);
-    setDemoEmail(null);
-  }, []);
+  const register = useCallback(async (name: string, email: string, password: string) => {
+    setIsSubmitting(true);
+    try {
+      const result = await registerUser({ name, email, password });
+      localStorage.setItem(SESSION_TOKEN_KEY, result.sessionToken);
+      setSessionToken(result.sessionToken);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [registerUser]);
+
+  const logout = useCallback(async () => {
+    if (sessionToken) {
+      try {
+        await logoutUser({ sessionToken });
+      } catch (error) {
+        console.error("Error during logout:", error);
+      }
+    }
+    localStorage.removeItem(SESSION_TOKEN_KEY);
+    setSessionToken(null);
+  }, [logoutUser, sessionToken]);
 
   const value = useMemo(() => ({
     user: user ?? null,
+    sessionToken,
     isLoading,
     login,
+    register,
     logout,
-  }), [user, isLoading, login, logout]);
+  }), [user, sessionToken, isLoading, login, register, logout]);
 
   return (
     <AuthContext.Provider value={value}>
