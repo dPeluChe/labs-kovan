@@ -37,6 +37,7 @@ export async function handleAddPlace(context: ToolContext, args: Record<string, 
     const { name, category, address, highlight, notes } = args as { name: string; category: string; address?: string; highlight?: string; notes?: string };
 
     await context.ctx.runMutation(api.places.createPlace, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId,
         name,
         category: category as "restaurant" | "cafe" | "travel" | "activity" | "other",

@@ -5,6 +5,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
 import { Input } from "../../ui/Input";
 import { TextArea } from "../../ui/TextArea";
+import { useAuth } from "../../../contexts/AuthContext";
 
 interface AddPlaceToTripModalProps {
     familyId: Id<"families">;
@@ -14,6 +15,7 @@ interface AddPlaceToTripModalProps {
 
 export function AddPlaceToTripModal({ familyId, placeListId, onClose }: AddPlaceToTripModalProps) {
     const createPlace = useMutation(api.places.createPlace);
+    const { sessionToken } = useAuth();
 
     const [name, setName] = useState("");
     const [category, setCategory] = useState("restaurant");
@@ -28,7 +30,9 @@ export function AddPlaceToTripModal({ familyId, placeListId, onClose }: AddPlace
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await createPlace({
+                sessionToken,
                 familyId,
                 listId: placeListId, // Automatically link to trip's list
                 name: name.trim(),

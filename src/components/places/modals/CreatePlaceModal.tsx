@@ -8,10 +8,12 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
 
 export function CreatePlaceModal({
+    sessionToken,
     familyId,
     preselectedListId, // Optional: if opening from a specific list
     onClose,
 }: {
+    sessionToken: string | null;
     familyId: Id<"families">;
     preselectedListId?: Id<"placeLists">;
     onClose: () => void;
@@ -24,7 +26,7 @@ export function CreatePlaceModal({
     const [notes, setNotes] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    const lists = useQuery(api.places.getLists, { familyId });
+    const lists = useQuery(api.places.getLists, sessionToken ? { sessionToken, familyId } : "skip");
     const createPlace = useMutation(api.places.createPlace);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -33,7 +35,9 @@ export function CreatePlaceModal({
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await createPlace({
+                sessionToken,
                 familyId,
                 listId: listId ? (listId as Id<"placeLists">) : undefined,
                 name: name.trim(),

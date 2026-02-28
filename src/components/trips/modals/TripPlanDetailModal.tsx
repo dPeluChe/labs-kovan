@@ -4,6 +4,7 @@ import { api } from "../../../../convex/_generated/api";
 import { MapPin, Clock, FileText, CheckCircle2, Circle, Pencil, Trash2 } from "lucide-react";
 import { MobileModal } from "../../ui/MobileModal";
 import { useConfirmModal } from "../../../hooks/useConfirmModal";
+import { useAuth } from "../../../contexts/AuthContext";
 
 interface TripPlanDetailModalProps {
     planId: Id<"tripPlans">;
@@ -14,11 +15,15 @@ interface TripPlanDetailModalProps {
 }
 
 export function TripPlanDetailModal({ planId, onClose, onEdit, onDelete, onToggleCompletion }: TripPlanDetailModalProps) {
+    const { sessionToken } = useAuth();
     const plan = useQuery(api.trips.getTripPlan, { planId });
     // Assuming we might need place details. Plan usually has placeId.
     // If not joined in getTripPlan, we fetch place separately.
     // Let's assume getTripPlan returns the plan doc.
-    const place = useQuery(api.places.getPlace, plan?.placeId ? { placeId: plan.placeId } : "skip");
+    const place = useQuery(
+        api.places.getPlace,
+        plan?.placeId && sessionToken ? { sessionToken, placeId: plan.placeId } : "skip"
+    );
 
     const { confirm, ConfirmModal } = useConfirmModal();
 

@@ -6,6 +6,7 @@ import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { Plus, ListFilter, Map, MapPin, LayoutGrid, Clock, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AnimatedTabs } from "../ui/AnimatedTabs";
+import { useAuth } from "../../contexts/AuthContext";
 
 import { PlaceCard } from "./PlaceCard";
 import { CreateListModal } from "./modals/CreateListModal";
@@ -14,6 +15,7 @@ import { PlaceDetailModal } from "./modals/PlaceDetailModal";
 import { useConfirmModal } from "../../hooks/useConfirmModal";
 
 export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
+    const { sessionToken } = useAuth();
     const navigate = useNavigate();
     const [selectedListId, setSelectedListId] = useState<Id<"placeLists"> | null>(null);
     const [showCreateList, setShowCreateList] = useState(false);
@@ -32,17 +34,24 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
             variant: "danger"
         });
         if (ok) {
-            await deletePlace({ placeId });
+            if (!sessionToken) return;
+            await deletePlace({ sessionToken, placeId });
             setSelectedPlace(null);
         }
     };
 
 
-    const lists = useQuery(api.places.getLists, { familyId });
-    const places = useQuery(api.places.getPlaces, {
-        familyId,
-        listId: selectedListId || undefined // If null, passes undefined to get all
-    });
+    const lists = useQuery(api.places.getLists, sessionToken ? { sessionToken, familyId } : "skip");
+    const places = useQuery(
+        api.places.getPlaces,
+        sessionToken
+            ? {
+                sessionToken,
+                familyId,
+                listId: selectedListId || undefined
+            }
+            : "skip"
+    );
 
 
     const filteredPlaces = places?.filter(place => {
@@ -191,6 +200,7 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
             {/* Modals */}
             {showCreateList && (
                 <CreateListModal
+                    sessionToken={sessionToken}
                     familyId={familyId}
                     onClose={() => setShowCreateList(false)}
                 />
@@ -198,6 +208,7 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
 
             {showCreatePlace && (
                 <CreatePlaceModal
+                    sessionToken={sessionToken}
                     familyId={familyId}
                     preselectedListId={selectedListId || undefined}
                     onClose={() => setShowCreatePlace(false)}

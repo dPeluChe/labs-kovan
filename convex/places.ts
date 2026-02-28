@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { requireFamilyAccessFromSession, requireUserFromSessionToken } from "./lib/auth";
 
 // Reusable shapes
 const PLACE_CATEGORY = v.union(
@@ -13,8 +14,9 @@ const PLACE_CATEGORY = v.union(
 // ==================== LISTS ====================
 
 export const getLists = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const lists = await ctx.db
       .query("placeLists")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -46,32 +48,42 @@ export const getLists = query({
 
 export const createList = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     name: v.string(),
     description: v.optional(v.string()),
     icon: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("placeLists", args);
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+    const { sessionToken: _sessionToken, ...payload } = args;
+    return await ctx.db.insert("placeLists", payload);
   },
 });
 
 export const updateList = mutation({
   args: {
+    sessionToken: v.string(),
     listId: v.id("placeLists"),
     name: v.optional(v.string()),
     description: v.optional(v.string()),
     icon: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { listId, ...updates } = args;
+    const list = await ctx.db.get(args.listId);
+    if (!list) throw new Error("Lista no encontrada");
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, list.familyId);
+    const { listId, sessionToken: _sessionToken, ...updates } = args;
     await ctx.db.patch(listId, updates);
   },
 });
 
 export const deleteList = mutation({
-  args: { listId: v.id("placeLists") },
+  args: { sessionToken: v.string(), listId: v.id("placeLists") },
   handler: async (ctx, args) => {
+    const list = await ctx.db.get(args.listId);
+    if (!list) return;
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, list.familyId);
     // Check if there are places in this list?
     // Option 1: Prevent delete
     // Option 2: Unlink places (set listId to null) - Prefer checking first
@@ -94,11 +106,17 @@ export const deleteList = mutation({
 
 export const getPlaces = query({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     listId: v.optional(v.id("placeLists")) // Optional filtering
   },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     if (args.listId) {
+      const list = await ctx.db.get(args.listId);
+      if (!list || list.familyId !== args.familyId) {
+        throw new Error("Lista inválida para esta familia");
+      }
       return await ctx.db
         .query("places")
         .withIndex("by_list", (q) => q.eq("listId", args.listId))
@@ -115,14 +133,18 @@ export const getPlaces = query({
 });
 
 export const getPlace = query({
-  args: { placeId: v.id("places") },
+  args: { sessionToken: v.string(), placeId: v.id("places") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.placeId);
+    const place = await ctx.db.get(args.placeId);
+    if (!place) return null;
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, place.familyId);
+    return place;
   },
 });
 
 export const createPlace = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     listId: v.optional(v.id("placeLists")),
     name: v.string(),
@@ -138,20 +160,12 @@ export const createPlace = mutation({
     visited: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    let userId = undefined;
-
-    if (identity) {
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.subject))
-        .first();
-      userId = user?._id;
-    }
+    const { user } = await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+    const { sessionToken: _sessionToken, ...payload } = args;
 
     return await ctx.db.insert("places", {
-      ...args,
-      addedBy: userId,
+      ...payload,
+      addedBy: user._id,
       visited: args.visited ?? false,
     });
   },
@@ -159,6 +173,7 @@ export const createPlace = mutation({
 
 export const updatePlace = mutation({
   args: {
+    sessionToken: v.string(),
     placeId: v.id("places"),
     listId: v.optional(v.id("placeLists")),
     name: v.optional(v.string()),
@@ -174,14 +189,20 @@ export const updatePlace = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { placeId, ...updates } = args;
+    const place = await ctx.db.get(args.placeId);
+    if (!place) throw new Error("Lugar no encontrado");
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, place.familyId);
+    const { placeId, sessionToken: _sessionToken, ...updates } = args;
     await ctx.db.patch(placeId, updates);
   },
 });
 
 export const deletePlace = mutation({
-  args: { placeId: v.id("places") },
+  args: { sessionToken: v.string(), placeId: v.id("places") },
   handler: async (ctx, args) => {
+    const place = await ctx.db.get(args.placeId);
+    if (!place) return null;
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, place.familyId);
     // Delete visits too? Yes
     const visits = await ctx.db
       .query("placeVisits")
@@ -197,8 +218,11 @@ export const deletePlace = mutation({
 });
 
 export const getPlaceVisits = query({
-  args: { placeId: v.id("places") },
+  args: { sessionToken: v.string(), placeId: v.id("places") },
   handler: async (ctx, args) => {
+    const place = await ctx.db.get(args.placeId);
+    if (!place) return [];
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, place.familyId);
     return await ctx.db
       .query("placeVisits")
       .withIndex("by_place", (q) => q.eq("placeId", args.placeId))
@@ -208,8 +232,9 @@ export const getPlaceVisits = query({
 });
 
 export const getAllVisits = query({
-  args: { familyId: v.id("families"), limit: v.optional(v.number()) },
+  args: { sessionToken: v.string(), familyId: v.id("families"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const visits = await ctx.db
       .query("placeVisits")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -232,6 +257,7 @@ export const getAllVisits = query({
 
 export const recordVisit = mutation({
   args: {
+    sessionToken: v.string(),
     placeId: v.id("places"),
     familyId: v.id("families"),
     visitDate: v.number(),
@@ -242,21 +268,19 @@ export const recordVisit = mutation({
     // visitedBy fetched from auth
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    let userId = undefined;
-
-    if (identity) {
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.subject))
-        .first();
-      userId = user?._id;
+    const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+    const place = await ctx.db.get(args.placeId);
+    if (!place) throw new Error("Lugar no encontrado");
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+    if (place.familyId !== args.familyId) {
+      throw new Error("El lugar no pertenece a esta familia");
     }
 
     // Create visit record
+    const { sessionToken: _sessionToken, ...visitPayload } = args;
     const visitId = await ctx.db.insert("placeVisits", {
-      ...args,
-      visitedBy: userId,
+      ...visitPayload,
+      visitedBy: user._id,
     });
 
     // Update place "visited" status and "rating" (maybe average?)
@@ -271,15 +295,19 @@ export const recordVisit = mutation({
 });
 
 export const deleteVisit = mutation({
-  args: { visitId: v.id("placeVisits") },
+  args: { sessionToken: v.string(), visitId: v.id("placeVisits") },
   handler: async (ctx, args) => {
+    const visit = await ctx.db.get(args.visitId);
+    if (!visit) return null;
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, visit.familyId);
     await ctx.db.delete(args.visitId);
   }
 });
 
 export const getPlaceSummary = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const places = await ctx.db
       .query("places")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))

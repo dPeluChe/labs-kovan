@@ -61,7 +61,7 @@ export function DashboardPage() {
 
   const placesSummary = useQuery(
     api.places.getPlaceSummary,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const subscriptions = useQuery(

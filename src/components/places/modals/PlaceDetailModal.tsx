@@ -5,6 +5,7 @@ import { api } from "../../../../convex/_generated/api";
 import { Check, Star, Trash2, Instagram, Map } from "lucide-react";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
+import { useAuth } from "../../../contexts/AuthContext";
 
 interface PlaceDetailModalProps {
     place: Doc<"places">;
@@ -13,6 +14,7 @@ interface PlaceDetailModalProps {
 }
 
 export function PlaceDetailModal({ place, onClose, onDelete }: PlaceDetailModalProps) {
+    const { sessionToken } = useAuth();
 
     // In my new places.ts I have updatePlace. I removed toggleVisited? 
     // I should check places.ts content from Step 214.
@@ -33,9 +35,11 @@ export function PlaceDetailModal({ place, onClose, onDelete }: PlaceDetailModalP
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSave = async () => {
+        if (!sessionToken) return;
         setIsLoading(true);
         try {
             await updatePlace({
+                sessionToken,
                 placeId: place._id,
                 name: editData.name.trim(),
                 address: editData.address.trim() || undefined,
@@ -52,7 +56,9 @@ export function PlaceDetailModal({ place, onClose, onDelete }: PlaceDetailModalP
     };
 
     const handleToggleVisited = async () => {
+        if (!sessionToken) return;
         await updatePlace({
+            sessionToken,
             placeId: place._id,
             visited: !place.visited
         });

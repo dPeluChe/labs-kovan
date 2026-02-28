@@ -15,6 +15,7 @@ import { TripFinancesTab } from "../components/trips/tabs/TripFinancesTab";
 import { TripIdeasTab } from "../components/trips/tabs/TripIdeasTab";
 import { EditTripModal } from "../components/trips/modals/EditTripModal";
 import { TripPlanDetailModal } from "../components/trips/modals/TripPlanDetailModal";
+import { useAuth } from "../contexts/AuthContext";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 
 // Helper to normalized mixed items
@@ -368,11 +369,15 @@ function AddPlanModal({ tripId, familyId, placeListId, initialPlaceId, minDate, 
     editPlanId?: Id<"tripPlans">,
     onClose: () => void
 }) {
+    const { sessionToken } = useAuth();
     const addPlan = useMutation(api.trips.addTripPlan);
     const updatePlan = useMutation(api.trips.updateTripPlan);
 
     // Conditionally fetch places based on list ID
-    const places = useQuery(api.places.getPlaces, { familyId, listId: placeListId || undefined });
+    const places = useQuery(
+        api.places.getPlaces,
+        sessionToken ? { sessionToken, familyId, listId: placeListId || undefined } : "skip"
+    );
     const planToEdit = useQuery(api.trips.getTripPlan, editPlanId ? { planId: editPlanId } : "skip");
 
     const [activity, setActivity] = useState("");

@@ -5,6 +5,7 @@ export interface ToolContext {
     ctx: ActionCtx;
     familyId: Id<"families">;
     userId: Id<"users">;
+    sessionToken: string;
 }
 
 export interface ToolDefinition {

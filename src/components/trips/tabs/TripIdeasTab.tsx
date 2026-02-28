@@ -7,6 +7,7 @@ import { EmptyState } from "../../ui/EmptyState";
 import { PlaceCard } from "../../places/PlaceCard";
 import { AddPlaceToTripModal } from "../modals/AddPlaceToTripModal";
 import { TripPlaceDetailModal } from "../modals/TripPlaceDetailModal";
+import { useAuth } from "../../../contexts/AuthContext";
 
 interface TripIdeasTabProps {
     tripId: Id<"trips">;
@@ -14,16 +15,20 @@ interface TripIdeasTabProps {
 }
 
 export function TripIdeasTab({ tripId, onAddToItinerary }: TripIdeasTabProps) {
+    const { sessionToken } = useAuth();
     const trip = useQuery(api.trips.getTrip, { tripId });
     // If trip has placeListId, fetch places
     const places = useQuery(api.places.getPlaces,
-        trip?.placeListId
-            ? { familyId: trip.familyId, listId: trip.placeListId }
+        trip?.placeListId && sessionToken
+            ? { sessionToken, familyId: trip.familyId, listId: trip.placeListId }
             : "skip"
     );
 
     const updateTrip = useMutation(api.trips.updateTrip);
-    const lists = useQuery(api.places.getLists, trip ? { familyId: trip.familyId } : "skip");
+    const lists = useQuery(
+        api.places.getLists,
+        trip && sessionToken ? { sessionToken, familyId: trip.familyId } : "skip"
+    );
 
     const [isAddPlaceOpen, setIsAddPlaceOpen] = useState(false);
     const [selectedPlace, setSelectedPlace] = useState<Doc<"places"> | null>(null);

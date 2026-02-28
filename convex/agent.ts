@@ -7,8 +7,8 @@ import { allToolDefinitions, toolHandlers } from "./lib/agent";
 
 // Helper function to get family ID
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getFamilyIdForUser(ctx: any, userId: Id<"users">): Promise<Id<"families">> {
-    const families = (await ctx.runQuery(api.families.getUserFamilies, { userId })) as Doc<"families">[];
+async function getFamilyIdForUser(ctx: any, sessionToken: string): Promise<Id<"families">> {
+    const families = (await ctx.runQuery(api.families.getUserFamilies, { sessionToken })) as Doc<"families">[];
     if (families.length === 0) throw new Error("No tienes familia asignada");
     return families[0]._id;
 }
@@ -19,6 +19,7 @@ type ToolContext = {
     ctx: any;
     userId: Id<"users">;
     familyId: Id<"families">;
+    sessionToken: string;
 };
 
 export const sendMessage = action({
@@ -46,7 +47,7 @@ export const sendMessage = action({
                 const user = await ctx.runQuery(api.users.getSessionUser, { sessionToken: args.sessionToken });
                 if (!user) throw new Error("Sesión inválida");
                 const userId = user._id as Id<"users">;
-                const familyId = await getFamilyIdForUser(ctx, userId);
+                const familyId = await getFamilyIdForUser(ctx, args.sessionToken);
 
                 const model = genAI.getGenerativeModel({
                     model: modelName,
@@ -118,7 +119,8 @@ Hoy es: ${new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numer
                                 const context: ToolContext = {
                                     ctx,
                                     userId,
-                                    familyId
+                                    familyId,
+                                    sessionToken: args.sessionToken
                                 };
                                 const toolArgs = fc.args as Record<string, unknown>;
                                 const toolResult = await handler(context, toolArgs); // Call the handler

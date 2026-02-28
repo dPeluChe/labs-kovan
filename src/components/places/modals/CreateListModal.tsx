@@ -8,9 +8,11 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
 
 export function CreateListModal({
+    sessionToken,
     familyId,
     onClose,
 }: {
+    sessionToken: string | null;
     familyId: Id<"families">;
     onClose: () => void;
 }) {
@@ -27,7 +29,9 @@ export function CreateListModal({
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await createList({
+                sessionToken,
                 familyId,
                 name: name.trim(),
                 description: description.trim() || undefined,

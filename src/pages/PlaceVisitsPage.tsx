@@ -4,6 +4,7 @@ import { api } from "../../convex/_generated/api";
 import { ArrowLeft, Search, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFamily } from "../contexts/FamilyContext";
+import { useAuth } from "../contexts/AuthContext";
 // Actually we need the user's family. Since this is a page, we need to get family context.
 // Assuming we pass familyId relative to the wrapper or fetch it.
 // For now, let's assume we use the same hook pattern as Dashboard or others. 
@@ -21,10 +22,14 @@ export function PlaceVisitsPage() {
 
     // Auth / Family Logic
     const { currentFamily } = useFamily();
+    const { sessionToken } = useAuth();
     const familyId = currentFamily?._id;
 
     // Use explicit type assertion if needed, but inference should work
-    const visits = useQuery(api.places.getAllVisits, familyId ? { familyId, limit: 100 } : "skip");
+    const visits = useQuery(
+        api.places.getAllVisits,
+        familyId && sessionToken ? { sessionToken, familyId, limit: 100 } : "skip"
+    );
     const [searchTerm, setSearchTerm] = useState("");
 
     const filteredVisits = visits?.filter((v) =>
