@@ -14,7 +14,7 @@ import { QuickAddSection } from "../components/dashboard/QuickAddSection";
 
 export function DashboardPage() {
   const { currentFamily, inviteError, clearInviteError } = useFamily();
-  const { user } = useAuth();
+  const { user, sessionToken } = useAuth();
 
   const hour = new Date().getHours();
   let greeting = "Hola";
@@ -71,7 +71,7 @@ export function DashboardPage() {
 
   const documents = useQuery(
     api.documents.list,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
   );
 
   if (!currentFamily) {

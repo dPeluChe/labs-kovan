@@ -24,14 +24,14 @@ interface UserData {
 
 export function AdminDashboardPage() {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, sessionToken } = useAuth();
     const [activeTab, setActiveTab] = React.useState<"overview" | "users">("overview");
 
     // Fetch stats (will error if not admin, handled by boundary or simple check)
     // We cast to unknown then to our local Shape because we cannot import the real return type easily without importing Id
     // But since we have a structural Id, let's see if we can just plain use it or cast cleanly.
     // The issue is that we are defining the type of `stats` manually to use our Local Id.
-    const stats = useQuery(api.admin.getStats, user ? { userId: user._id as Id<"users"> } : "skip") as {
+    const stats = useQuery(api.admin.getStats, sessionToken ? { sessionToken } : "skip") as {
         totalFamilies: number;
         totalUsers: number;
         totalInvites: number;
@@ -136,25 +136,25 @@ export function AdminDashboardPage() {
                 </>
             )}
 
-            {activeTab === "users" && <UsersManager userId={user._id} />}
+            {activeTab === "users" && sessionToken && <UsersManager sessionToken={sessionToken} />}
 
         </div>
     );
 }
 
-function UsersManager({ userId }: { userId: Id<"users"> }) {
-    return <UsersList userId={userId} />;
+function UsersManager({ sessionToken }: { sessionToken: string }) {
+    return <UsersList sessionToken={sessionToken} />;
 }
 
-function UsersList({ userId }: { userId: Id<"users"> }) {
-    const users = useQuery(api.admin.getUsers, { userId }) as UserData[] | undefined;
+function UsersList({ sessionToken }: { sessionToken: string }) {
+    const users = useQuery(api.admin.getUsers, { sessionToken }) as UserData[] | undefined;
     const deleteUser = useMutation(api.admin.deleteUser);
 
     if (!users) return <PageLoader />;
 
     const handleDelete = async (targetId: Id<"users">, name: string) => {
         if (confirm(`¿Estás seguro de eliminar al usuario ${name}? Esta acción no se puede deshacer.`)) {
-            await deleteUser({ userId, targetUserId: targetId });
+            await deleteUser({ sessionToken, targetUserId: targetId });
         }
     };
 

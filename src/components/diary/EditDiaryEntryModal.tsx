@@ -16,7 +16,7 @@ interface EditDiaryEntryModalProps {
 }
 
 export function EditDiaryEntryModal({ isOpen, onClose, entry }: EditDiaryEntryModalProps) {
-    const { user } = useAuth();
+    const { user, sessionToken } = useAuth();
     const update = useMutation(api.diary.updateEntry);
 
     const [content, setContent] = useState(entry.content || "");
@@ -47,7 +47,7 @@ export function EditDiaryEntryModal({ isOpen, onClose, entry }: EditDiaryEntryMo
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user) return;
+        if (!user || !sessionToken) return;
 
         let finalEmoji = "";
         let finalLabel = "";
@@ -66,8 +66,8 @@ export function EditDiaryEntryModal({ isOpen, onClose, entry }: EditDiaryEntryMo
         setIsLoading(true);
         try {
             await update({
+                sessionToken,
                 entryId: entry._id,
-                userId: user._id,
                 content: content.trim() || undefined,
                 mood,
                 moodEmoji: finalEmoji,

@@ -19,7 +19,7 @@ interface TaskFormModalProps {
 
 export function TaskFormModal({ isOpen, onClose, defaultType = "general", taskToEdit }: TaskFormModalProps) {
     const { currentFamily } = useFamily();
-    const { user } = useAuth();
+    const { sessionToken } = useAuth();
     const { confirm, ConfirmModal } = useConfirmModal(); // Hook
     const create = useMutation(api.tasks.create);
     const update = useMutation(api.tasks.update);
@@ -53,12 +53,13 @@ export function TaskFormModal({ isOpen, onClose, defaultType = "general", taskTo
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title.trim() || !currentFamily || !user) return;
+        if (!title.trim() || !currentFamily || !sessionToken) return;
 
         setIsLoading(true);
         try {
             if (taskToEdit) {
                 await update({
+                    sessionToken,
                     taskId: taskToEdit._id,
                     familyId: currentFamily._id,
                     title: title.trim(),
@@ -68,8 +69,8 @@ export function TaskFormModal({ isOpen, onClose, defaultType = "general", taskTo
                 });
             } else {
                 await create({
+                    sessionToken,
                     familyId: currentFamily._id,
-                    userId: user._id,
                     title: title.trim(),
                     type,
                     priority: priority === "medium" ? undefined : priority,
@@ -86,7 +87,7 @@ export function TaskFormModal({ isOpen, onClose, defaultType = "general", taskTo
     };
 
     const handleDelete = async () => {
-        if (!taskToEdit || !currentFamily) return;
+        if (!taskToEdit || !currentFamily || !sessionToken) return;
 
         const ok = await confirm({
             title: "Eliminar tarea",
@@ -100,7 +101,7 @@ export function TaskFormModal({ isOpen, onClose, defaultType = "general", taskTo
 
         setIsLoading(true);
         try {
-            await remove({ taskId: taskToEdit._id, familyId: currentFamily._id });
+            await remove({ taskId: taskToEdit._id, familyId: currentFamily._id, sessionToken });
             onClose();
         } catch (error) {
             console.error("Failed to delete task:", error);

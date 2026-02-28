@@ -10,7 +10,7 @@ interface Message {
 }
 
 export function AgentChat() {
-    const { user } = useAuth();
+    const { user, sessionToken } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
@@ -22,7 +22,7 @@ export function AgentChat() {
     const clearConversationMutation = useMutation(api.agentConversations.clearConversation);
     const conversationHistory = useQuery(
         api.agentConversations.getConversationHistory,
-        user ? { userId: user._id } : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     // Load conversation history on mount
@@ -45,10 +45,10 @@ export function AgentChat() {
     }, [messages, isOpen]);
 
     const handleClearConversation = async () => {
-        if (!user || !confirm('¿Borrar todo el historial del chat?')) return;
+        if (!user || !sessionToken || !confirm('¿Borrar todo el historial del chat?')) return;
 
         try {
-            await clearConversationMutation({ userId: user._id });
+            await clearConversationMutation({ sessionToken });
             setMessages([]);
         } catch (error) {
             console.error("Error clearing conversation:", error);
@@ -70,25 +70,25 @@ export function AgentChat() {
             const history = messages.map(m => ({ role: m.role, content: m.content }));
             history.push({ role: "user", content: userMsg });
 
-            if (!user) {
+            if (!user || !sessionToken) {
                 setMessages(prev => [...prev, { role: "assistant", content: "No se ha encontrado un usuario activo. Por favor recarga la página." }]);
                 setIsLoading(false);
                 return;
             }
 
             // Save user message
-            await saveMessageMutation({ userId: user._id, role: "user", content: userMsg });
+            await saveMessageMutation({ sessionToken, role: "user", content: userMsg });
 
             const response = await sendMessage({
                 messages: history,
-                userId: user._id
+                sessionToken
             });
 
             const assistantMsg = String(response);
             setMessages(prev => [...prev, { role: "assistant", content: assistantMsg }]);
 
             // Save assistant message
-            await saveMessageMutation({ userId: user._id, role: "assistant", content: assistantMsg });
+            await saveMessageMutation({ sessionToken, role: "assistant", content: assistantMsg });
         } catch (error) {
             console.error("Agent error:", error);
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -99,8 +99,8 @@ export function AgentChat() {
             }]);
 
             // Save error message 
-            if (user) {
-                await saveMessageMutation({ userId: user._id, role: "assistant", content: errorMsg });
+            if (sessionToken) {
+                await saveMessageMutation({ sessionToken, role: "assistant", content: errorMsg });
             }
         } finally {
             setIsLoading(false);

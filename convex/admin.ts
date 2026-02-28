@@ -2,12 +2,10 @@ import { query, mutation } from "./_generated/server";
 import { type DatabaseReader } from "./_generated/server";
 import { v } from "convex/values";
 import { type Id } from "./_generated/dataModel";
+import { requireUserFromSessionToken } from "./lib/auth";
 
 // Helper to check admin permission
-async function checkSuperAdmin(ctx: { db: DatabaseReader }, userId: Id<"users"> | undefined) {
-    if (!userId) {
-        throw new Error("Unauthorized");
-    }
+async function checkSuperAdmin(ctx: { db: DatabaseReader }, userId: Id<"users">) {
     const user = await ctx.db.get(userId);
     if (!user || !user.isSuperAdmin) {
         throw new Error("Unauthorized - SuperAdmin access required");
@@ -17,9 +15,10 @@ async function checkSuperAdmin(ctx: { db: DatabaseReader }, userId: Id<"users"> 
 
 // Get system stats for superadmin
 export const getStats = query({
-    args: { userId: v.optional(v.id("users")) },
+    args: { sessionToken: v.string() },
     handler: async (ctx, args) => {
-        await checkSuperAdmin(ctx, args.userId);
+        const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+        await checkSuperAdmin(ctx, user._id);
 
         // Families
         const families = await ctx.db.query("families").collect();
@@ -47,9 +46,10 @@ export const getStats = query({
 
 // Get all users (limited for demo)
 export const getUsers = query({
-    args: { userId: v.optional(v.id("users")) },
+    args: { sessionToken: v.string() },
     handler: async (ctx, args) => {
-        await checkSuperAdmin(ctx, args.userId);
+        const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+        await checkSuperAdmin(ctx, user._id);
         return await ctx.db.query("users").order("desc").take(100);
     },
 });
@@ -57,14 +57,15 @@ export const getUsers = query({
 // Delete a user
 export const deleteUser = mutation({
     args: {
-        userId: v.id("users"), // The admin performing the action
+        sessionToken: v.string(),
         targetUserId: v.id("users") // The user to delete
     },
     handler: async (ctx, args) => {
-        await checkSuperAdmin(ctx, args.userId);
+        const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+        await checkSuperAdmin(ctx, user._id);
 
         // Prevent self-deletion
-        if (args.userId === args.targetUserId) {
+        if (user._id === args.targetUserId) {
             throw new Error("Cannot delete yourself");
         }
 

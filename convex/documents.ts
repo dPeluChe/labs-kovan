@@ -1,14 +1,17 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireFamilyAccessFromSession, requireUserFromSessionToken } from "./lib/auth";
 
 // ==================== DOCUMENTS ====================
 
 export const list = query({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
         personId: v.optional(v.id("personProfiles")),
     },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         const q = ctx.db
             .query("documents")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId));
@@ -41,16 +44,20 @@ export const list = query({
 });
 
 export const getDocument = query({
-    args: { documentId: v.id("documents") },
+    args: { sessionToken: v.string(), documentId: v.id("documents") },
     handler: async (ctx, args) => {
-        return await ctx.db.get(args.documentId);
+        await requireUserFromSessionToken(ctx, args.sessionToken);
+        const doc = await ctx.db.get(args.documentId);
+        if (!doc) return null;
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, doc.familyId);
+        return doc;
     },
 });
 
 export const create = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
-        userId: v.id("users"), // AddedBy
         personId: v.optional(v.id("personProfiles")),
         title: v.string(),
         type: v.union(
@@ -71,6 +78,7 @@ export const create = mutation({
         storageIds: v.optional(v.array(v.id("_storage"))),
     },
     handler: async (ctx, args) => {
+        const { user } = await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         return await ctx.db.insert("documents", {
             familyId: args.familyId,
             personId: args.personId,
@@ -84,13 +92,14 @@ export const create = mutation({
             files: args.files,
             storageIds: args.storageIds,
             isArchived: false,
-            addedBy: args.userId,
+            addedBy: user._id,
         });
     },
 });
 
 export const update = mutation({
     args: {
+        sessionToken: v.string(),
         documentId: v.id("documents"),
         familyId: v.id("families"), // Auth check
         personId: v.optional(v.id("personProfiles")),
@@ -114,6 +123,7 @@ export const update = mutation({
         isArchived: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         const { documentId, familyId, ...updates } = args;
         const doc = await ctx.db.get(documentId);
         if (!doc) throw new Error("Document not found");
@@ -125,10 +135,12 @@ export const update = mutation({
 
 export const deleteDocument = mutation({
     args: {
+        sessionToken: v.string(),
         documentId: v.id("documents"),
         familyId: v.id("families"),
     },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         const doc = await ctx.db.get(args.documentId);
         if (!doc) throw new Error("Document not found");
         if (doc.familyId !== args.familyId) throw new Error("Unauthorized");

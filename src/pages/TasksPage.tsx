@@ -9,10 +9,12 @@ import { TaskFormModal } from "../components/tasks/CreateTaskModal"; // Import u
 import { CheckSquare, ShoppingCart, Repeat, Plus } from "lucide-react";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { useFamily } from "../contexts/FamilyContext";
+import { useAuth } from "../contexts/AuthContext";
 import { useConfirmModal } from "../hooks/useConfirmModal";
 
 export function TasksPage() {
     const { currentFamily } = useFamily();
+    const { sessionToken } = useAuth();
     const [activeTab, setActiveTab] = useState<"general" | "shopping" | "chore">("general");
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingTask, setEditingTask] = useState<Doc<"tasks"> | undefined>(undefined);
@@ -21,7 +23,7 @@ export function TasksPage() {
     // Queries
     const allTasks = useQuery(
         api.tasks.list,
-        currentFamily ? { familyId: currentFamily._id } : "skip"
+        currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
     ) as Doc<"tasks">[] | undefined;
 
     const toggleStatus = useMutation(api.tasks.toggleStatus);
@@ -37,7 +39,8 @@ export function TasksPage() {
             icon: "trash"
         });
         if (ok) {
-            await deleteTask({ taskId, familyId: currentFamily._id });
+            if (!sessionToken) return;
+            await deleteTask({ taskId, familyId: currentFamily._id, sessionToken });
         }
     };
 
@@ -110,7 +113,7 @@ export function TasksPage() {
                                 <TaskItem
                                     key={task._id}
                                     task={task}
-                                    onToggle={(id) => currentFamily && toggleStatus({ taskId: id, familyId: currentFamily._id })}
+                                    onToggle={(id) => currentFamily && sessionToken && toggleStatus({ taskId: id, familyId: currentFamily._id, sessionToken })}
                                     onClick={handleEdit}
                                     onDelete={handleDeleteTask}
                                 />

@@ -16,7 +16,7 @@ interface CreateDiaryEntryModalProps {
 
 export function CreateDiaryEntryModal({ isOpen, onClose }: CreateDiaryEntryModalProps) {
     const { currentFamily } = useFamily();
-    const { user } = useAuth();
+    const { user, sessionToken } = useAuth();
     const create = useMutation(api.diary.createEntry);
 
     const [content, setContent] = useState("");
@@ -37,7 +37,7 @@ export function CreateDiaryEntryModal({ isOpen, onClose }: CreateDiaryEntryModal
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!currentFamily || !user) return;
+        if (!currentFamily || !user || !sessionToken) return;
 
         // Determine final emoji/label
         let finalEmoji = "";
@@ -57,8 +57,8 @@ export function CreateDiaryEntryModal({ isOpen, onClose }: CreateDiaryEntryModal
         setIsLoading(true);
         try {
             await create({
+                sessionToken,
                 familyId: currentFamily._id,
-                userId: user._id,
                 content: content.trim() || undefined,
                 mood,
                 moodEmoji: finalEmoji,

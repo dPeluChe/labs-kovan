@@ -10,7 +10,7 @@ interface Message {
 }
 
 export default function AgentPage() {
-    const { user } = useAuth();
+    const { user, sessionToken } = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +25,7 @@ export default function AgentPage() {
     const clearConversationMutation = useMutation(api.agentConversations.clearConversation);
     const conversationHistory = useQuery(
         api.agentConversations.getConversationHistory,
-        user ? { userId: user._id } : "skip"
+        sessionToken ? { sessionToken } : "skip"
     );
 
     // Load conversation history on mount
@@ -58,10 +58,10 @@ export default function AgentPage() {
     }, [isRateLimited]);
 
     const handleClearConversation = async () => {
-        if (!user || !confirm('¿Borrar todo el historial del chat?')) return;
+        if (!user || !sessionToken || !confirm('¿Borrar todo el historial del chat?')) return;
 
         try {
-            await clearConversationMutation({ userId: user._id });
+            await clearConversationMutation({ sessionToken });
             setMessages([]);
         } catch (error) {
             console.error("Error clearing conversation:", error);
@@ -95,25 +95,25 @@ export default function AgentPage() {
             const history = messages.map(m => ({ role: m.role, content: m.content }));
             history.push({ role: "user", content: userMsg });
 
-            if (!user) {
+            if (!user || !sessionToken) {
                 setMessages(prev => [...prev, { role: "assistant", content: "No se ha encontrado un usuario activo. Por favor recarga la página." }]);
                 setIsLoading(false);
                 return;
             }
 
             // Save user message
-            await saveMessageMutation({ userId: user._id, role: "user", content: userMsg });
+            await saveMessageMutation({ sessionToken, role: "user", content: userMsg });
 
             const response = await sendMessage({
                 messages: history,
-                userId: user._id
+                sessionToken
             });
 
             const assistantMsg = String(response);
             setMessages(prev => [...prev, { role: "assistant", content: assistantMsg }]);
 
             // Save assistant message
-            await saveMessageMutation({ userId: user._id, role: "assistant", content: assistantMsg });
+            await saveMessageMutation({ sessionToken, role: "assistant", content: assistantMsg });
 
             // Enable rate limiting after successful request
             setIsRateLimited(true);
@@ -138,9 +138,9 @@ export default function AgentPage() {
             }]);
 
             // Save error message 
-            if (user) {
+            if (sessionToken) {
                 try {
-                    await saveMessageMutation({ userId: user._id, role: "assistant", content: errorMsg });
+                    await saveMessageMutation({ sessionToken, role: "assistant", content: errorMsg });
                 } catch (saveError) {
                     console.error("Error saving error message:", saveError);
                 }

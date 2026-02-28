@@ -30,7 +30,7 @@ const COMMON_DOCS = [
 
 export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormModalProps) {
     const { currentFamily } = useFamily();
-    const { user } = useAuth();
+    const { user, sessionToken } = useAuth();
     const create = useMutation(api.documents.create);
     const update = useMutation(api.documents.update);
     const profiles = useQuery(api.health.getPersonProfiles, currentFamily ? { familyId: currentFamily._id } : "skip");
@@ -86,7 +86,7 @@ export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormMod
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title.trim() || !currentFamily || !user) return;
+        if (!title.trim() || !currentFamily || !user || !sessionToken) return;
 
         setIsLoading(true);
         try {
@@ -103,12 +103,13 @@ export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormMod
 
             if (document) {
                 await update({
+                    sessionToken,
                     documentId: document._id,
                     ...commonFields,
                 });
             } else {
                 await create({
-                    userId: user._id,
+                    sessionToken,
                     ...commonFields,
                 });
             }

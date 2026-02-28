@@ -163,3 +163,13 @@ export async function requireFamilyMembership(
 
   return membership;
 }
+
+export async function requireFamilyAccessFromSession(
+  ctx: Ctx,
+  sessionToken: string,
+  familyId: Id<"families">
+) {
+  const user = await requireUserFromSessionToken(ctx, sessionToken);
+  const membership = await requireFamilyMembership(ctx, familyId, user._id);
+  return { user, membership };
+}

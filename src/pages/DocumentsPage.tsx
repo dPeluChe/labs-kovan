@@ -8,12 +8,14 @@ import { DocumentDetailModal } from "../components/documents/DocumentDetailModal
 import { PageHeader } from "../components/ui/PageHeader";
 import { FileText, Plus, User, AlertTriangle, Calendar } from "lucide-react";
 import { useFamily } from "../contexts/FamilyContext";
+import { useAuth } from "../contexts/AuthContext";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { ResourceCard } from "../components/ui/ResourceCard";
 import { HorizontalSelector } from "../components/ui/HorizontalSelector";
 
 export function DocumentsPage() {
     const { currentFamily } = useFamily();
+    const { sessionToken } = useAuth();
     const [showFormModal, setShowFormModal] = useState(false);
     const [docToEdit, setDocToEdit] = useState<Doc<"documents"> | null>(null);
     const [selectedPersonId, setSelectedPersonId] = useState<string>("all");
@@ -21,7 +23,10 @@ export function DocumentsPage() {
 
     // Queries
     // We fetch all documents for family. We could filter by person on backend, but for UX 'All' view is nice.
-    const allDocs = useQuery(api.documents.list, currentFamily ? { familyId: currentFamily._id } : "skip");
+    const allDocs = useQuery(
+        api.documents.list,
+        currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
+    );
     const profiles = useQuery(api.health.getPersonProfiles, currentFamily ? { familyId: currentFamily._id } : "skip");
 
     if (allDocs === undefined || profiles === undefined) return <PageLoader />;

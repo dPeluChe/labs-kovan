@@ -24,9 +24,9 @@ type ToolContext = {
 export const sendMessage = action({
     args: {
         messages: v.any(),
-        userId: v.id("users")
+        sessionToken: v.string()
     },
-    handler: async (ctx, args: { messages: { role: string; content: string }[]; userId: Id<"users"> }) => {
+    handler: async (ctx, args: { messages: { role: string; content: string }[]; sessionToken: string }) => {
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
 
@@ -43,7 +43,10 @@ export const sendMessage = action({
                 console.log(`🤖 Attempting with model: ${modelName}`);
 
                 const genAI = new GoogleGenerativeAI(apiKey);
-                const familyId = await getFamilyIdForUser(ctx, args.userId);
+                const user = await ctx.runQuery(api.users.getSessionUser, { sessionToken: args.sessionToken });
+                if (!user) throw new Error("Sesión inválida");
+                const userId = user._id as Id<"users">;
+                const familyId = await getFamilyIdForUser(ctx, userId);
 
                 const model = genAI.getGenerativeModel({
                     model: modelName,
@@ -114,7 +117,7 @@ Hoy es: ${new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numer
 
                                 const context: ToolContext = {
                                     ctx,
-                                    userId: args.userId,
+                                    userId,
                                     familyId
                                 };
                                 const toolArgs = fc.args as Record<string, unknown>;

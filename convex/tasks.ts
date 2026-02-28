@@ -1,15 +1,18 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireFamilyAccessFromSession } from "./lib/auth";
 
 // === QUERIES ===
 
 export const list = query({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
         status: v.optional(v.union(v.literal("pending"), v.literal("completed"))),
         type: v.optional(v.union(v.literal("general"), v.literal("shopping"), v.literal("chore"))),
     },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         const q = ctx.db
             .query("tasks")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId));
@@ -61,8 +64,8 @@ export const getTask = query({
 
 export const create = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
-        userId: v.id("users"), // Explicitly pass user ID
         title: v.string(),
         description: v.optional(v.string()),
         type: v.union(v.literal("general"), v.literal("shopping"), v.literal("chore")),
@@ -73,9 +76,10 @@ export const create = mutation({
         tags: v.optional(v.array(v.string())),
     },
     handler: async (ctx, args) => {
+        const { user } = await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         const taskId = await ctx.db.insert("tasks", {
             familyId: args.familyId,
-            createdBy: args.userId,
+            createdBy: user._id,
             status: "pending",
             title: args.title,
             description: args.description,
@@ -93,6 +97,7 @@ export const create = mutation({
 
 export const update = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"), // For authorization check
         taskId: v.id("tasks"),
         title: v.optional(v.string()),
@@ -106,6 +111,7 @@ export const update = mutation({
         tags: v.optional(v.array(v.string())),
     },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         const { taskId, familyId, ...updates } = args;
 
         const task = await ctx.db.get(taskId);
@@ -118,10 +124,12 @@ export const update = mutation({
 
 export const toggleStatus = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"), // For authorization check
         taskId: v.id("tasks")
     },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         const task = await ctx.db.get(args.taskId);
         if (!task) throw new Error("Task not found");
         if (task.familyId !== args.familyId) throw new Error("Unauthorized: Task does not belong to this family.");
@@ -136,10 +144,12 @@ export const toggleStatus = mutation({
 
 export const delete_task = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"), // For authorization check
         taskId: v.id("tasks")
     },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         const task = await ctx.db.get(args.taskId);
         if (!task) throw new Error("Task not found");
         if (task.familyId !== args.familyId) throw new Error("Unauthorized: Task does not belong to this family.");

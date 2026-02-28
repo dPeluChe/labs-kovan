@@ -18,12 +18,12 @@ import type { Id, Doc } from "../../convex/_generated/dataModel";
 
 export function DiaryPage() {
     const { currentFamily } = useFamily();
-    const { user } = useAuth();
+    const { user, sessionToken } = useAuth();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingEntry, setEditingEntry] = useState<Doc<"diaryEntries"> | null>(null);
 
     const entries = useQuery(api.diary.getEntries,
-        currentFamily && user ? { familyId: currentFamily._id, userId: user._id } : "skip"
+        currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
     );
 
     const deleteEntry = useMutation(api.diary.deleteEntry);
@@ -32,10 +32,10 @@ export function DiaryPage() {
 
     const handleDelete = async (e: React.MouseEvent, id: Id<"diaryEntries">) => {
         e.stopPropagation(); // Prevent opening edit modal
-        if (!user) return;
+        if (!user || !sessionToken) return;
         if (!window.confirm("¿Estás seguro de que deseas borrar este registro?")) return;
         try {
-            await deleteEntry({ entryId: id, userId: user._id });
+            await deleteEntry({ entryId: id, sessionToken });
         } catch (e) {
             console.error("Failed to delete", e);
         }
