@@ -217,7 +217,12 @@ export const getPendingInvites = query({
     return await ctx.db
       .query("familyInvites")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
-      .filter((q) => q.eq(q.field("status"), "pending"))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("status"), "pending"),
+          q.gt(q.field("expiresAt"), Date.now())
+        )
+      )
       .collect();
   },
 });
@@ -254,6 +259,11 @@ export const joinFamilyByToken = mutation({
     }
     if (normalizeEmail(invite.email) !== normalizedEmail) {
       throw new Error("La invitación fue emitida para otro correo");
+    }
+    const family = await ctx.db.get(invite.familyId);
+    if (!family) {
+      await ctx.db.patch(invite._id, { status: "declined" });
+      throw new Error("La familia de esta invitación ya no existe");
     }
 
     const existingMember = await ctx.db

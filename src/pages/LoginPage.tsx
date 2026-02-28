@@ -25,10 +25,18 @@ export function LoginPage() {
   );
 
   useEffect(() => {
-    if (inviteToken) {
-      localStorage.setItem("kovan_pending_invite_token", inviteToken);
+    if (!inviteToken) {
+      localStorage.removeItem("kovan_pending_invite_token");
+      return;
     }
-  }, [inviteToken]);
+    if (inviteData === undefined) return;
+
+    if (inviteData) {
+      localStorage.setItem("kovan_pending_invite_token", inviteToken);
+    } else {
+      localStorage.removeItem("kovan_pending_invite_token");
+    }
+  }, [inviteToken, inviteData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +53,10 @@ export function LoginPage() {
 
     if (!email.includes("@")) {
       setError("Por favor ingresa un email válido");
+      return;
+    }
+    if (inviteData && email.trim().toLowerCase() !== inviteData.invitedEmail.toLowerCase()) {
+      setError(`Debes usar el correo invitado: ${inviteData.invitedEmail}`);
       return;
     }
 
@@ -121,6 +133,12 @@ export function LoginPage() {
                   <p className="font-bold text-sm">Invitación a "{inviteData.familyName}"</p>
                   <p className="text-xs opacity-90">Debes entrar con el correo invitado: {inviteData.invitedEmail}</p>
                 </div>
+              </div>
+            )}
+            {inviteToken && inviteData === null && (
+              <div className="alert alert-warning mb-6 shadow-sm">
+                <Users className="w-5 h-5" />
+                <span className="text-sm">La invitación no es válida o ya expiró.</span>
               </div>
             )}
 

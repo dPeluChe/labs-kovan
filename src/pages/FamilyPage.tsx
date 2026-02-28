@@ -242,13 +242,14 @@ function InviteModal({
   const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
   const [generatedInviteLink, setGeneratedInviteLink] = useState<string>("");
+  const [generatedForEmail, setGeneratedForEmail] = useState<string>("");
   const { success } = useToast();
 
   const sendInvite = useMutation(api.families.sendInvite);
 
   // Generate invite link
   const baseUrl = window.location.origin;
-  const inviteLink = generatedInviteLink || `${baseUrl}/login`;
+  const inviteLink = generatedInviteLink;
   const registerLink = `${baseUrl}/`;
 
   const handleCopyLink = async (link: string, type: string) => {
@@ -300,8 +301,10 @@ function InviteModal({
         familyId: familyId as Parameters<typeof sendInvite>[0]["familyId"],
         email: email.trim().toLowerCase(),
       });
+      const normalizedEmail = email.trim().toLowerCase();
       const tokenInviteLink = `${baseUrl}/login?inviteToken=${result.inviteToken}`;
       setGeneratedInviteLink(tokenInviteLink);
+      setGeneratedForEmail(normalizedEmail);
 
       setMessage("📧 Invitación creada. Comparte el link seguro generado abajo.");
       await handleCopyLink(tokenInviteLink, "Invitación segura");
@@ -326,20 +329,33 @@ function InviteModal({
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm">Unirse a "{familyName}"</p>
-              <p className="text-xs text-base-content/60 truncate">{inviteLink}</p>
+              {inviteLink ? (
+                <p className="text-xs text-base-content/60 truncate">{inviteLink}</p>
+              ) : (
+                <p className="text-xs text-base-content/60">
+                  Primero genera la invitación por email para crear un link seguro.
+                </p>
+              )}
+              {generatedForEmail && (
+                <p className="text-[11px] text-primary mt-1 truncate">
+                  Ligado a: {generatedForEmail}
+                </p>
+              )}
             </div>
             <div className="flex gap-1">
               <button
-                onClick={() => handleCopyLink(inviteLink, "Invitar a familia")}
+                onClick={() => inviteLink && handleCopyLink(inviteLink, "Invitar a familia")}
                 className="btn btn-ghost btn-sm btn-circle"
                 title="Copiar link"
+                disabled={!inviteLink}
               >
                 {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
               </button>
               <button
-                onClick={() => handleShare(inviteLink, "Unirse a mi familia")}
+                onClick={() => inviteLink && handleShare(inviteLink, "Unirse a mi familia")}
                 className="btn btn-ghost btn-sm btn-circle"
                 title="Compartir"
+                disabled={!inviteLink}
               >
                 <Share2 className="w-4 h-4" />
               </button>
