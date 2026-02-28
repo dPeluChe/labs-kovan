@@ -14,7 +14,7 @@ export function CalendarSettingsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { currentFamily } = useFamily();
-  const { user } = useAuth();
+  const { sessionToken } = useAuth();
 
   const [calendarId, setCalendarId] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -22,7 +22,7 @@ export function CalendarSettingsPage() {
 
   const integration = useQuery(
     api.calendar.getCalendarIntegration,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const saveIntegration = useMutation(api.calendar.saveCalendarIntegration);
@@ -45,7 +45,7 @@ export function CalendarSettingsPage() {
   useEffect(() => {
     const handleOAuth = async () => {
       const code = searchParams.get("code");
-      if (code && currentFamily && user) {
+      if (code && currentFamily && sessionToken) {
         setIsSyncing(true);
         try {
           // 1. Exchange Code
@@ -59,10 +59,10 @@ export function CalendarSettingsPage() {
 
           // 2. Save Integration
           await saveIntegration({
+            sessionToken,
             familyId: currentFamily._id,
             calendarId: kovanCalendar.calendarId,
             displayName: "KOVAN - FAMILIA",
-            connectedBy: user._id,
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken,
             tokenExpiry: Date.now() + (tokens.expiresIn * 1000),
@@ -81,7 +81,7 @@ export function CalendarSettingsPage() {
     };
 
     handleOAuth();
-  }, [searchParams, currentFamily, user, exchangeCode, saveIntegration, navigate, setSearchParams, provisionCalendar]);
+  }, [searchParams, currentFamily, sessionToken, exchangeCode, saveIntegration, navigate, setSearchParams, provisionCalendar]);
 
   const handleConnect = async () => {
     try {
@@ -96,14 +96,14 @@ export function CalendarSettingsPage() {
 
   const handleManualSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!calendarId.trim() || !displayName.trim() || !currentFamily || !user) return;
+    if (!calendarId.trim() || !displayName.trim() || !currentFamily || !sessionToken) return;
 
     try {
       await saveIntegration({
+        sessionToken,
         familyId: currentFamily._id,
         calendarId: calendarId.trim(),
         displayName: displayName.trim(),
-        connectedBy: user._id,
       });
       navigate("/calendar");
     } catch (err) {
@@ -121,12 +121,12 @@ export function CalendarSettingsPage() {
       icon: "warning",
     });
 
-    if (confirmed && currentFamily) {
-      await removeIntegration({ familyId: currentFamily._id });
+    if (confirmed && currentFamily && sessionToken) {
+      await removeIntegration({ sessionToken, familyId: currentFamily._id });
     }
   };
 
-  if (!currentFamily || !user) return <PageLoader />;
+  if (!currentFamily || !sessionToken) return <PageLoader />;
 
   if (isSyncing) {
     return (
@@ -204,7 +204,7 @@ export function CalendarSettingsPage() {
 
               {/* Calendar Selection */}
               <CalendarSelection
-                accessToken={integration.accessToken!}
+                sessionToken={sessionToken}
                 syncedIds={integration.syncedCalendarIds || [integration.calendarId]}
                 familyId={currentFamily._id}
               />
@@ -264,7 +264,7 @@ export function CalendarSettingsPage() {
   );
 }
 
-function CalendarSelection({ syncedIds, familyId }: { accessToken: string, syncedIds: string[], familyId: Id<"families"> }) {
+function CalendarSelection({ sessionToken, syncedIds, familyId }: { sessionToken: string, syncedIds: string[], familyId: Id<"families"> }) {
   const listCalendars = useAction(api.calendar.listGoogleCalendarsAction);
   const updateSettings = useMutation(api.calendar.updateCalendarSettings);
 
@@ -278,7 +278,7 @@ function CalendarSelection({ syncedIds, familyId }: { accessToken: string, synce
     setIsLoading(true);
     setError("");
     try {
-      const list = await listCalendars({ familyId });
+      const list = await listCalendars({ sessionToken, familyId });
       setCalendars(list);
     } catch (err) {
       console.error(err);
@@ -286,7 +286,7 @@ function CalendarSelection({ syncedIds, familyId }: { accessToken: string, synce
     } finally {
       setIsLoading(false);
     }
-  }, [familyId, listCalendars]);
+  }, [familyId, listCalendars, sessionToken]);
 
   useEffect(() => {
     loadCalendars();
@@ -304,6 +304,7 @@ function CalendarSelection({ syncedIds, familyId }: { accessToken: string, synce
     setIsSaving(true);
     try {
       await updateSettings({
+        sessionToken,
         familyId,
         syncedCalendarIds: selectedIds
       });

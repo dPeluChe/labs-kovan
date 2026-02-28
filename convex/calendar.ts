@@ -1,8 +1,22 @@
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
 import { api } from "./_generated/api";
+import { requireFamilyAccessFromSession, requireUserFromSessionToken } from "./lib/auth";
 
 // ... (existing code)
+
+async function assertActionFamilyAccess(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ctx: any,
+  sessionToken: string,
+  familyId: string
+) {
+  const families = await ctx.runQuery(api.families.getUserFamilies, { sessionToken });
+  const hasAccess = (families as Array<{ _id: string }>).some((f) => f._id === familyId);
+  if (!hasAccess) {
+    throw new Error("No tienes acceso a esta familia");
+  }
+}
 
 export const getGoogleAuthUrl = action({
   args: { redirectUri: v.string() },
@@ -28,8 +42,9 @@ export const getGoogleAuthUrl = action({
 // ... (previous code)
 
 export const refreshCalendarFromGoogle = mutation({
-  args: { familyId: v.id("families") },
-  handler: async (_ctx, args) => {
+  args: { sessionToken: v.string(), familyId: v.id("families") },
+  handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     // Deprecated in favor of the action approach, but keeping for compatibility if UI calls it
     console.log(
       "Calendar refresh requested for family:",
@@ -41,8 +56,9 @@ export const refreshCalendarFromGoogle = mutation({
 });
 
 export const getCalendarIntegration = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     return await ctx.db
       .query("calendarIntegrations")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -53,16 +69,18 @@ export const getCalendarIntegration = query({
 export const saveCalendarIntegration = mutation({
   // ... (rest of file)
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     calendarId: v.string(),
     displayName: v.string(),
-    connectedBy: v.id("users"),
     accessToken: v.optional(v.string()),
     refreshToken: v.optional(v.string()),
     tokenExpiry: v.optional(v.number()),
     scope: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     // Check if integration exists
     const existing = await ctx.db
       .query("calendarIntegrations")
@@ -73,7 +91,7 @@ export const saveCalendarIntegration = mutation({
       await ctx.db.patch(existing._id, {
         calendarId: args.calendarId,
         displayName: args.displayName,
-        connectedBy: args.connectedBy,
+        connectedBy: user._id,
         accessToken: args.accessToken,
         refreshToken: args.refreshToken,
         tokenExpiry: args.tokenExpiry,
@@ -87,7 +105,7 @@ export const saveCalendarIntegration = mutation({
       provider: "google",
       calendarId: args.calendarId,
       displayName: args.displayName,
-      connectedBy: args.connectedBy,
+      connectedBy: user._id,
       accessToken: args.accessToken,
       refreshToken: args.refreshToken,
       tokenExpiry: args.tokenExpiry,
@@ -97,8 +115,9 @@ export const saveCalendarIntegration = mutation({
 });
 
 export const removeCalendarIntegration = mutation({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const integration = await ctx.db
       .query("calendarIntegrations")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -238,9 +257,13 @@ async function refreshAccessToken(refreshToken: string) {
 }
 
 export const listGoogleCalendarsAction = action({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
-    const integration = await ctx.runQuery(api.calendar.getCalendarIntegration, { familyId: args.familyId });
+    await assertActionFamilyAccess(ctx, args.sessionToken, args.familyId);
+    const integration = await ctx.runQuery(api.calendar.getCalendarIntegration, {
+      sessionToken: args.sessionToken,
+      familyId: args.familyId
+    });
     if (!integration || !integration.accessToken) throw new Error("No calendar integration found");
 
     const fetchList = async (token: string) => {
@@ -265,10 +288,10 @@ export const listGoogleCalendarsAction = action({
         const tokens = await refreshAccessToken(integration.refreshToken);
 
         await ctx.runMutation(api.calendar.saveCalendarIntegration, {
+          sessionToken: args.sessionToken,
           familyId: args.familyId,
           calendarId: integration.calendarId,
           displayName: integration.displayName,
-          connectedBy: integration.connectedBy,
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token || integration.refreshToken,
           tokenExpiry: Date.now() + (tokens.expires_in * 1000),
@@ -456,15 +479,19 @@ export const deleteGoogleEventAction = action({
 // ==================== ORCHESTRATION ====================
 
 export const syncGoogleCalendar = action({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args): Promise<{ success: boolean; count?: number; error?: string } | undefined> => {
+    await assertActionFamilyAccess(ctx, args.sessionToken, args.familyId);
     // 1. Get Integration Settings
     // We need to call a query from this action. Convex allows this if we define the query exposed.
     // However, it's often cleaner to pass the necessary data or use `runQuery`.
     // For simplicity in this structure, we'll assume we pass data or fetch it.
     // Wait, `action` context has `runQuery`.
 
-    const integration = await ctx.runQuery(api.calendar.getCalendarIntegration, { familyId: args.familyId });
+    const integration = await ctx.runQuery(api.calendar.getCalendarIntegration, {
+      sessionToken: args.sessionToken,
+      familyId: args.familyId
+    });
     if (!integration || !integration.accessToken) {
       console.log("No integration or access token found for syncing.");
       return;
@@ -522,6 +549,7 @@ export const syncGoogleCalendar = action({
       }));
 
       await ctx.runMutation(api.calendar.syncCalendarEvents, {
+        sessionToken: args.sessionToken,
         familyId: args.familyId,
         events: formattedEvents,
       });
@@ -538,6 +566,7 @@ export const syncGoogleCalendar = action({
 
 export const createEvent = action({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     title: v.string(),
     description: v.optional(v.string()),
@@ -546,8 +575,12 @@ export const createEvent = action({
     location: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await assertActionFamilyAccess(ctx, args.sessionToken, args.familyId);
     // 1. Get Integration
-    const integration = await ctx.runQuery(api.calendar.getCalendarIntegration, { familyId: args.familyId });
+    const integration = await ctx.runQuery(api.calendar.getCalendarIntegration, {
+      sessionToken: args.sessionToken,
+      familyId: args.familyId
+    });
     if (!integration || !integration.accessToken) {
       throw new Error("Calendar not connected");
     }
@@ -564,7 +597,10 @@ export const createEvent = action({
     });
 
     // 3. Trigger Sync to update local cache immediately
-    await ctx.runAction(api.calendar.syncGoogleCalendar, { familyId: args.familyId });
+    await ctx.runAction(api.calendar.syncGoogleCalendar, {
+      sessionToken: args.sessionToken,
+      familyId: args.familyId
+    });
 
     return { success: true };
   },
@@ -572,6 +608,7 @@ export const createEvent = action({
 
 export const updateEvent = action({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     eventId: v.string(), // Google Event ID
     title: v.string(),
@@ -581,8 +618,12 @@ export const updateEvent = action({
     location: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await assertActionFamilyAccess(ctx, args.sessionToken, args.familyId);
     // 1. Get Integration
-    const integration = await ctx.runQuery(api.calendar.getCalendarIntegration, { familyId: args.familyId });
+    const integration = await ctx.runQuery(api.calendar.getCalendarIntegration, {
+      sessionToken: args.sessionToken,
+      familyId: args.familyId
+    });
     if (!integration || !integration.accessToken) {
       throw new Error("Calendar not connected");
     }
@@ -600,7 +641,10 @@ export const updateEvent = action({
     });
 
     // 3. Trigger Sync
-    await ctx.runAction(api.calendar.syncGoogleCalendar, { familyId: args.familyId });
+    await ctx.runAction(api.calendar.syncGoogleCalendar, {
+      sessionToken: args.sessionToken,
+      familyId: args.familyId
+    });
 
     return { success: true };
   },
@@ -608,12 +652,17 @@ export const updateEvent = action({
 
 export const deleteEvent = action({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     eventId: v.string(), // Google Event ID
   },
   handler: async (ctx, args) => {
+    await assertActionFamilyAccess(ctx, args.sessionToken, args.familyId);
     // 1. Get Integration
-    const integration = await ctx.runQuery(api.calendar.getCalendarIntegration, { familyId: args.familyId });
+    const integration = await ctx.runQuery(api.calendar.getCalendarIntegration, {
+      sessionToken: args.sessionToken,
+      familyId: args.familyId
+    });
     if (!integration || !integration.accessToken) {
       throw new Error("Calendar not connected");
     }
@@ -626,7 +675,10 @@ export const deleteEvent = action({
     });
 
     // 3. Trigger Sync
-    await ctx.runAction(api.calendar.syncGoogleCalendar, { familyId: args.familyId });
+    await ctx.runAction(api.calendar.syncGoogleCalendar, {
+      sessionToken: args.sessionToken,
+      familyId: args.familyId
+    });
 
     return { success: true };
   },
@@ -636,11 +688,13 @@ export const deleteEvent = action({
 // ==================== CACHED EVENTS ====================
 export const getCachedEvents = query({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const events = await ctx.db
       .query("cachedCalendarEvents")
       .withIndex("by_family_start", (q) => q.eq("familyId", args.familyId))
@@ -660,8 +714,9 @@ export const getCachedEvents = query({
 });
 
 export const getUpcomingEvents = query({
-  args: { familyId: v.id("families"), limit: v.optional(v.number()) },
+  args: { sessionToken: v.string(), familyId: v.id("families"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const now = Date.now();
     const events = await ctx.db
       .query("cachedCalendarEvents")
@@ -678,6 +733,7 @@ export const getUpcomingEvents = query({
 
 export const syncCalendarEvents = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     events: v.array(
       v.object({
@@ -694,6 +750,7 @@ export const syncCalendarEvents = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     // Delete existing cached events for this family
     const existingEvents = await ctx.db
       .query("cachedCalendarEvents")
@@ -728,11 +785,13 @@ export const syncCalendarEvents = mutation({
 
 export const updateCalendarSettings = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     calendarId: v.optional(v.string()),
     syncedCalendarIds: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const integration = await ctx.db
       .query("calendarIntegrations")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -746,6 +805,5 @@ export const updateCalendarSettings = mutation({
     });
   },
 });
-
 
 

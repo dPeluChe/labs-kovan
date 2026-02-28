@@ -11,9 +11,11 @@ import { Calendar, MapPin, Clock, Settings, Plus, RefreshCw, ChevronLeft, Chevro
 import { Link } from "react-router-dom";
 import { EventFormModal } from "../components/calendar/EventFormModal";
 import { EventDetailModal } from "../components/calendar/EventDetailModal";
+import { useAuth } from "../contexts/AuthContext";
 
 export function CalendarPage() {
   const { currentFamily } = useFamily();
+  const { sessionToken } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Doc<"cachedCalendarEvents"> | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -24,21 +26,21 @@ export function CalendarPage() {
 
   const integration = useQuery(
     api.calendar.getCalendarIntegration,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const events = useQuery(
     api.calendar.getCachedEvents,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const syncCalendar = useAction(api.calendar.syncGoogleCalendar);
 
   const handleSync = async () => {
-    if (!currentFamily) return;
+    if (!currentFamily || !sessionToken) return;
     setIsSyncing(true);
     try {
-      await syncCalendar({ familyId: currentFamily._id });
+      await syncCalendar({ sessionToken, familyId: currentFamily._id });
     } catch (err) {
       console.error("Sync failed", err);
       alert("Error al sincronizar calendario");

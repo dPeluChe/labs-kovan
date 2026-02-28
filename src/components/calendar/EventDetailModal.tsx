@@ -4,6 +4,7 @@ import { useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { useFamily } from "../../contexts/FamilyContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../components/ui/Toast";
 import { MobileModal } from "../ui/MobileModal";
 import { EventFormModal } from "./EventFormModal";
@@ -16,6 +17,7 @@ interface EventDetailModalProps {
 
 export function EventDetailModal({ isOpen, onClose, event }: EventDetailModalProps) {
     const { currentFamily } = useFamily();
+    const { sessionToken } = useAuth();
     const deleteEvent = useAction(api.calendar.deleteEvent);
     const { showToast } = useToast();
 
@@ -29,8 +31,9 @@ export function EventDetailModal({ isOpen, onClose, event }: EventDetailModalPro
 
         setIsLoading(true);
         try {
-            if (currentFamily) {
+            if (currentFamily && sessionToken) {
                 await deleteEvent({
+                    sessionToken,
                     familyId: currentFamily._id,
                     eventId: event.externalId,
                 });

@@ -4,6 +4,7 @@ import { useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { useFamily } from "../../contexts/FamilyContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../components/ui/Toast";
 import { MobileModal } from "../ui/MobileModal";
 import { DateInput } from "../ui/DateInput";
@@ -19,6 +20,7 @@ interface EventFormModalProps {
 
 export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent, onSuccess }: EventFormModalProps) {
     const { currentFamily } = useFamily();
+    const { sessionToken } = useAuth();
     const createEvent = useAction(api.calendar.createEvent);
     const updateEvent = useAction(api.calendar.updateEvent);
     const { showToast } = useToast();
@@ -58,7 +60,7 @@ export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!currentFamily) return;
+        if (!currentFamily || !sessionToken) return;
 
         setIsLoading(true);
         try {
@@ -67,6 +69,7 @@ export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent
 
             if (existingEvent) {
                 await updateEvent({
+                    sessionToken,
                     familyId: currentFamily._id,
                     eventId: existingEvent.externalId,
                     title,
@@ -78,6 +81,7 @@ export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent
                 showToast("Evento actualizado", "success");
             } else {
                 await createEvent({
+                    sessionToken,
                     familyId: currentFamily._id,
                     title,
                     description: description || undefined,

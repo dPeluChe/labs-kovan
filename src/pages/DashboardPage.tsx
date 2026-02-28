@@ -45,7 +45,7 @@ export function DashboardPage() {
 
   const upcomingEvents = useQuery(
     api.calendar.getUpcomingEvents,
-    currentFamily ? { familyId: currentFamily._id, limit: 3 } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id, limit: 3 } : "skip"
   );
 
   // New queries
