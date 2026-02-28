@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
 import { requireFamilyAccessFromSession } from "./lib/auth";
 
 // ==================== TYPE DEFINITIONS ====================
@@ -343,7 +343,7 @@ export const recordSubscriptionPayment = mutation({
 });
 
 // Agent-only helpers (called from server action after user/family validation in agent.ts)
-export const agentGetExpenseSummary = query({
+export const agentGetExpenseSummary = internalQuery({
   args: { familyId: v.id("families") },
   handler: async (ctx, args) => {
     const now = new Date();
@@ -374,7 +374,7 @@ export const agentGetExpenseSummary = query({
   },
 });
 
-export const agentCreateExpense = mutation({
+export const agentCreateExpense = internalMutation({
   args: {
     familyId: v.id("families"),
     type: EXPENSE_TYPE,

@@ -1,4 +1,4 @@
-import { api } from "../../_generated/api";
+import { api, internal } from "../../_generated/api";
 import type { ToolDefinition, ToolContext } from "./tools.types";
 
 // ==================== READ TOOLS ====================
@@ -14,7 +14,7 @@ export const getExpenseSummaryTool: ToolDefinition = {
 };
 
 export async function handleGetExpenseSummary(context: ToolContext) {
-    const summary = await context.ctx.runQuery(api.expenses.agentGetExpenseSummary, {
+    const summary = await context.ctx.runQuery(internal.expenses.agentGetExpenseSummary, {
         familyId: context.familyId
     });
 
@@ -98,7 +98,7 @@ export const registerExpenseTool: ToolDefinition = {
 export async function handleRegisterExpense(context: ToolContext, args: Record<string, unknown>) {
     const { description, amount, category, date } = args as { description: string; amount: number; category: string; date?: string };
 
-    await context.ctx.runMutation(api.expenses.agentCreateExpense, {
+    await context.ctx.runMutation(internal.expenses.agentCreateExpense, {
         familyId: context.familyId,
         description,
         amount,
