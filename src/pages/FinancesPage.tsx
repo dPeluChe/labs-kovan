@@ -68,11 +68,15 @@ export function FinancesPage() {
 
 function LoansView() {
   const { currentFamily } = useFamily();
+  const { sessionToken } = useAuth();
   const [showNewLoan, setShowNewLoan] = useState(false);
   const [paymentLoanId, setPaymentLoanId] = useState<Id<"loans"> | null>(null);
   const { confirm } = useConfirmModal();
 
-  const loans = useQuery(api.loans.list, currentFamily ? { familyId: currentFamily._id } : "skip");
+  const loans = useQuery(
+    api.loans.list,
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
+  );
   const deleteLoan = useMutation(api.loans.deleteLoan);
 
   if (!loans) return <SkeletonPageContent cards={3} />;
@@ -157,7 +161,7 @@ function LoansView() {
                       className="btn btn-ghost btn-xs text-base-content/40 hover:text-error"
                       onClick={async () => {
                         if (await confirm({ title: "Borrar préstamo", message: "Esto eliminará el registro y sus abonos.", variant: "danger" })) {
-                          deleteLoan({ loanId: loan._id });
+                          if (sessionToken) deleteLoan({ sessionToken, loanId: loan._id });
                         }
                       }}
                     >
@@ -172,11 +176,12 @@ function LoansView() {
       )}
 
       {currentFamily && showNewLoan && (
-        <NewLoanModal familyId={currentFamily._id} onClose={() => setShowNewLoan(false)} />
+        <NewLoanModal sessionToken={sessionToken ?? ""} familyId={currentFamily._id} onClose={() => setShowNewLoan(false)} />
       )}
 
       {currentFamily && paymentLoanId && (
         <PaymentModal
+          sessionToken={sessionToken ?? ""}
           loanId={paymentLoanId}
           familyId={currentFamily._id}
           onClose={() => setPaymentLoanId(null)}
@@ -186,7 +191,7 @@ function LoansView() {
   );
 }
 
-function NewLoanModal({ familyId, onClose }: { familyId: Id<"families">, onClose: () => void }) {
+function NewLoanModal({ sessionToken, familyId, onClose }: { sessionToken: string, familyId: Id<"families">, onClose: () => void }) {
   const createLoan = useMutation(api.loans.create);
   const [type, setType] = useState<"lent" | "borrowed">("lent");
   const [person, setPerson] = useState("");
@@ -199,7 +204,9 @@ function NewLoanModal({ familyId, onClose }: { familyId: Id<"families">, onClose
     if (!person || !amount) return;
     setIsLoading(true);
     try {
+      if (!sessionToken) return;
       await createLoan({
+        sessionToken,
         familyId,
         type,
         personName: person,
@@ -249,7 +256,7 @@ function NewLoanModal({ familyId, onClose }: { familyId: Id<"families">, onClose
   );
 }
 
-function PaymentModal({ loanId, familyId, onClose }: { loanId: Id<"loans">, familyId: Id<"families">, onClose: () => void }) {
+function PaymentModal({ sessionToken, loanId, familyId, onClose }: { sessionToken: string, loanId: Id<"loans">, familyId: Id<"families">, onClose: () => void }) {
   const addPayment = useMutation(api.loans.addPayment);
   // unused familyId warning
   console.log("Family context:", familyId);
@@ -263,7 +270,9 @@ function PaymentModal({ loanId, familyId, onClose }: { loanId: Id<"loans">, fami
     if (!amount) return;
     setIsLoading(true);
     try {
+      if (!sessionToken) return;
       await addPayment({
+        sessionToken,
         loanId,
         amount: parseFloat(amount),
         date: new Date(date).getTime(),

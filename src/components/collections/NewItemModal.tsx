@@ -4,17 +4,17 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { MobileModal } from "../ui/MobileModal";
 import { TYPE_CONFIG, STATUS_LABELS, type CollectionType, type CollectionStatus } from "./CollectionConstants";
-import { useAuth } from "../../contexts/AuthContext";
 import type { Id } from "../../../convex/_generated/dataModel";
 
 export function NewItemModal({
+    sessionToken,
     familyId,
     onClose,
 }: {
+    sessionToken: string;
     familyId: Id<"families">;
     onClose: () => void;
 }) {
-    const { user } = useAuth();
     const [type, setType] = useState<Exclude<CollectionType, "all">>("book");
     const [title, setTitle] = useState("");
     const [creator, setCreator] = useState("");
@@ -29,14 +29,12 @@ export function NewItemModal({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title.trim()) return;
-        if (!user) {
-            console.error("User not found");
-            return;
-        }
+        if (!sessionToken) return;
 
         setIsLoading(true);
         try {
             await createItem({
+                sessionToken,
                 familyId,
                 type,
                 title: title.trim(),
@@ -45,7 +43,6 @@ export function NewItemModal({
                 volumeOrVersion: volumeOrVersion.trim() || undefined,
                 owned,
                 status,
-                addedBy: user._id,
             });
             onClose();
         } catch (err) {

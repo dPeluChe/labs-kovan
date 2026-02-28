@@ -40,6 +40,7 @@ export const getLoansTool: ToolDefinition = {
 
 export async function handleGetLoans(context: ToolContext) {
     const loans = await context.ctx.runQuery(api.loans.list, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId
     });
 
@@ -138,6 +139,7 @@ export async function handleRegisterLoan(context: ToolContext, args: Record<stri
     const { type, personName, amount } = args as { type: string; personName: string; amount: number };
 
     await context.ctx.runMutation(api.loans.create, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId,
         type: type as "lent" | "borrowed",
         personName,

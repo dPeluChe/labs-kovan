@@ -5,6 +5,7 @@ import { Trash2, Check, ShoppingCart, Box, MoreVertical } from "lucide-react";
 import { TYPE_CONFIG, STATUS_LABELS } from "./CollectionConstants";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import type { ConfirmOptions } from "../../hooks/useConfirmModal";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function ItemCard({
     item,
@@ -17,11 +18,13 @@ export function ItemCard({
 }) {
     const updateItem = useMutation(api.collections.updateItem);
     const deleteItem = useMutation(api.collections.deleteItem);
+    const { sessionToken } = useAuth();
 
     const TypeIcon = TYPE_CONFIG[item.type]?.icon || Box;
 
     const toggleOwned = async () => {
-        await updateItem({ itemId: item._id, owned: !item.owned });
+        if (!sessionToken) return;
+        await updateItem({ sessionToken, itemId: item._id, owned: !item.owned });
     };
 
     const handleDelete = async () => {
@@ -32,7 +35,8 @@ export function ItemCard({
             variant: "danger",
         });
         if (confirmed) {
-            await deleteItem({ itemId: item._id });
+            if (!sessionToken) return;
+            await deleteItem({ sessionToken, itemId: item._id });
         }
     };
 

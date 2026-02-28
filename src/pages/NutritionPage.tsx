@@ -219,6 +219,7 @@ export function NutritionPage() {
                     {view === "tracker" ? (
                         activeParticipant.personId ? (
                             <DailyTracker
+                                sessionToken={sessionToken ?? ""}
                                 familyId={currentFamily._id}
                                 personId={activeParticipant.personId}
                             />
@@ -236,6 +237,7 @@ export function NutritionPage() {
                         )
                     ) : (
                         <PlansManager
+                            sessionToken={sessionToken ?? ""}
                             familyId={currentFamily._id}
                             onAssign={handleInitiateAssign}
                             onCreate={handleCreatePlan}
@@ -253,7 +255,7 @@ export function NutritionPage() {
     );
 }
 
-function DailyTracker({ familyId, personId }: { familyId: Id<"families">, personId: Id<"personProfiles"> }) {
+function DailyTracker({ sessionToken, familyId, personId }: { sessionToken: string, familyId: Id<"families">, personId: Id<"personProfiles"> }) {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [showMealModal, setShowMealModal] = useState(false);
 
@@ -267,16 +269,19 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
 
     // Queries
     const activeAssignment = useQuery(api.nutrition.getActiveAssignment, {
+        sessionToken,
         personId,
         date: queryTimestamp,
     });
 
     const dailyLog = useQuery(api.nutrition.getDailyLog, {
+        sessionToken,
         personId,
         date: dateStr,
     });
 
     const todayMeals = useQuery(api.nutrition.getMeals, {
+        sessionToken,
         personId,
         date: dateStr,
     });
@@ -285,6 +290,7 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
 
     const handleLog = (type: string, delta: number) => {
         logIntake({
+            sessionToken,
             familyId,
             personId,
             date: dateStr,
@@ -320,6 +326,7 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
         <div className="px-4 space-y-4">
             {showMealModal && (
                 <LogMealModal
+                    sessionToken={sessionToken}
                     familyId={familyId}
                     personId={personId}
                     date={dateStr}
@@ -473,14 +480,15 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
 }
 
 interface PlansManagerProps {
+    sessionToken: string;
     familyId: Id<"families">;
     onCreate: () => void;
     onAssign: (plan: Doc<"nutritionPlans">) => void;
     onEdit: (plan: Doc<"nutritionPlans">) => void;
 }
 
-function PlansManager({ familyId, onCreate, onAssign, onEdit }: PlansManagerProps) {
-    const plans = useQuery(api.nutrition.getPlans, { familyId });
+function PlansManager({ sessionToken, familyId, onCreate, onAssign, onEdit }: PlansManagerProps) {
+    const plans = useQuery(api.nutrition.getPlans, { sessionToken, familyId });
 
     return (
         <div className="px-4 space-y-4">
@@ -554,8 +562,7 @@ const NUTRIENTS = [
     // Removed Water and Other for Plan creation
 ] as const;
 
-function LogMealModal({ familyId, personId, date, plan, onClose }: { familyId: Id<"families">, personId: Id<"personProfiles">, date: string, plan?: Doc<"nutritionPlans"> | null, onClose: () => void }) {
-    const { user } = useAuth();
+function LogMealModal({ sessionToken, familyId, personId, date, plan, onClose }: { sessionToken: string, familyId: Id<"families">, personId: Id<"personProfiles">, date: string, plan?: Doc<"nutritionPlans"> | null, onClose: () => void }) {
     const logMeal = useMutation(api.nutrition.logMeal);
     const [name, setName] = useState("");
     const [counts, setCounts] = useState<Record<string, number>>({});
@@ -595,12 +602,12 @@ function LogMealModal({ familyId, personId, date, plan, onClose }: { familyId: I
         setIsLoading(true);
         try {
             await logMeal({
+                sessionToken,
                 familyId,
                 personId,
                 date,
                 name,
                 content: counts,
-                addedBy: user?._id,
             });
             onClose();
         } catch (e) {
@@ -700,7 +707,7 @@ function LogMealModal({ familyId, personId, date, plan, onClose }: { familyId: I
 }
 
 function PlanEditor({ familyId, plan, onClose }: { familyId: Id<"families">, plan: Doc<"nutritionPlans"> | null, onClose: () => void }) {
-    const { user } = useAuth(); // <--- Get current user from context
+    const { sessionToken } = useAuth();
     const createPlan = useMutation(api.nutrition.createPlan);
     const updatePlan = useMutation(api.nutrition.updatePlan);
 
@@ -768,6 +775,7 @@ function PlanEditor({ familyId, plan, onClose }: { familyId: Id<"families">, pla
 
             if (plan) {
                 await updatePlan({
+                    sessionToken: sessionToken ?? "",
                     planId: plan._id,
                     name: formData.name,
                     description: formData.description,
@@ -775,11 +783,11 @@ function PlanEditor({ familyId, plan, onClose }: { familyId: Id<"families">, pla
                 });
             } else {
                 await createPlan({
+                    sessionToken: sessionToken ?? "",
                     familyId,
                     name: formData.name,
                     description: formData.description,
                     targets,
-                    createdBy: user?._id, // <--- Pass user ID
                 });
             }
             onClose();
@@ -974,6 +982,7 @@ function CounterInput({ value, onChange, min = 0, max = 50 }: { value: number, o
 }
 
 function AssignPlanModal({ familyId, personId, plan, onClose }: { familyId: Id<"families">, personId: Id<"personProfiles">, plan: Doc<"nutritionPlans">, onClose: () => void }) {
+    const { sessionToken } = useAuth();
     const assignPlan = useMutation(api.nutrition.assignPlan);
     const [dates, setDates] = useState({
         start: getLocalDateString(),
@@ -990,6 +999,7 @@ function AssignPlanModal({ familyId, personId, plan, onClose }: { familyId: Id<"
             const endTs = new Date(dates.end + "T23:59:59.999").getTime();
 
             await assignPlan({
+                sessionToken: sessionToken ?? "",
                 familyId,
                 personId,
                 planId: plan._id,

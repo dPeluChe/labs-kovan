@@ -1,11 +1,21 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireFamilyAccessFromSession, requireUserFromSessionToken } from "./lib/auth";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getLoanWithAccessOrThrow(ctx: any, sessionToken: string, loanId: any) {
+    const loan = await ctx.db.get(loanId);
+    if (!loan) throw new Error("Préstamo no encontrado");
+    await requireFamilyAccessFromSession(ctx, sessionToken, loan.familyId);
+    return loan;
+}
 
 // ==================== QUERIES ====================
 
 export const list = query({
-    args: { familyId: v.id("families") },
+    args: { sessionToken: v.string(), familyId: v.id("families") },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         return await ctx.db
             .query("loans")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -15,8 +25,9 @@ export const list = query({
 });
 
 export const getPayments = query({
-    args: { loanId: v.id("loans") },
+    args: { sessionToken: v.string(), loanId: v.id("loans") },
     handler: async (ctx, args) => {
+        await getLoanWithAccessOrThrow(ctx, args.sessionToken, args.loanId);
         return await ctx.db
             .query("loanPayments")
             .withIndex("by_loan", (q) => q.eq("loanId", args.loanId))
@@ -29,6 +40,7 @@ export const getPayments = query({
 
 export const create = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
         type: v.union(v.literal("lent"), v.literal("borrowed")),
         personName: v.string(),
@@ -40,25 +52,8 @@ export const create = mutation({
         relatedExpenseId: v.optional(v.id("expenses")),
     },
     handler: async (ctx, args) => {
-        const userId = (await ctx.auth.getUserIdentity())?.subject;
-        if (!userId) {
-            // Logic for user ID retrieval can be improved if we look up the internal user ID
-            // But for now, we rely on the client passing the internal ID or we fetch it.
-            // However, typical pattern uses the internal ID in the schema.
-            throw new Error("Unauthorized");
-        }
-
-        // Since schema requires createdBy as internal ID, we must find the user first.
-        // For now we assume the frontend ensures context or we fetch user.
-        // Optimization: define a helper or assume user is already authenticated and mapped.
-
-        // Let's look up the user by token
-        const user = await ctx.db
-            .query("users")
-            .withIndex("by_token", (q) => q.eq("tokenIdentifier", userId))
-            .unique();
-
-        if (!user) throw new Error("User not found");
+        const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
 
         const loanId = await ctx.db.insert("loans", {
             familyId: args.familyId,
@@ -81,24 +76,15 @@ export const create = mutation({
 
 export const addPayment = mutation({
     args: {
+        sessionToken: v.string(),
         loanId: v.id("loans"),
         amount: v.number(),
         date: v.number(),
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const userId = (await ctx.auth.getUserIdentity())?.subject;
-        if (!userId) throw new Error("Unauthorized");
-
-        const user = await ctx.db
-            .query("users")
-            .withIndex("by_token", (q) => q.eq("tokenIdentifier", userId))
-            .unique();
-
-        if (!user) throw new Error("User not found");
-
-        const loan = await ctx.db.get(args.loanId);
-        if (!loan) throw new Error("Loan not found");
+        const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+        const loan = await getLoanWithAccessOrThrow(ctx, args.sessionToken, args.loanId);
 
         // Add payment record
         await ctx.db.insert("loanPayments", {
@@ -122,6 +108,7 @@ export const addPayment = mutation({
 
 export const update = mutation({
     args: {
+        sessionToken: v.string(),
         loanId: v.id("loans"),
         personName: v.optional(v.string()),
         dueDate: v.optional(v.number()),
@@ -131,14 +118,16 @@ export const update = mutation({
         ),
     },
     handler: async (ctx, args) => {
-        const { loanId, ...updates } = args;
+        await getLoanWithAccessOrThrow(ctx, args.sessionToken, args.loanId);
+        const { loanId, sessionToken: _sessionToken, ...updates } = args;
         await ctx.db.patch(loanId, updates);
     },
 });
 
 export const deleteLoan = mutation({
-    args: { loanId: v.id("loans") },
+    args: { sessionToken: v.string(), loanId: v.id("loans") },
     handler: async (ctx, args) => {
+        await getLoanWithAccessOrThrow(ctx, args.sessionToken, args.loanId);
         // Delete payments first? Or cascade? Convex doesn't cascade automatically.
         // For now, let's just delete the loan. Orphaned payments might be an issue technically,
         // but we can clean them up.

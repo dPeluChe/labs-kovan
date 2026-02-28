@@ -7,6 +7,7 @@ import { DateInput } from "../../ui/DateInput";
 import { TextArea } from "../../ui/TextArea";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { MobileModal } from "../../ui/MobileModal";
+import { useAuth } from "../../../contexts/AuthContext";
 
 type NutritionType = "food" | "treats" | "supplement" | "other";
 
@@ -26,6 +27,7 @@ export function AddNutritionModal({
     const [store, setStore] = useState("");
     const [notes, setNotes] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const { sessionToken } = useAuth();
 
     const createRecord = useMutation(api.petNutrition.createNutritionRecord);
 
@@ -35,7 +37,9 @@ export function AddNutritionModal({
 
         setIsLoading(true);
         try {
+            if (!sessionToken) return;
             await createRecord({
+                sessionToken,
                 personId,
                 brand: brand.trim(),
                 productName: productName.trim() || undefined,

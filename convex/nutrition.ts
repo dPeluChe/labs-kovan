@@ -1,11 +1,29 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireFamilyAccessFromSession, requireUserFromSessionToken } from "./lib/auth";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getPersonWithAccessOrThrow(ctx: any, sessionToken: string, personId: any) {
+    const person = await ctx.db.get(personId);
+    if (!person) throw new Error("Perfil no encontrado");
+    await requireFamilyAccessFromSession(ctx, sessionToken, person.familyId);
+    return person;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getPlanWithAccessOrThrow(ctx: any, sessionToken: string, planId: any) {
+    const plan = await ctx.db.get(planId);
+    if (!plan) throw new Error("Plan no encontrado");
+    await requireFamilyAccessFromSession(ctx, sessionToken, plan.familyId);
+    return plan;
+}
 
 // ==================== PLANS ====================
 
 export const getPlans = query({
-    args: { familyId: v.id("families") },
+    args: { sessionToken: v.string(), familyId: v.id("families") },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         return await ctx.db
             .query("nutritionPlans")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -15,10 +33,10 @@ export const getPlans = query({
 
 export const createPlan = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
         name: v.string(),
         description: v.optional(v.string()),
-        createdBy: v.optional(v.id("users")),
         targets: v.object({
             calories: v.optional(v.number()),
             protein: v.optional(v.number()),
@@ -31,27 +49,15 @@ export const createPlan = mutation({
         }),
     },
     handler: async (ctx, args) => {
-        let userId = args.createdBy;
-
-        if (!userId) {
-            const identity = await ctx.auth.getUserIdentity();
-            if (identity) {
-                const user = await ctx.db
-                    .query("users")
-                    .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.subject))
-                    .first();
-                if (user) userId = user._id;
-            }
-        }
-
-        if (!userId) throw new Error("Not authenticated");
+        const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
 
         const planId = await ctx.db.insert("nutritionPlans", {
             familyId: args.familyId,
             name: args.name,
             description: args.description,
             targets: args.targets,
-            createdBy: userId,
+            createdBy: user._id,
         });
         return planId;
     },
@@ -59,6 +65,7 @@ export const createPlan = mutation({
 
 export const updatePlan = mutation({
     args: {
+        sessionToken: v.string(),
         planId: v.id("nutritionPlans"),
         name: v.optional(v.string()),
         description: v.optional(v.string()),
@@ -76,7 +83,8 @@ export const updatePlan = mutation({
         ),
     },
     handler: async (ctx, args) => {
-        const { planId, ...updates } = args;
+        await getPlanWithAccessOrThrow(ctx, args.sessionToken, args.planId);
+        const { planId, sessionToken: _sessionToken, ...updates } = args;
         await ctx.db.patch(planId, updates);
     },
 });
@@ -85,6 +93,7 @@ export const updatePlan = mutation({
 
 export const assignPlan = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
         planId: v.id("nutritionPlans"),
         personId: v.id("personProfiles"),
@@ -92,6 +101,12 @@ export const assignPlan = mutation({
         endDate: v.number(),
     },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+        const plan = await getPlanWithAccessOrThrow(ctx, args.sessionToken, args.planId);
+        const person = await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
+        if (plan.familyId !== args.familyId || person.familyId !== args.familyId) {
+            throw new Error("Plan o perfil no pertenecen a la familia");
+        }
         // 1. Validate dates
         if (args.endDate < args.startDate) {
             throw new Error("La fecha de fin debe ser posterior a la fecha de inicio");
@@ -128,8 +143,9 @@ export const assignPlan = mutation({
 });
 
 export const getAssignments = query({
-    args: { personId: v.id("personProfiles") },
+    args: { sessionToken: v.string(), personId: v.id("personProfiles") },
     handler: async (ctx, args) => {
+        await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
         const assignments = await ctx.db
             .query("nutritionAssignments")
             .withIndex("by_person", (q) => q.eq("personId", args.personId))
@@ -148,10 +164,12 @@ export const getAssignments = query({
 
 export const getActiveAssignment = query({
     args: {
+        sessionToken: v.string(),
         personId: v.id("personProfiles"),
         date: v.number(), // Timestamp within the day (e.g., now)
     },
     handler: async (ctx, args) => {
+        await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
         // Find assignment that covers this date
         const assignments = await ctx.db
             .query("nutritionAssignments")
@@ -176,10 +194,12 @@ export const getActiveAssignment = query({
 
 export const getDailyLog = query({
     args: {
+        sessionToken: v.string(),
         personId: v.id("personProfiles"),
         date: v.string(), // YYYY-MM-DD
     },
     handler: async (ctx, args) => {
+        await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
         const log = await ctx.db
             .query("nutritionLogs")
             .withIndex("by_person_date", (q) =>
@@ -193,6 +213,7 @@ export const getDailyLog = query({
 
 export const logIntake = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
         personId: v.id("personProfiles"),
         date: v.string(), // YYYY-MM-DD
@@ -200,6 +221,11 @@ export const logIntake = mutation({
         delta: v.number(), // +1 or -1
     },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+        const person = await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
+        if (person.familyId !== args.familyId) {
+            throw new Error("Perfil no pertenece a la familia");
+        }
         const existing = await ctx.db
             .query("nutritionLogs")
             .withIndex("by_person_date", (q) =>
@@ -233,10 +259,12 @@ export const logIntake = mutation({
 
 export const getMeals = query({
     args: {
+        sessionToken: v.string(),
         personId: v.id("personProfiles"),
         date: v.string(), // YYYY-MM-DD
     },
     handler: async (ctx, args) => {
+        await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
         return await ctx.db
             .query("nutritionMeals")
             .withIndex("by_person_date", (q) =>
@@ -249,6 +277,7 @@ export const getMeals = query({
 
 export const logMeal = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
         personId: v.id("personProfiles"),
         date: v.string(),
@@ -264,19 +293,13 @@ export const logMeal = mutation({
             water: v.optional(v.number()),
             other: v.optional(v.number()),
         }),
-        addedBy: v.optional(v.id("users")),
     },
     handler: async (ctx, args) => {
-        let userId = args.addedBy;
-        if (!userId) {
-            const identity = await ctx.auth.getUserIdentity();
-            if (identity) {
-                const user = await ctx.db
-                    .query("users")
-                    .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.subject))
-                    .first();
-                if (user) userId = user._id;
-            }
+        const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+        const person = await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
+        if (person.familyId !== args.familyId) {
+            throw new Error("Perfil no pertenece a la familia");
         }
 
         // 1. Record the individual meal
@@ -287,7 +310,7 @@ export const logMeal = mutation({
             name: args.name,
             content: args.content,
             timestamp: Date.now(),
-            addedBy: userId,
+            addedBy: user._id,
         });
 
         // 2. Update the daily log aggregates

@@ -13,19 +13,19 @@ import { MobileModal } from "../components/ui/MobileModal";
 
 export function RecipesPage() {
   const { currentFamily } = useFamily();
-  const { user } = useAuth();
+  const { sessionToken } = useAuth();
   const [showNewRecipe, setShowNewRecipe] = useState(false);
   const { confirm, ConfirmModal } = useConfirmModal();
 
   const recipes = useQuery(
     api.recipes.getRecipes,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const toggleFavorite = useMutation(api.recipes.toggleFavorite);
   const deleteRecipe = useMutation(api.recipes.deleteRecipe);
 
-  if (!currentFamily || !user) return null;
+  if (!currentFamily || !sessionToken) return null;
 
   const favorites = recipes?.filter((r) => r.isFavorite) || [];
   const others = recipes?.filter((r) => !r.isFavorite) || [];
@@ -76,7 +76,7 @@ export function RecipesPage() {
                     <RecipeCard
                       key={recipe._id}
                       recipe={recipe}
-                      onToggleFavorite={() => toggleFavorite({ recipeId: recipe._id })}
+                      onToggleFavorite={() => toggleFavorite({ sessionToken, recipeId: recipe._id })}
                       onDelete={async () => {
                         const confirmed = await confirm({
                           title: "Eliminar receta",
@@ -87,7 +87,7 @@ export function RecipesPage() {
                           icon: "trash",
                         });
                         if (confirmed) {
-                          await deleteRecipe({ recipeId: recipe._id });
+                          await deleteRecipe({ sessionToken, recipeId: recipe._id });
                         }
                       }}
                     />
@@ -106,7 +106,7 @@ export function RecipesPage() {
                     <RecipeCard
                       key={recipe._id}
                       recipe={recipe}
-                      onToggleFavorite={() => toggleFavorite({ recipeId: recipe._id })}
+                      onToggleFavorite={() => toggleFavorite({ sessionToken, recipeId: recipe._id })}
                       onDelete={async () => {
                         const confirmed = await confirm({
                           title: "Eliminar receta",
@@ -117,7 +117,7 @@ export function RecipesPage() {
                           icon: "trash",
                         });
                         if (confirmed) {
-                          await deleteRecipe({ recipeId: recipe._id });
+                          await deleteRecipe({ sessionToken, recipeId: recipe._id });
                         }
                       }}
                     />
@@ -129,10 +129,10 @@ export function RecipesPage() {
         )}
       </div>
 
-      {showNewRecipe && currentFamily && user && (
+      {showNewRecipe && currentFamily && sessionToken && (
         <NewRecipeModal
+          sessionToken={sessionToken}
           familyId={currentFamily._id}
-          userId={user._id}
           onClose={() => setShowNewRecipe(false)}
         />
       )}
@@ -203,12 +203,12 @@ function RecipeCard({
 }
 
 function NewRecipeModal({
+  sessionToken,
   familyId,
-  userId,
   onClose,
 }: {
+  sessionToken: string;
   familyId: Id<"families">;
-  userId: Id<"users">;
   onClose: () => void;
 }) {
   const [title, setTitle] = useState("");
@@ -224,12 +224,13 @@ function NewRecipeModal({
 
     setIsLoading(true);
     try {
+      if (!sessionToken) return;
       await createRecipe({
+        sessionToken,
         familyId,
         title: title.trim(),
         url: url.trim() || undefined,
         category: category.trim() || undefined,
-        addedBy: userId,
       });
       onClose();
     } finally {

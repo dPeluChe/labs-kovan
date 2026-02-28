@@ -35,7 +35,7 @@ export function DashboardPage() {
 
   const librarySummary = useQuery(
     api.collections.getCollectionSummary,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const vehiclesSummary = useQuery(
@@ -56,7 +56,7 @@ export function DashboardPage() {
 
   const recipesSummary = useQuery(
     api.recipes.getRecipeSummary,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const placesSummary = useQuery(

@@ -16,6 +16,7 @@ export const getCollectionsTool: ToolDefinition = {
 
 export async function handleGetCollections(context: ToolContext) {
     const collections = await context.ctx.runQuery(api.collections.getCollections, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId
     });
 
@@ -68,13 +69,13 @@ export async function handleAddToCollection(context: ToolContext, args: Record<s
     const { type, title, creator } = args as { type: string; title: string; creator?: string };
 
     await context.ctx.runMutation(api.collections.createItem, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId,
         type: type as "book" | "manga" | "comic" | "board_game" | "video_game" | "collectible" | "other",
         title,
         creator,
         owned: true,
-        status: "wishlist",
-        addedBy: context.userId
+        status: "wishlist"
     });
 
     return { success: true, message: `Agregado a la colección: ${title}` };

@@ -1,9 +1,19 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { requireFamilyAccessFromSession, requireUserFromSessionToken } from "./lib/auth";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getRecipeWithAccessOrThrow(ctx: any, sessionToken: string, recipeId: any) {
+  const recipe = await ctx.db.get(recipeId);
+  if (!recipe) throw new Error("Receta no encontrada");
+  await requireFamilyAccessFromSession(ctx, sessionToken, recipe.familyId);
+  return recipe;
+}
 
 export const getRecipes = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     return await ctx.db
       .query("recipes")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -12,14 +22,15 @@ export const getRecipes = query({
 });
 
 export const getRecipe = query({
-  args: { recipeId: v.id("recipes") },
+  args: { sessionToken: v.string(), recipeId: v.id("recipes") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.recipeId);
+    return await getRecipeWithAccessOrThrow(ctx, args.sessionToken, args.recipeId);
   },
 });
 
 export const createRecipe = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     title: v.string(),
     url: v.optional(v.string()),
@@ -27,11 +38,14 @@ export const createRecipe = mutation({
     description: v.optional(v.string()),
     category: v.optional(v.string()),
     notes: v.optional(v.string()),
-    addedBy: v.id("users"),
   },
   handler: async (ctx, args) => {
+    const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+    const { sessionToken: _sessionToken, ...payload } = args;
     return await ctx.db.insert("recipes", {
-      ...args,
+      ...payload,
+      addedBy: user._id,
       isFavorite: false,
     });
   },
@@ -39,6 +53,7 @@ export const createRecipe = mutation({
 
 export const updateRecipe = mutation({
   args: {
+    sessionToken: v.string(),
     recipeId: v.id("recipes"),
     title: v.optional(v.string()),
     url: v.optional(v.string()),
@@ -49,7 +64,8 @@ export const updateRecipe = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { recipeId, ...updates } = args;
+    await getRecipeWithAccessOrThrow(ctx, args.sessionToken, args.recipeId);
+    const { recipeId, sessionToken: _sessionToken, ...updates } = args;
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([, v]) => v !== undefined)
     );
@@ -58,10 +74,9 @@ export const updateRecipe = mutation({
 });
 
 export const toggleFavorite = mutation({
-  args: { recipeId: v.id("recipes") },
+  args: { sessionToken: v.string(), recipeId: v.id("recipes") },
   handler: async (ctx, args) => {
-    const recipe = await ctx.db.get(args.recipeId);
-    if (!recipe) throw new Error("Recipe not found");
+    const recipe = await getRecipeWithAccessOrThrow(ctx, args.sessionToken, args.recipeId);
     return await ctx.db.patch(args.recipeId, {
       isFavorite: !recipe.isFavorite,
     });
@@ -69,15 +84,17 @@ export const toggleFavorite = mutation({
 });
 
 export const deleteRecipe = mutation({
-  args: { recipeId: v.id("recipes") },
+  args: { sessionToken: v.string(), recipeId: v.id("recipes") },
   handler: async (ctx, args) => {
+    await getRecipeWithAccessOrThrow(ctx, args.sessionToken, args.recipeId);
     return await ctx.db.delete(args.recipeId);
   },
 });
 
 export const getRecipeSummary = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const recipes = await ctx.db
       .query("recipes")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))

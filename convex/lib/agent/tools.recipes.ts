@@ -32,12 +32,12 @@ export async function handleAddRecipe(context: ToolContext, args: Record<string,
     const { title, category, description, notes } = args as { title: string; category?: string; description?: string; notes?: string };
 
     await context.ctx.runMutation(api.recipes.createRecipe, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId,
         title,
         category,
         description,
-        notes,
-        addedBy: context.userId
+        notes
     });
 
     return { success: true, message: `Receta guardada: ${title}.` };

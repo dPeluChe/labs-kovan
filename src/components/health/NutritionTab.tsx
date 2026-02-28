@@ -6,6 +6,7 @@ import { EmptyState } from "../ui/EmptyState";
 import { PageLoader } from "../ui/LoadingSpinner";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { ConfirmOptions } from "../../hooks/useConfirmModal";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function NutritionTab({
     personId,
@@ -16,7 +17,11 @@ export function NutritionTab({
     onAdd: () => void;
     confirmDialog: (options: ConfirmOptions) => Promise<boolean>;
 }) {
-    const history = useQuery(api.petNutrition.getNutritionHistory, { personId });
+    const { sessionToken } = useAuth();
+    const history = useQuery(
+        api.petNutrition.getNutritionHistory,
+        sessionToken ? { sessionToken, personId } : "skip"
+    );
     const deleteRecord = useMutation(api.petNutrition.deleteNutritionRecord);
 
     if (history === undefined) return <PageLoader />;
@@ -32,7 +37,8 @@ export function NutritionTab({
         });
 
         if (confirmed) {
-            await deleteRecord({ id: recordId });
+            if (!sessionToken) return;
+            await deleteRecord({ sessionToken, id: recordId });
         }
     };
 

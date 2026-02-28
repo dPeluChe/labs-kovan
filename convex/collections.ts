@@ -1,12 +1,22 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireFamilyAccessFromSession, requireUserFromSessionToken } from "./lib/auth";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getCollectionItemWithAccessOrThrow(ctx: any, sessionToken: string, itemId: any) {
+    const item = await ctx.db.get(itemId);
+    if (!item) throw new Error("Item no encontrado");
+    await requireFamilyAccessFromSession(ctx, sessionToken, item.familyId);
+    return item;
+}
 
 // ==================== QUERIES ====================
 
 export const getCollections = query({
-    args: { familyId: v.id("families") },
+    args: { sessionToken: v.string(), familyId: v.id("families") },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         return await ctx.db
             .query("collections")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -16,10 +26,12 @@ export const getCollections = query({
 
 export const getCollectionsBySeries = query({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
         series: v.string(),
     },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         return await ctx.db
             .query("collections")
             .withIndex("by_series", (q) =>
@@ -30,8 +42,9 @@ export const getCollectionsBySeries = query({
 });
 
 export const getCollectionSummary = query({
-    args: { familyId: v.id("families") },
+    args: { sessionToken: v.string(), familyId: v.id("families") },
     handler: async (ctx, args) => {
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         const items = await ctx.db
             .query("collections")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -87,6 +100,7 @@ export const getCollectionSummary = query({
 
 export const createItem = mutation({
     args: {
+        sessionToken: v.string(),
         familyId: v.id("families"),
         type: v.union(
             v.literal("book"),
@@ -114,19 +128,21 @@ export const createItem = mutation({
         notes: v.optional(v.string()),
         imageUrl: v.optional(v.string()),
         imageStorageId: v.optional(v.id("_storage")),
-        addedBy: v.id("users"), // Required now
     },
     handler: async (ctx, args) => {
-        // Disabled strict auth for demo mode compatibility
-        // const userId = (await ctx.auth.getUserIdentity())?.subject;
-        // if (!userId) throw new Error("Unauthorized");
-
-        return await ctx.db.insert("collections", args);
+        const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+        const { sessionToken: _sessionToken, ...payload } = args;
+        return await ctx.db.insert("collections", {
+            ...payload,
+            addedBy: user._id,
+        });
     },
 });
 
 export const updateItem = mutation({
     args: {
+        sessionToken: v.string(),
         itemId: v.id("collections"),
         title: v.optional(v.string()),
         creator: v.optional(v.string()),
@@ -149,14 +165,16 @@ export const updateItem = mutation({
         imageStorageId: v.optional(v.id("_storage")),
     },
     handler: async (ctx, args) => {
-        const { itemId, ...updates } = args;
+        await getCollectionItemWithAccessOrThrow(ctx, args.sessionToken, args.itemId);
+        const { itemId, sessionToken: _sessionToken, ...updates } = args;
         await ctx.db.patch(itemId, updates);
     },
 });
 
 export const deleteItem = mutation({
-    args: { itemId: v.id("collections") },
+    args: { sessionToken: v.string(), itemId: v.id("collections") },
     handler: async (ctx, args) => {
+        await getCollectionItemWithAccessOrThrow(ctx, args.sessionToken, args.itemId);
         // Optionally delete image from storage if needed
         // const item = await ctx.db.get(args.itemId);
         // if (item?.imageStorageId) await ctx.storage.delete(item.imageStorageId);

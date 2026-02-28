@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
+import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { SkeletonPageContent } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -20,6 +21,7 @@ import { TYPE_CONFIG, type CollectionType } from "../components/collections/Coll
 
 export function CollectionsPage() {
   const { currentFamily } = useFamily();
+  const { sessionToken } = useAuth();
   const [showNewItem, setShowNewItem] = useState(false);
   const { confirm, ConfirmModal } = useConfirmModal();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,7 +30,7 @@ export function CollectionsPage() {
 
   const items = useQuery(
     api.collections.getCollections,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   if (!currentFamily) return null;
@@ -196,6 +198,7 @@ export function CollectionsPage() {
 
       {showNewItem && currentFamily && (
         <NewItemModal
+          sessionToken={sessionToken ?? ""}
           familyId={currentFamily._id}
           onClose={() => setShowNewItem(false)}
         />
