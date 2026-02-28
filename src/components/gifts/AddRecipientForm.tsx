@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Input } from "../ui/Input";
+import { useAuth } from "../../contexts/AuthContext";
 import type { Id } from "../../../convex/_generated/dataModel";
 
 export function AddRecipientForm({
@@ -14,14 +15,17 @@ export function AddRecipientForm({
 }) {
     const [name, setName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const { sessionToken } = useAuth();
     const createRecipient = useMutation(api.gifts.createGiftRecipient);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim()) return;
+        if (!sessionToken) return;
         setIsLoading(true);
         try {
             await createRecipient({
+                sessionToken,
                 giftEventId: eventId,
                 name: name.trim(),
             });

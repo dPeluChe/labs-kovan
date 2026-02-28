@@ -4,6 +4,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Input } from "../ui/Input";
 import { DateInput } from "../ui/DateInput";
+import { useAuth } from "../../contexts/AuthContext";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
 import { TextArea } from "../ui/TextArea";
@@ -21,16 +22,19 @@ export function EditEventForm({
     );
     const [description, setDescription] = useState(event.description || "");
     const [isLoading, setIsLoading] = useState(false);
+    const { sessionToken } = useAuth();
 
     const updateEvent = useMutation(api.gifts.updateGiftEvent);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim()) return;
+        if (!sessionToken) return;
 
         setIsLoading(true);
         try {
             await updateEvent({
+                sessionToken,
                 eventId: event._id,
                 name: name.trim(),
                 date: date ? new Date(date).getTime() : undefined,

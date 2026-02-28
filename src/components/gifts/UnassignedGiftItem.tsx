@@ -5,6 +5,7 @@ import { UserPlus, Edit2, Trash2 } from "lucide-react";
 import { STATUS_CONFIG, type GiftStatus } from "./GiftConstants";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import type { ConfirmOptions } from "../../hooks/useConfirmModal";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function UnassignedGiftItem({
     item,
@@ -21,6 +22,7 @@ export function UnassignedGiftItem({
 }) {
     const assignItem = useMutation(api.gifts.assignGiftItem);
     const deleteItem = useMutation(api.gifts.deleteGiftItem);
+    const { sessionToken } = useAuth();
     const statusConfig = STATUS_CONFIG[item.status as GiftStatus];
 
     const handleDelete = async () => {
@@ -33,7 +35,8 @@ export function UnassignedGiftItem({
             icon: "trash",
         });
         if (confirmed) {
-            await deleteItem({ itemId: item._id });
+            if (!sessionToken) return;
+            await deleteItem({ sessionToken, itemId: item._id });
         }
     };
 
@@ -57,7 +60,10 @@ export function UnassignedGiftItem({
                         <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 border border-base-300 z-50">
                             {recipients.map((recipient) => (
                                 <li key={recipient._id}>
-                                    <button onClick={() => assignItem({ itemId: item._id, giftRecipientId: recipient._id })}>
+                                    <button onClick={() => {
+                                        if (!sessionToken) return;
+                                        assignItem({ sessionToken, itemId: item._id, giftRecipientId: recipient._id });
+                                    }}>
                                         {recipient.name}
                                     </button>
                                 </li>

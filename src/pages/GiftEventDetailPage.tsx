@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -27,8 +26,7 @@ type FilterType = "all" | "pending" | "bought" | "gifts";
 export function GiftEventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
-  const { currentFamily } = useFamily();
-  const { user } = useAuth();
+  const { sessionToken } = useAuth();
 
   // Modals state
   const [showAddRecipient, setShowAddRecipient] = useState(false);
@@ -43,17 +41,17 @@ export function GiftEventDetailPage() {
   // Queries
   const event = useQuery(
     api.gifts.getGiftEvent,
-    eventId ? { eventId: eventId as Id<"giftEvents"> } : "skip"
+    eventId && sessionToken ? { sessionToken, eventId: eventId as Id<"giftEvents"> } : "skip"
   );
 
   const recipientsWithItems = useQuery(
     api.gifts.getAllGiftItemsForEvent,
-    eventId ? { eventId: eventId as Id<"giftEvents"> } : "skip"
+    eventId && sessionToken ? { sessionToken, eventId: eventId as Id<"giftEvents"> } : "skip"
   );
 
   const unassignedGifts = useQuery(
     api.gifts.getUnassignedGifts,
-    eventId ? { eventId: eventId as Id<"giftEvents"> } : "skip"
+    eventId && sessionToken ? { sessionToken, eventId: eventId as Id<"giftEvents"> } : "skip"
   );
 
   // Mutations
@@ -166,7 +164,8 @@ export function GiftEventDetailPage() {
     });
 
     if (confirmed) {
-      await deleteEvent({ eventId: eventId as Id<"giftEvents"> });
+      if (!sessionToken) return;
+      await deleteEvent({ sessionToken, eventId: eventId as Id<"giftEvents"> });
       navigate("/gifts");
     }
   };
@@ -184,7 +183,8 @@ export function GiftEventDetailPage() {
       if (!confirmed) return;
     }
 
-    await updateEvent({ eventId: eventId as Id<"giftEvents">, isCompleted: isNowCompleted });
+    if (!sessionToken) return;
+    await updateEvent({ sessionToken, eventId: eventId as Id<"giftEvents">, isCompleted: isNowCompleted });
     if (isNowCompleted) {
       navigate("/gifts"); // Return to list after archiving
     }
@@ -304,8 +304,6 @@ export function GiftEventDetailPage() {
                     key={recipient._id}
                     recipient={recipient}
                     items={items}
-                    familyId={currentFamily?._id}
-                    userId={user?._id}
                     onAddItem={() => setAddingToRecipient(recipient._id)}
                     onEditItem={(item) => setEditingItem(item)}
                     confirmDialog={confirmDialog}

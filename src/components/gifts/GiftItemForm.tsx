@@ -6,6 +6,7 @@ import { Trash2 } from "lucide-react";
 import { STATUS_CONFIG, type GiftStatus } from "./GiftConstants";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import type { ConfirmOptions } from "../../hooks/useConfirmModal";
+import { useAuth } from "../../contexts/AuthContext";
 
 import { TextArea } from "../ui/TextArea";
 
@@ -25,6 +26,7 @@ export function GiftItemForm({
     const createItem = useMutation(api.gifts.createGiftItem);
     const updateItem = useMutation(api.gifts.updateGiftItem);
     const deleteItem = useMutation(api.gifts.deleteGiftItem);
+    const { sessionToken } = useAuth();
 
     const [formData, setFormData] = useState({
         title: initialData?.title || "",
@@ -38,11 +40,13 @@ export function GiftItemForm({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.title.trim()) return;
+        if (!sessionToken) return;
 
         setIsLoading(true);
         try {
             if (initialData) {
                 await updateItem({
+                    sessionToken,
                     itemId: initialData._id,
                     title: formData.title.trim(),
                     url: formData.url.trim() || undefined,
@@ -52,6 +56,7 @@ export function GiftItemForm({
                 });
             } else {
                 await createItem({
+                    sessionToken,
                     giftEventId: eventId,
                     giftRecipientId: recipientId,
                     title: formData.title.trim(),
@@ -78,7 +83,8 @@ export function GiftItemForm({
         });
 
         if (confirmed && initialData) {
-            await deleteItem({ itemId: initialData._id });
+            if (!sessionToken) return;
+            await deleteItem({ sessionToken, itemId: initialData._id });
             onClose();
         }
     };

@@ -1,12 +1,36 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireFamilyAccessFromSession, requireUserFromSessionToken } from "./lib/auth";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getEventWithAccessOrThrow(ctx: any, sessionToken: string, eventId: any) {
+  const event = await ctx.db.get(eventId);
+  if (!event) throw new Error("Evento no encontrado");
+  await requireFamilyAccessFromSession(ctx, sessionToken, event.familyId);
+  return event;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getRecipientWithAccessOrThrow(ctx: any, sessionToken: string, recipientId: any) {
+  const recipient = await ctx.db.get(recipientId);
+  if (!recipient) throw new Error("Destinatario no encontrado");
+  const event = await getEventWithAccessOrThrow(ctx, sessionToken, recipient.giftEventId);
+  return { recipient, event };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getItemWithAccessOrThrow(ctx: any, sessionToken: string, itemId: any) {
+  const item = await ctx.db.get(itemId);
+  if (!item) throw new Error("Regalo no encontrado");
+  const event = await getEventWithAccessOrThrow(ctx, sessionToken, item.giftEventId);
+  return { item, event };
+}
 
 // ==================== GIFT EVENTS ====================
 export const getGiftEvents = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
-    // TODO: Enable security when auth is fully implemented
-    // await getFamilyUser(ctx, { familyId: args.familyId });
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
 
     const events = await ctx.db
       .query("giftEvents")
@@ -31,27 +55,31 @@ export const getGiftEvents = query({
 });
 
 export const getGiftEvent = query({
-  args: { eventId: v.id("giftEvents") },
+  args: { sessionToken: v.string(), eventId: v.id("giftEvents") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.eventId);
+    return await getEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
   },
 });
 
 export const createGiftEvent = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     name: v.string(),
     date: v.optional(v.number()),
     description: v.optional(v.string()),
-    createdBy: v.id("users"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("giftEvents", args);
+    const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+    const { sessionToken: _sessionToken, ...payload } = args;
+    return await ctx.db.insert("giftEvents", { ...payload, createdBy: user._id });
   },
 });
 
 export const updateGiftEvent = mutation({
   args: {
+    sessionToken: v.string(),
     eventId: v.id("giftEvents"),
     name: v.optional(v.string()),
     date: v.optional(v.number()),
@@ -59,7 +87,8 @@ export const updateGiftEvent = mutation({
     isCompleted: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { eventId, ...updates } = args;
+    await getEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
+    const { eventId, sessionToken: _sessionToken, ...updates } = args;
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([, v]) => v !== undefined)
     );
@@ -69,8 +98,9 @@ export const updateGiftEvent = mutation({
 });
 
 export const deleteGiftEvent = mutation({
-  args: { eventId: v.id("giftEvents") },
+  args: { sessionToken: v.string(), eventId: v.id("giftEvents") },
   handler: async (ctx, args) => {
+    await getEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
     // Delete all items for all recipients
     const recipients = await ctx.db
       .query("giftRecipients")
@@ -94,8 +124,9 @@ export const deleteGiftEvent = mutation({
 
 // ==================== GIFT RECIPIENTS ====================
 export const getGiftRecipients = query({
-  args: { eventId: v.id("giftEvents") },
+  args: { sessionToken: v.string(), eventId: v.id("giftEvents") },
   handler: async (ctx, args) => {
+    await getEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
     return await ctx.db
       .query("giftRecipients")
       .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
@@ -105,32 +136,38 @@ export const getGiftRecipients = query({
 
 export const createGiftRecipient = mutation({
   args: {
+    sessionToken: v.string(),
     giftEventId: v.id("giftEvents"),
     name: v.string(),
     relatedPersonId: v.optional(v.id("personProfiles")),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("giftRecipients", args);
+    await getEventWithAccessOrThrow(ctx, args.sessionToken, args.giftEventId);
+    const { sessionToken: _sessionToken, ...payload } = args;
+    return await ctx.db.insert("giftRecipients", payload);
   },
 });
 
 export const updateGiftRecipient = mutation({
   args: {
+    sessionToken: v.string(),
     recipientId: v.id("giftRecipients"),
     name: v.optional(v.string()),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { recipientId, ...updates } = args;
+    await getRecipientWithAccessOrThrow(ctx, args.sessionToken, args.recipientId);
+    const { recipientId, sessionToken: _sessionToken, ...updates } = args;
     await ctx.db.patch(recipientId, updates);
     return recipientId;
   },
 });
 
 export const deleteGiftRecipient = mutation({
-  args: { recipientId: v.id("giftRecipients") },
+  args: { sessionToken: v.string(), recipientId: v.id("giftRecipients") },
   handler: async (ctx, args) => {
+    await getRecipientWithAccessOrThrow(ctx, args.sessionToken, args.recipientId);
     // Delete all items
     const items = await ctx.db
       .query("giftItems")
@@ -145,8 +182,9 @@ export const deleteGiftRecipient = mutation({
 
 // ==================== GIFT ITEMS ====================
 export const getGiftItems = query({
-  args: { recipientId: v.id("giftRecipients") },
+  args: { sessionToken: v.string(), recipientId: v.id("giftRecipients") },
   handler: async (ctx, args) => {
+    await getRecipientWithAccessOrThrow(ctx, args.sessionToken, args.recipientId);
     return await ctx.db
       .query("giftItems")
       .withIndex("by_recipient", (q) => q.eq("giftRecipientId", args.recipientId))
@@ -155,8 +193,9 @@ export const getGiftItems = query({
 });
 
 export const getAllGiftItemsForEvent = query({
-  args: { eventId: v.id("giftEvents") },
+  args: { sessionToken: v.string(), eventId: v.id("giftEvents") },
   handler: async (ctx, args) => {
+    await getEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
     const recipients = await ctx.db
       .query("giftRecipients")
       .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
@@ -178,8 +217,9 @@ export const getAllGiftItemsForEvent = query({
 
 // Get unassigned gifts for an event (gifts in the pool)
 export const getUnassignedGifts = query({
-  args: { eventId: v.id("giftEvents") },
+  args: { sessionToken: v.string(), eventId: v.id("giftEvents") },
   handler: async (ctx, args) => {
+    await getEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
     const allItems = await ctx.db
       .query("giftItems")
       .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
@@ -192,6 +232,7 @@ export const getUnassignedGifts = query({
 
 export const createGiftItem = mutation({
   args: {
+    sessionToken: v.string(),
     giftEventId: v.id("giftEvents"),
     giftRecipientId: v.optional(v.id("giftRecipients")), // Optional - null means unassigned
     title: v.string(),
@@ -209,17 +250,31 @@ export const createGiftItem = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("giftItems", args);
+    const event = await getEventWithAccessOrThrow(ctx, args.sessionToken, args.giftEventId);
+    if (args.giftRecipientId) {
+      const recipient = await ctx.db.get(args.giftRecipientId);
+      if (!recipient || recipient.giftEventId !== event._id) {
+        throw new Error("Destinatario inválido para el evento");
+      }
+    }
+    const { sessionToken: _sessionToken, ...payload } = args;
+    return await ctx.db.insert("giftItems", payload);
   },
 });
 
 // Assign an unassigned gift to a recipient
 export const assignGiftItem = mutation({
   args: {
+    sessionToken: v.string(),
     itemId: v.id("giftItems"),
     giftRecipientId: v.id("giftRecipients"),
   },
   handler: async (ctx, args) => {
+    const { item } = await getItemWithAccessOrThrow(ctx, args.sessionToken, args.itemId);
+    const { recipient } = await getRecipientWithAccessOrThrow(ctx, args.sessionToken, args.giftRecipientId);
+    if (item.giftEventId !== recipient.giftEventId) {
+      throw new Error("El destinatario no pertenece al mismo evento");
+    }
     await ctx.db.patch(args.itemId, { giftRecipientId: args.giftRecipientId });
     return args.itemId;
   },
@@ -228,9 +283,11 @@ export const assignGiftItem = mutation({
 // Unassign a gift (move back to pool)
 export const unassignGiftItem = mutation({
   args: {
+    sessionToken: v.string(),
     itemId: v.id("giftItems"),
   },
   handler: async (ctx, args) => {
+    await getItemWithAccessOrThrow(ctx, args.sessionToken, args.itemId);
     await ctx.db.patch(args.itemId, { giftRecipientId: undefined });
     return args.itemId;
   },
@@ -238,6 +295,7 @@ export const unassignGiftItem = mutation({
 
 export const updateGiftItem = mutation({
   args: {
+    sessionToken: v.string(),
     itemId: v.id("giftItems"),
     title: v.optional(v.string()),
     url: v.optional(v.string()),
@@ -254,16 +312,13 @@ export const updateGiftItem = mutation({
     ),
     assignedTo: v.optional(v.id("users")),
     notes: v.optional(v.string()),
-    // For creating expense when marking as bought
-    familyId: v.optional(v.id("families")),
-    paidBy: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
-    const { itemId, familyId, paidBy, ...updates } = args;
+    const user = await requireUserFromSessionToken(ctx, args.sessionToken);
+    const { itemId, sessionToken: _sessionToken, ...updates } = args;
 
     // Get current item to check status change
-    const currentItem = await ctx.db.get(itemId);
-    if (!currentItem) throw new Error("Item not found");
+    const { item: currentItem, event } = await getItemWithAccessOrThrow(ctx, args.sessionToken, itemId);
 
     // Update the item
     await ctx.db.patch(itemId, updates);
@@ -272,8 +327,7 @@ export const updateGiftItem = mutation({
     if (
       args.status === "bought" &&
       currentItem.status !== "bought" &&
-      currentItem.priceEstimate &&
-      familyId
+      currentItem.priceEstimate
     ) {
       // Check if expense already exists for this item
       const existingExpense = await ctx.db
@@ -283,13 +337,13 @@ export const updateGiftItem = mutation({
 
       if (!existingExpense) {
         await ctx.db.insert("expenses", {
-          familyId,
+          familyId: event.familyId,
           type: "gift",
           category: "gifts",
           description: `Regalo: ${currentItem.title}`,
           amount: currentItem.priceEstimate,
           date: Date.now(),
-          paidBy,
+          paidBy: user._id,
           giftItemId: itemId,
           giftEventId: currentItem.giftEventId,
         });
@@ -301,16 +355,18 @@ export const updateGiftItem = mutation({
 });
 
 export const deleteGiftItem = mutation({
-  args: { itemId: v.id("giftItems") },
+  args: { sessionToken: v.string(), itemId: v.id("giftItems") },
   handler: async (ctx, args) => {
+    await getItemWithAccessOrThrow(ctx, args.sessionToken, args.itemId);
     await ctx.db.delete(args.itemId);
   },
 });
 
 // ==================== SUMMARY QUERIES ====================
 export const getGiftEventSummary = query({
-  args: { eventId: v.id("giftEvents") },
+  args: { sessionToken: v.string(), eventId: v.id("giftEvents") },
   handler: async (ctx, args) => {
+    await getEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
     const recipients = await ctx.db
       .query("giftRecipients")
       .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
@@ -352,8 +408,9 @@ export const getGiftEventSummary = query({
 
 // Get recipients with their gift status breakdown
 export const getRecipientsWithStatus = query({
-  args: { eventId: v.id("giftEvents") },
+  args: { sessionToken: v.string(), eventId: v.id("giftEvents") },
   handler: async (ctx, args) => {
+    await getEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
     const recipients = await ctx.db
       .query("giftRecipients")
       .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))

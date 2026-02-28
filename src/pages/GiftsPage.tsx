@@ -18,7 +18,7 @@ import type { Id, Doc } from "../../convex/_generated/dataModel";
 
 export function GiftsPage() {
   const { currentFamily } = useFamily();
-  const { user } = useAuth();
+  const { sessionToken } = useAuth();
   const [showNewEventModal, setShowNewEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Doc<"giftEvents"> | null>(null);
   const [filter, setFilter] = useState<"active" | "pending_close" | "completed">("active");
@@ -26,7 +26,7 @@ export function GiftsPage() {
 
   const events = useQuery(
     api.gifts.getGiftEvents,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   if (!currentFamily) return <PageLoader />;
@@ -149,15 +149,15 @@ export function GiftsPage() {
         )}
       </div>
 
-      {user && (
+      {sessionToken && (
         <MobileModal
           isOpen={showNewEventModal}
           onClose={() => setShowNewEventModal(false)}
           title="Nuevo evento de regalos"
         >
           <NewEventForm
+            sessionToken={sessionToken}
             familyId={currentFamily._id}
-            userId={user._id}
             onClose={() => setShowNewEventModal(false)}
           />
         </MobileModal>
@@ -188,7 +188,11 @@ function GiftEventCard({
   event: Doc<"giftEvents">;
   isPendingClose?: boolean;
 }) {
-  const summary = useQuery(api.gifts.getGiftEventSummary, { eventId: event._id });
+  const { sessionToken } = useAuth();
+  const summary = useQuery(
+    api.gifts.getGiftEventSummary,
+    sessionToken ? { sessionToken, eventId: event._id } : "skip"
+  );
 
   return (
     <div className={`card bg-base-100 shadow-sm border animate-fade-in ${event.isCompleted ? "border-success/30 opacity-75" :
@@ -293,12 +297,12 @@ function GiftEventCard({
 }
 
 function NewEventForm({
+  sessionToken,
   familyId,
-  userId,
   onClose,
 }: {
+  sessionToken: string;
   familyId: Id<"families">;
-  userId: Id<"users">;
   onClose: () => void;
 }) {
   const [name, setName] = useState("");
@@ -315,11 +319,11 @@ function NewEventForm({
     setIsLoading(true);
     try {
       await createEvent({
+        sessionToken,
         familyId,
         name: name.trim(),
         date: date ? new Date(date).getTime() : undefined,
         description: description.trim() || undefined,
-        createdBy: userId,
       });
       onClose();
     } catch (error) {

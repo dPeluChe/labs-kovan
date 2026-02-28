@@ -3,15 +3,14 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Plus, MoreVertical, Edit2, Trash2, Gift, CheckCircle2, ExternalLink } from "lucide-react";
-import type { Id, Doc } from "../../../convex/_generated/dataModel";
+import type { Doc } from "../../../convex/_generated/dataModel";
 import type { ConfirmOptions } from "../../hooks/useConfirmModal";
 import { sortGifts } from "./GiftConstants";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function RecipientCard({
     recipient,
     items,
-    familyId,
-    userId,
     onAddItem,
     onEditItem,
     confirmDialog,
@@ -19,8 +18,6 @@ export function RecipientCard({
 }: {
     recipient: Doc<"giftRecipients">;
     items: Doc<"giftItems">[];
-    familyId?: Id<"families">;
-    userId?: Id<"users">;
     onAddItem: () => void;
     onEditItem: (item: Doc<"giftItems">) => void;
     confirmDialog: (options: ConfirmOptions) => Promise<boolean>;
@@ -32,6 +29,7 @@ export function RecipientCard({
     const deleteRecipient = useMutation(api.gifts.deleteGiftRecipient);
     const updateRecipient = useMutation(api.gifts.updateGiftRecipient);
     const updateItem = useMutation(api.gifts.updateGiftItem);
+    const { sessionToken } = useAuth();
 
     const handleSave = async () => {
         const updates: { name?: string; notes?: string } = {};
@@ -42,7 +40,8 @@ export function RecipientCard({
             updates.notes = editNotes;
         }
         if (Object.keys(updates).length > 0) {
-            await updateRecipient({ recipientId: recipient._id, ...updates });
+            if (!sessionToken) return;
+            await updateRecipient({ sessionToken, recipientId: recipient._id, ...updates });
         }
         setIsEditing(false);
     };
@@ -64,7 +63,8 @@ export function RecipientCard({
         });
 
         if (confirmed) {
-            await deleteRecipient({ recipientId: recipient._id });
+            if (!sessionToken) return;
+            await deleteRecipient({ sessionToken, recipientId: recipient._id });
         }
     };
 
@@ -194,11 +194,11 @@ export function RecipientCard({
                                                 e.stopPropagation();
                                                 // Prevent accidental toggles
                                                 const newStatus = isBought ? "idea" : "bought";
+                                                if (!sessionToken) return;
                                                 updateItem({
+                                                    sessionToken,
                                                     itemId: item._id,
-                                                    status: newStatus,
-                                                    familyId: newStatus === "bought" ? familyId : undefined,
-                                                    paidBy: newStatus === "bought" ? userId : undefined,
+                                                    status: newStatus
                                                 });
                                             }}
                                             className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${isBought

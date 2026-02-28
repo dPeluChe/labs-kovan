@@ -30,11 +30,11 @@ export async function handleCreateGiftEvent(context: ToolContext, args: Record<s
     const { name, date, description } = args as { name: string; date?: string; description?: string };
 
     await context.ctx.runMutation(api.gifts.createGiftEvent, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId,
         name,
         date: date ? new Date(date).getTime() : undefined,
         description,
-        createdBy: context.userId
     });
 
     return { success: true, message: `Evento de regalos creado: ${name}` };
@@ -93,6 +93,7 @@ export async function handleAddGiftToEvent(context: ToolContext, args: Record<st
 
     // Find the event by name
     const events = await context.ctx.runQuery(api.gifts.getGiftEvents, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId
     });
 
@@ -110,6 +111,7 @@ export async function handleAddGiftToEvent(context: ToolContext, args: Record<st
     // If recipient name is provided, find or create the recipient
     if (recipientName) {
         const recipients = await context.ctx.runQuery(api.gifts.getGiftRecipients, {
+            sessionToken: context.sessionToken,
             eventId: event._id
         });
 
@@ -121,6 +123,7 @@ export async function handleAddGiftToEvent(context: ToolContext, args: Record<st
         if (!recipient) {
             // Create new recipient
             recipientId = await context.ctx.runMutation(api.gifts.createGiftRecipient, {
+                sessionToken: context.sessionToken,
                 giftEventId: event._id,
                 name: recipientName
             });
@@ -131,6 +134,7 @@ export async function handleAddGiftToEvent(context: ToolContext, args: Record<st
 
     // Create the gift item
     await context.ctx.runMutation(api.gifts.createGiftItem, {
+        sessionToken: context.sessionToken,
         giftEventId: event._id,
         giftRecipientId: recipientId as unknown as never,
         title,
@@ -180,6 +184,7 @@ export async function handleUpdateGiftStatus(context: ToolContext, args: Record<
 
     // Find the event
     const events = await context.ctx.runQuery(api.gifts.getGiftEvents, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId
     });
 
@@ -194,6 +199,7 @@ export async function handleUpdateGiftStatus(context: ToolContext, args: Record<
 
     // Get all items for the event
     const allItems = await context.ctx.runQuery(api.gifts.getAllGiftItemsForEvent, {
+        sessionToken: context.sessionToken,
         eventId: event._id
     });
 
@@ -216,10 +222,9 @@ export async function handleUpdateGiftStatus(context: ToolContext, args: Record<
 
     // Update the gift status
     await context.ctx.runMutation(api.gifts.updateGiftItem, {
+        sessionToken: context.sessionToken,
         itemId: targetItem._id as unknown as never,
-        status: newStatus as "idea" | "to_buy" | "bought" | "wrapped" | "delivered",
-        familyId: context.familyId,
-        paidBy: context.userId
+        status: newStatus as "idea" | "to_buy" | "bought" | "wrapped" | "delivered"
     });
 
     return {
@@ -249,6 +254,7 @@ export async function handleGetGiftsForEvent(context: ToolContext, args: Record<
     const { eventName } = args as { eventName: string };
 
     const events = await context.ctx.runQuery(api.gifts.getGiftEvents, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId
     });
 
@@ -262,6 +268,7 @@ export async function handleGetGiftsForEvent(context: ToolContext, args: Record<
     }
 
     const allItems = await context.ctx.runQuery(api.gifts.getAllGiftItemsForEvent, {
+        sessionToken: context.sessionToken,
         eventId: event._id
     });
 
@@ -304,6 +311,7 @@ export async function handleGetGiftsForPerson(context: ToolContext, args: Record
     const { eventName, personName } = args as { eventName: string; personName: string };
 
     const events = await context.ctx.runQuery(api.gifts.getGiftEvents, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId
     });
 
@@ -317,6 +325,7 @@ export async function handleGetGiftsForPerson(context: ToolContext, args: Record
     }
 
     const recipients = await context.ctx.runQuery(api.gifts.getGiftRecipients, {
+        sessionToken: context.sessionToken,
         eventId: event._id
     });
 
@@ -330,6 +339,7 @@ export async function handleGetGiftsForPerson(context: ToolContext, args: Record
     }
 
     const items = await context.ctx.runQuery(api.gifts.getGiftItems, {
+        sessionToken: context.sessionToken,
         recipientId: recipient._id
     });
 
@@ -400,6 +410,7 @@ export async function handleUpdateGiftItem(context: ToolContext, args: Record<st
 
     // Find the event
     const events = await context.ctx.runQuery(api.gifts.getGiftEvents, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId
     });
 
@@ -414,6 +425,7 @@ export async function handleUpdateGiftItem(context: ToolContext, args: Record<st
 
     // Get all items for the event
     const allItems = await context.ctx.runQuery(api.gifts.getAllGiftItemsForEvent, {
+        sessionToken: context.sessionToken,
         eventId: event._id
     });
 
@@ -436,9 +448,8 @@ export async function handleUpdateGiftItem(context: ToolContext, args: Record<st
 
     // Build updates object
     const updates: Record<string, unknown> = {
-        itemId: targetItem._id as unknown as never,
-        familyId: context.familyId,
-        paidBy: context.userId
+        sessionToken: context.sessionToken,
+        itemId: targetItem._id as unknown as never
     };
 
     if (newTitle) updates.title = newTitle;

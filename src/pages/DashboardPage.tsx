@@ -25,7 +25,7 @@ export function DashboardPage() {
   // Existing queries
   const giftEvents = useQuery(
     api.gifts.getGiftEvents,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
   const healthSummary = useQuery(
