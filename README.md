@@ -1,34 +1,60 @@
 # Labs Kovan - Sistema de Gestión Familiar
 
-Plataforma integral para la gestión familiar, diseñada para organizar finanzas, tareas, eventos y más.
+Plataforma integral para gestión familiar: finanzas, tareas, eventos, salud, colecciones, viajes y más.
 
-## 🚀 Características Principales
+## Estado del proyecto
 
--   **Gestión de Usuarios**: Sistema de autenticación y perfiles de usuario.
--   **Panel de SuperAdmin**:
-    -   Estadísticas globales del sistema (Familias, Usuarios, Invitaciones).
-    -   Gestión de usuarios (Listado y Eliminación).
--   **Familias**: Creación y gestión de grupos familiares.
--   **Invitaciones**: Sistema de invitación y unión a familias simplificado.
+El modo demo fue retirado. Actualmente la app opera con:
+- Autenticación real por cuenta (`register` / `login`).
+- Sesiones con `sessionToken`.
+- Aislamiento estricto por familia en backend.
+- Invitaciones seguras por `inviteToken + email + familyId`.
 
-## 🛠 Tecnologías
+## Seguridad y autorización
 
--   **Frontend**: React + Vite + TypeScript
--   **Backend / DB**: Convex
--   **Estilos**: TailwindCSS + DaisyUI
--   **Iconos**: Lucide React
+Principio base:
+- Toda operación de datos familiares requiere `sessionToken` válido.
+- El backend valida membresía activa de la familia antes de leer o mutar datos.
+- Acceso por recurso (por ejemplo `giftEvent`, `trip`, `vehicle`, `recipe`, etc.) se valida contra su `familyId` real.
 
-## 📦 Instalación y Uso
+### Invitaciones de familia
 
-1.  Instalar dependencias:
-    ```bash
-    npm install
-    ```
-2.  Iniciar servidor de desarrollo:
-    ```bash
-    npm run dev
-    ```
-3.  Iniciar backend (Convex):
-    ```bash
-    npx convex dev
-    ```
+Flujo:
+1. Owner/Admin envía invitación a un correo.
+2. Se genera `inviteToken` de un solo uso con expiración.
+3. El usuario abre el link y entra/crea cuenta con ese mismo correo.
+4. Backend valida token, correo y vigencia antes de aceptar.
+
+## Stack
+
+- Frontend: React + Vite + TypeScript
+- Backend/DB: Convex
+- Estilos: TailwindCSS + DaisyUI
+- Iconos: Lucide React
+
+## Desarrollo local
+
+1. Instalar dependencias
+```bash
+npm install
+```
+
+2. Levantar frontend
+```bash
+npm run dev
+```
+
+3. Levantar Convex
+```bash
+npx convex dev
+```
+
+## Calidad
+
+Comandos principales:
+```bash
+npm run lint
+npm run build
+```
+
+Nota: puede aparecer un warning conocido de DaisyUI (`@property`) durante `build`; actualmente no bloquea compilación.
