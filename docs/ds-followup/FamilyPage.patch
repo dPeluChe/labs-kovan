@@ -1,0 +1,279 @@
+diff --git a/src/pages/FamilyPage.tsx b/src/pages/FamilyPage.tsx
+index e785327..607f1ad 100644
+--- a/src/pages/FamilyPage.tsx
++++ b/src/pages/FamilyPage.tsx
+@@ -6,9 +6,9 @@ import { useFamily } from "../contexts/FamilyContext";
+ import { useAuth } from "../contexts/AuthContext";
+ import { PageLoader } from "../components/ui/LoadingSpinner";
+ import { EmptyState } from "../components/ui/EmptyState";
++import { DetailHeader } from "../components/ui/DetailHeader";
+ import { useConfirmModal } from "../hooks/useConfirmModal";
+ import {
+-  ArrowLeft,
+   Users,
+   Plus,
+   Trash2,
+@@ -28,18 +28,18 @@ import { MobileModal } from "../components/ui/MobileModal";
+ export function FamilyPage() {
+   const navigate = useNavigate();
+   const { currentFamily } = useFamily();
+-  const { user, sessionToken } = useAuth();
++  const { user } = useAuth();
+   const [showInvite, setShowInvite] = useState(false);
+   const { confirm, ConfirmModal } = useConfirmModal();
+ 
+   const members = useQuery(
+     api.families.getFamilyMembers,
+-    currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
++    currentFamily ? { familyId: currentFamily._id } : "skip"
+   );
+ 
+   const pendingInvites = useQuery(
+     api.families.getPendingInvites,
+-    currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
++    currentFamily ? { familyId: currentFamily._id } : "skip"
+   );
+ 
+   const removeMember = useMutation(api.families.removeMember);
+@@ -57,7 +57,7 @@ export function FamilyPage() {
+       case "admin":
+         return <Shield className="w-4 h-4 text-blue-500" />;
+       default:
+-        return <User className="w-4 h-4 text-base-content/40" />;
++        return <User className="w-4 h-4 text-faint" />;
+     }
+   };
+ 
+@@ -74,27 +74,22 @@ export function FamilyPage() {
+ 
+   return (
+     <div className="pb-4">
+-      {/* Header */}
+-      <div className="flex items-center gap-2 px-4 py-3 bg-base-100 border-b border-base-300">
+-        <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm btn-circle">
+-          <ArrowLeft className="w-5 h-5" />
+-        </button>
+-        <div className="flex-1">
+-          <h1 className="text-lg font-bold">
+-            {currentFamily.emoji} {currentFamily.name}
+-          </h1>
+-          <p className="text-xs text-base-content/60">Gestionar miembros</p>
+-        </div>
+-        {isAdmin && (
+-          <button
+-            onClick={() => setShowInvite(true)}
+-            className="btn btn-primary btn-sm gap-1"
+-          >
+-            <Plus className="w-4 h-4" />
+-            Invitar
+-          </button>
+-        )}
+-      </div>
++      <DetailHeader
++        title={`${currentFamily.emoji ?? ""} ${currentFamily.name}`.trim()}
++        subtitle="Gestionar miembros"
++        onBack={() => navigate(-1)}
++        action={
++          isAdmin && (
++            <button
++              onClick={() => setShowInvite(true)}
++              className="btn btn-primary btn-sm gap-1"
++            >
++              <Plus className="w-4 h-4" />
++              Invitar
++            </button>
++          )
++        }
++      />
+ 
+       <div className="px-4 py-4 space-y-6">
+         {/* Members */}
+@@ -121,7 +116,7 @@ export function FamilyPage() {
+                 >
+                   <div className="card-body p-3">
+                     <div className="flex items-center gap-3">
+-                      <div className="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-base-content/70 font-semibold">
++                      <div className="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-body font-semibold">
+                         {member.name.charAt(0).toUpperCase()}
+                       </div>
+                       <div className="flex-1 min-w-0">
+@@ -129,7 +124,7 @@ export function FamilyPage() {
+                           <span className="font-semibold truncate">{member.name}</span>
+                           {getRoleIcon(member.role)}
+                         </div>
+-                        <p className="text-xs text-base-content/60 truncate">
++                        <p className="text-xs text-muted truncate">
+                           {member.email}
+                         </p>
+                       </div>
+@@ -150,8 +145,7 @@ export function FamilyPage() {
+                               });
+ 
+                               if (confirmed) {
+-                                if (!sessionToken) return;
+-                                removeMember({ membershipId: member.membershipId, sessionToken });
++                                removeMember({ membershipId: member.membershipId });
+                               }
+                             }}
+                             className="btn btn-ghost btn-xs btn-circle text-error"
+@@ -189,15 +183,12 @@ export function FamilyPage() {
+                       </div>
+                       <div className="flex-1 min-w-0">
+                         <p className="font-medium truncate">{invite.email}</p>
+-                        <p className="text-xs text-base-content/60">
++                        <p className="text-xs text-muted">
+                           Invitado el {new Date(invite.createdAt).toLocaleDateString("es-MX")}
+                         </p>
+                       </div>
+                       <button
+-                        onClick={() => {
+-                          if (!sessionToken) return;
+-                          cancelInvite({ inviteId: invite._id, sessionToken });
+-                        }}
++                        onClick={() => cancelInvite({ inviteId: invite._id })}
+                         className="btn btn-ghost btn-xs btn-circle text-error"
+                       >
+                         <Trash2 className="w-3 h-3" />
+@@ -215,7 +206,7 @@ export function FamilyPage() {
+         <InviteModal
+           familyId={currentFamily._id}
+           familyName={currentFamily.name}
+-          sessionToken={sessionToken}
++          userId={user._id}
+           onClose={() => setShowInvite(false)}
+         />
+       )}
+@@ -229,27 +220,25 @@ export function FamilyPage() {
+ function InviteModal({
+   familyId,
+   familyName,
+-  sessionToken,
++  userId,
+   onClose,
+ }: {
+   familyId: string;
+   familyName: string;
+-  sessionToken: string | null;
++  userId: string;
+   onClose: () => void;
+ }) {
+   const [email, setEmail] = useState("");
+   const [isLoading, setIsLoading] = useState(false);
+   const [message, setMessage] = useState("");
+   const [copied, setCopied] = useState(false);
+-  const [generatedInviteLink, setGeneratedInviteLink] = useState<string>("");
+-  const [generatedForEmail, setGeneratedForEmail] = useState<string>("");
+   const { success } = useToast();
+ 
+   const sendInvite = useMutation(api.families.sendInvite);
+ 
+   // Generate invite link
+   const baseUrl = window.location.origin;
+-  const inviteLink = generatedInviteLink;
++  const inviteLink = `${baseUrl}/?invite=${familyId}`;
+   const registerLink = `${baseUrl}/`;
+ 
+   const handleCopyLink = async (link: string, type: string) => {
+@@ -295,19 +284,19 @@ function InviteModal({
+     setIsLoading(true);
+     setMessage("");
+     try {
+-      if (!sessionToken) throw new Error("Sesión inválida");
+       const result = await sendInvite({
+-        sessionToken,
+         familyId: familyId as Parameters<typeof sendInvite>[0]["familyId"],
+         email: email.trim().toLowerCase(),
++        invitedBy: userId as Parameters<typeof sendInvite>[0]["invitedBy"],
+       });
+-      const normalizedEmail = email.trim().toLowerCase();
+-      const tokenInviteLink = `${baseUrl}/login?inviteToken=${result.inviteToken}`;
+-      setGeneratedInviteLink(tokenInviteLink);
+-      setGeneratedForEmail(normalizedEmail);
+ 
+-      setMessage("📧 Invitación creada. Comparte el link seguro generado abajo.");
+-      await handleCopyLink(tokenInviteLink, "Invitación segura");
++      if (result.added) {
++        setMessage("✅ Usuario agregado a la familia");
++        setTimeout(onClose, 1500);
++      } else {
++        setMessage("📧 Invitación creada. El usuario podrá unirse cuando inicie sesión.");
++        setTimeout(onClose, 2000);
++      }
+     } catch (error) {
+       setMessage(`❌ ${error instanceof Error ? error.message : "Error al invitar"}`);
+     } finally {
+@@ -319,7 +308,7 @@ function InviteModal({
+     <MobileModal isOpen={true} onClose={onClose} title="Invitar a la familia">
+       {/* Share Links */}
+       <div className="space-y-3 mb-6">
+-        <p className="text-sm text-base-content/70">Comparte un link de invitación:</p>
++        <p className="text-sm text-body">Comparte un link de invitación:</p>
+ 
+         {/* Invite to this family */}
+         <div className="card bg-base-200 p-3">
+@@ -329,33 +318,20 @@ function InviteModal({
+             </div>
+             <div className="flex-1 min-w-0">
+               <p className="font-medium text-sm">Unirse a "{familyName}"</p>
+-              {inviteLink ? (
+-                <p className="text-xs text-base-content/60 truncate">{inviteLink}</p>
+-              ) : (
+-                <p className="text-xs text-base-content/60">
+-                  Primero genera la invitación por email para crear un link seguro.
+-                </p>
+-              )}
+-              {generatedForEmail && (
+-                <p className="text-[11px] text-primary mt-1 truncate">
+-                  Ligado a: {generatedForEmail}
+-                </p>
+-              )}
++              <p className="text-xs text-muted truncate">{inviteLink}</p>
+             </div>
+             <div className="flex gap-1">
+               <button
+-                onClick={() => inviteLink && handleCopyLink(inviteLink, "Invitar a familia")}
++                onClick={() => handleCopyLink(inviteLink, "Invitar a familia")}
+                 className="btn btn-ghost btn-sm btn-circle"
+                 title="Copiar link"
+-                disabled={!inviteLink}
+               >
+                 {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+               </button>
+               <button
+-                onClick={() => inviteLink && handleShare(inviteLink, "Unirse a mi familia")}
++                onClick={() => handleShare(inviteLink, "Unirse a mi familia")}
+                 className="btn btn-ghost btn-sm btn-circle"
+                 title="Compartir"
+-                disabled={!inviteLink}
+               >
+                 <Share2 className="w-4 h-4" />
+               </button>
+@@ -371,7 +347,7 @@ function InviteModal({
+             </div>
+             <div className="flex-1 min-w-0">
+               <p className="font-medium text-sm">Crear su propia familia</p>
+-              <p className="text-xs text-base-content/60 truncate">{registerLink}</p>
++              <p className="text-xs text-muted truncate">{registerLink}</p>
+             </div>
+             <div className="flex gap-1">
+               <button
+@@ -393,7 +369,7 @@ function InviteModal({
+         </div>
+       </div>
+ 
+-      <div className="divider text-xs text-base-content/50">O invita por email</div>
++      <div className="divider text-xs text-subtle">O invita por email</div>
+ 
+       <form onSubmit={handleSubmit} className="space-y-4">
+         <div className="form-control">
+@@ -409,8 +385,8 @@ function InviteModal({
+             disabled={isLoading}
+           />
+           <label className="label">
+-            <span className="label-text-alt text-base-content/60">
+-              Se enviará una invitación segura atada a este correo.
++            <span className="label-text-alt text-muted">
++              Si ya tiene cuenta, se agregará automáticamente.
+             </span>
+           </label>
+         </div>

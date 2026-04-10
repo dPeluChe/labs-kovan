@@ -32,13 +32,13 @@ export function LogActivityModal({ isOpen, onClose, activity }: LogActivityModal
   const logActivity = useMutation(api.household.logActivity);
 
   const handleSubmit = async () => {
-    if (!currentFamily || !user || !selectedUser) return;
+    if (!currentFamily || !user || !sessionToken || !selectedUser) return;
 
     await logActivity({
+      sessionToken,
       familyId: currentFamily._id,
       activityId: activity._id,
       userId: selectedUser as Id<"users">,
-      loggedBy: user._id,
       notes: notes || undefined,
     });
 

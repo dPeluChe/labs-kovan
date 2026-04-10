@@ -48,7 +48,7 @@ export function EditProfileModal({
             disabled
           />
           <label className="label">
-            <span className="label-text-alt text-base-content/50">
+            <span className="label-text-alt text-subtle">
               El email se usa para iniciar sesión y no puede cambiarse
             </span>
           </label>

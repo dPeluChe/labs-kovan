@@ -17,6 +17,7 @@ import {
   Medal,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { DEFAULT_NAV_ORDER } from "../settings/navOrderConstants";
 
 const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string }> = {
   home:        { to: "/",            icon: Home,        label: "Inicio" },
@@ -32,8 +33,6 @@ const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string }
   household:   { to: "/household",   icon: Medal,       label: "Hogar" },
   more:        { to: "/more",        icon: MoreHorizontal, label: "Más" },
 };
-
-const DEFAULT_NAV_ORDER = ["home", "agent", "finances", "places"];
 
 export function BottomNav() {
   const { sessionToken } = useAuth();

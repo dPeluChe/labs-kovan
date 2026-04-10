@@ -1,5 +1,7 @@
 import { Calendar, Plus, MapPin, CheckCircle2, Circle, Building, Car, Ticket, FileText, Plane } from "lucide-react";
 import { SwipeableCard } from "../../ui/SwipeableCard";
+import { Timeline, TimelineItem } from "../../ui/Timeline";
+import { IconBadge } from "../../ui/IconBadge";
 import type { Doc, Id } from "../../../../convex/_generated/dataModel";
 
 type ItineraryItemType =
@@ -30,10 +32,10 @@ export function TripItineraryTab({
   if (!trip.startDate || !trip.endDate) {
     return (
       <div className="text-center py-10 space-y-4">
-        <Calendar className="w-12 h-12 mx-auto text-base-content/20" />
+        <Calendar className="w-12 h-12 mx-auto text-faint" />
         <div>
           <h3 className="font-bold">Sin fechas definidas</h3>
-          <p className="text-sm text-base-content/60">Configura las fechas de tu viaje para poder armar un itinerario detallado.</p>
+          <p className="text-sm text-muted">Configura las fechas de tu viaje para poder armar un itinerario detallado.</p>
         </div>
         <button onClick={onOpenEditTrip} className="btn btn-primary btn-sm">Configurar fechas</button>
       </div>
@@ -83,19 +85,18 @@ export function TripItineraryTab({
   ].filter((value, index, self) => self.indexOf(value) === index);
 
   return (
-    <div className="space-y-8">
+    <Timeline>
       {sortedDates.map((dateKey) => {
         const dayItems = groupedItems[dateKey] || [];
         const isUnscheduled = dateKey === "unscheduled";
         const displayDate = isUnscheduled ? "Sin fecha" : new Date(dateKey).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
 
         return (
-          <div key={dateKey} className="relative pl-4 border-l-2 border-primary/20 pb-4">
-            <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-primary border-4 border-base-100" />
+          <TimelineItem key={dateKey} variant="primary">
             <h3 className="font-bold text-lg mb-3 capitalize text-primary">{displayDate}</h3>
             <div className="space-y-3">
               {dayItems.length === 0 ? (
-                <div className="text-sm text-base-content/40 italic py-2">
+                <div className="text-sm text-faint italic py-2">
                   Nada planeado para este día
                 </div>
               ) : (
@@ -103,13 +104,13 @@ export function TripItineraryTab({
                   if (item.kind === "booking") {
                     const Icon = BOOKING_ICONS[item.type as keyof typeof BOOKING_ICONS] || Plane;
                     return (
-                      <div key={item._id} className="card bg-base-200/50 border border-base-200 p-3 flex flex-row gap-3 items-center">
-                        <div className="p-2 bg-base-100 rounded-lg shrink-0">
-                          <Icon className="w-4 h-4 text-base-content/70" />
-                        </div>
+                      <div key={item._id} className="card surface-muted p-3 flex flex-row gap-3 items-center">
+                        <IconBadge color="bg-base-100 text-body" size="sm">
+                          <Icon className="w-4 h-4" />
+                        </IconBadge>
                         <div className="flex-1 min-w-0">
                           <div className="font-bold text-sm truncate">{item.provider}</div>
-                          <div className="text-xs text-base-content/60 flex gap-2">
+                          <div className="text-xs text-muted flex gap-2">
                             <span className="capitalize font-medium">{item.type}</span>
                             <span>{new Date(item.startDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                           </div>
@@ -135,10 +136,10 @@ export function TripItineraryTab({
             >
               <Plus className="w-3 h-3" /> Agregar actividad
             </button>
-          </div>
+          </TimelineItem>
         );
       })}
-    </div>
+    </Timeline>
   );
 }
 
@@ -194,7 +195,7 @@ function PlanItem({ plan, onDelete, onCheckIn, onSelect }: {
         )}
 
         <div className="flex-1 min-w-0">
-          <div className={`font-medium leading-tight ${plan.isCompleted ? "line-through text-base-content/50" : "text-base-content"}`}>
+          <div className={`font-medium leading-tight ${plan.isCompleted ? "line-through text-subtle" : "text-base-content"}`}>
             {plan.activity}
           </div>
 
@@ -205,7 +206,7 @@ function PlanItem({ plan, onDelete, onCheckIn, onSelect }: {
           )}
 
           {plan.notes && (
-            <p className="text-xs text-base-content/60 mt-1 line-clamp-2">
+            <p className="text-xs text-muted mt-1 line-clamp-2">
               {plan.notes}
             </p>
           )}

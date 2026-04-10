@@ -1,0 +1,174 @@
+diff --git a/src/pages/CalendarSettingsPage.tsx b/src/pages/CalendarSettingsPage.tsx
+index 68dc26b..1412637 100644
+--- a/src/pages/CalendarSettingsPage.tsx
++++ b/src/pages/CalendarSettingsPage.tsx
+@@ -14,7 +14,7 @@ export function CalendarSettingsPage() {
+   const navigate = useNavigate();
+   const [searchParams, setSearchParams] = useSearchParams();
+   const { currentFamily } = useFamily();
+-  const { sessionToken } = useAuth();
++  const { user } = useAuth();
+ 
+   const [calendarId, setCalendarId] = useState("");
+   const [displayName, setDisplayName] = useState("");
+@@ -22,7 +22,7 @@ export function CalendarSettingsPage() {
+ 
+   const integration = useQuery(
+     api.calendar.getCalendarIntegration,
+-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
++    currentFamily ? { familyId: currentFamily._id } : "skip"
+   );
+ 
+   const saveIntegration = useMutation(api.calendar.saveCalendarIntegration);
+@@ -45,7 +45,7 @@ export function CalendarSettingsPage() {
+   useEffect(() => {
+     const handleOAuth = async () => {
+       const code = searchParams.get("code");
+-      if (code && currentFamily && sessionToken) {
++      if (code && currentFamily && user) {
+         setIsSyncing(true);
+         try {
+           // 1. Exchange Code
+@@ -59,10 +59,10 @@ export function CalendarSettingsPage() {
+ 
+           // 2. Save Integration
+           await saveIntegration({
+-            sessionToken,
+             familyId: currentFamily._id,
+             calendarId: kovanCalendar.calendarId,
+             displayName: "KOVAN - FAMILIA",
++            connectedBy: user._id,
+             accessToken: tokens.accessToken,
+             refreshToken: tokens.refreshToken,
+             tokenExpiry: Date.now() + (tokens.expiresIn * 1000),
+@@ -81,7 +81,7 @@ export function CalendarSettingsPage() {
+     };
+ 
+     handleOAuth();
+-  }, [searchParams, currentFamily, sessionToken, exchangeCode, saveIntegration, navigate, setSearchParams, provisionCalendar]);
++  }, [searchParams, currentFamily, user, exchangeCode, saveIntegration, navigate, setSearchParams, provisionCalendar]);
+ 
+   const handleConnect = async () => {
+     try {
+@@ -96,14 +96,14 @@ export function CalendarSettingsPage() {
+ 
+   const handleManualSave = async (e: React.FormEvent) => {
+     e.preventDefault();
+-    if (!calendarId.trim() || !displayName.trim() || !currentFamily || !sessionToken) return;
++    if (!calendarId.trim() || !displayName.trim() || !currentFamily || !user) return;
+ 
+     try {
+       await saveIntegration({
+-        sessionToken,
+         familyId: currentFamily._id,
+         calendarId: calendarId.trim(),
+         displayName: displayName.trim(),
++        connectedBy: user._id,
+       });
+       navigate("/calendar");
+     } catch (err) {
+@@ -121,12 +121,12 @@ export function CalendarSettingsPage() {
+       icon: "warning",
+     });
+ 
+-    if (confirmed && currentFamily && sessionToken) {
+-      await removeIntegration({ sessionToken, familyId: currentFamily._id });
++    if (confirmed && currentFamily) {
++      await removeIntegration({ familyId: currentFamily._id });
+     }
+   };
+ 
+-  if (!currentFamily || !sessionToken) return <PageLoader />;
++  if (!currentFamily || !user) return <PageLoader />;
+ 
+   if (isSyncing) {
+     return (
+@@ -160,7 +160,7 @@ export function CalendarSettingsPage() {
+           {!integration?.accessToken ? (
+             <div className="card bg-base-100 shadow-sm border border-base-300">
+               <div className="card-body p-5 text-center">
+-                <p className="text-base-content/70 mb-4">
++                <p className="text-body mb-4">
+                   No hay calendarios conectados. Vincula tu cuenta de Google.
+                 </p>
+                 <button
+@@ -170,7 +170,7 @@ export function CalendarSettingsPage() {
+                   <ExternalLink className="w-4 h-4" />
+                   Conectar Google Calendar
+                 </button>
+-                <p className="text-xs text-base-content/50 mt-4">
++                <p className="text-xs text-subtle mt-4">
+                   Requiere configuración de credenciales en el servidor.
+                 </p>
+               </div>
+@@ -185,7 +185,7 @@ export function CalendarSettingsPage() {
+                   </div>
+                   <div className="flex-1 min-w-0">
+                     <h4 className="font-semibold truncate">{integration.displayName}</h4>
+-                    <p className="text-xs text-base-content/60 truncate font-mono">{integration.calendarId}</p>
++                    <p className="text-xs text-muted truncate font-mono">{integration.calendarId}</p>
+                     <span className="badge badge-success badge-xs gap-1 text-white mt-1">
+                       <Check className="w-2 h-2" /> Activo
+                     </span>
+@@ -204,7 +204,7 @@ export function CalendarSettingsPage() {
+ 
+               {/* Calendar Selection */}
+               <CalendarSelection
+-                sessionToken={sessionToken}
++                accessToken={integration.accessToken!}
+                 syncedIds={integration.syncedCalendarIds || [integration.calendarId]}
+                 familyId={currentFamily._id}
+               />
+@@ -215,7 +215,7 @@ export function CalendarSettingsPage() {
+         {/* Manual Configuration (Advanced) - Always visible or only when needed? User kept it. */}
+         <div className="collapse collapse-arrow bg-base-100 border border-base-300">
+           <input type="checkbox" />
+-          <div className="collapse-title font-medium text-sm text-base-content/70">
++          <div className="collapse-title font-medium text-sm text-body">
+             Configuración manual (Avanzado)
+           </div>
+           <div className="collapse-content">
+@@ -264,7 +264,7 @@ export function CalendarSettingsPage() {
+   );
+ }
+ 
+-function CalendarSelection({ sessionToken, syncedIds, familyId }: { sessionToken: string, syncedIds: string[], familyId: Id<"families"> }) {
++function CalendarSelection({ syncedIds, familyId }: { accessToken: string, syncedIds: string[], familyId: Id<"families"> }) {
+   const listCalendars = useAction(api.calendar.listGoogleCalendarsAction);
+   const updateSettings = useMutation(api.calendar.updateCalendarSettings);
+ 
+@@ -278,7 +278,7 @@ function CalendarSelection({ sessionToken, syncedIds, familyId }: { sessionToken
+     setIsLoading(true);
+     setError("");
+     try {
+-      const list = await listCalendars({ sessionToken, familyId });
++      const list = await listCalendars({ familyId });
+       setCalendars(list);
+     } catch (err) {
+       console.error(err);
+@@ -286,7 +286,7 @@ function CalendarSelection({ sessionToken, syncedIds, familyId }: { sessionToken
+     } finally {
+       setIsLoading(false);
+     }
+-  }, [familyId, listCalendars, sessionToken]);
++  }, [familyId, listCalendars]);
+ 
+   useEffect(() => {
+     loadCalendars();
+@@ -304,7 +304,6 @@ function CalendarSelection({ sessionToken, syncedIds, familyId }: { sessionToken
+     setIsSaving(true);
+     try {
+       await updateSettings({
+-        sessionToken,
+         familyId,
+         syncedCalendarIds: selectedIds
+       });
+@@ -363,7 +362,7 @@ function CalendarSelection({ sessionToken, syncedIds, familyId }: { sessionToken
+             );
+           })}
+           {calendars.length === 0 && !isLoading && (
+-            <p className="text-xs text-base-content/50 text-center py-2">
++            <p className="text-xs text-subtle text-center py-2">
+               No se encontraron calendarios. Sincroniza para actualizar.
+             </p>
+           )}

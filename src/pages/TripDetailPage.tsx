@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { ArrowLeft, Calendar, LayoutDashboard, Plane, DollarSign, Lightbulb, Pencil } from "lucide-react";
+import { Calendar, LayoutDashboard, Plane, DollarSign, Lightbulb, Pencil } from "lucide-react";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
+import { DetailHeader } from "../components/ui/DetailHeader";
 import { TripOverviewTab } from "../components/trips/tabs/TripOverviewTab";
 import { TripBookingsTab } from "../components/trips/tabs/TripBookingsTab";
 import { TripFinancesTab } from "../components/trips/tabs/TripFinancesTab";
@@ -45,31 +46,28 @@ export function TripDetailPage() {
 
   return (
     <div className="pb-24">
-      <div className="sticky top-0 z-20 bg-base-100/80 backdrop-blur-md border-b border-base-200">
-        <div className="navbar min-h-16 px-4 gap-2">
-          <button onClick={() => navigate(-1)} className="btn btn-ghost btn-circle btn-sm">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="flex-1 min-w-0">
-            <h1 className="font-bold text-lg truncate leading-tight">{trip.name}</h1>
-            <p className="text-xs text-base-content/60 truncate flex items-center gap-1">
-              {trip.destination && <span>{trip.destination} • </span>}
-              {trip.status}
-            </p>
-          </div>
+      <DetailHeader
+        title={trip.name}
+        subtitle={
+          <>
+            {trip.destination && <span>{trip.destination} • </span>}
+            {trip.status}
+          </>
+        }
+        onBack={() => navigate(-1)}
+        action={
           <button onClick={() => setIsEditOpen(true)} className="btn btn-ghost btn-circle btn-sm">
             <Pencil className="w-4 h-4" />
           </button>
-        </div>
-
-        <div className="px-4 pb-2">
+        }
+        tabs={
           <AnimatedTabs
             tabs={tabs}
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />
-        </div>
-      </div>
+        }
+      />
 
       <div className="p-4 space-y-6">
         {activeTab === "overview" && (

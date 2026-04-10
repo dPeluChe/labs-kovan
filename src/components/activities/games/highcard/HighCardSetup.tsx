@@ -34,7 +34,7 @@ export function HighCardSetup({
     <div className="pb-4">
       <div className="px-4">
         <h2 className="text-2xl font-black text-center mb-2">Carta Más Alta</h2>
-        <p className="text-center text-base-content/60 mb-6">¡Compite y descubre quién tiene la carta más alta!</p>
+        <p className="text-center text-muted mb-6">¡Compite y descubre quién tiene la carta más alta!</p>
 
         {members.length > 0 && (
           <div className="mb-6">
@@ -83,7 +83,7 @@ export function HighCardSetup({
           </div>
 
           {anonymousCount > 0 && (
-            <div className="text-xs text-center text-base-content/60">
+            <div className="text-xs text-center text-muted">
               {anonymousCount} jugador{anonymousCount > 1 ? "es" : ""} añadido{anonymousCount > 1 ? "s" : ""}
             </div>
           )}
@@ -95,7 +95,7 @@ export function HighCardSetup({
           </button>
         </div>
 
-        <div className="mt-6 text-center text-sm text-base-content/60">Ronda {round}</div>
+        <div className="mt-6 text-center text-sm text-muted">Ronda {round}</div>
       </div>
     </div>
   );

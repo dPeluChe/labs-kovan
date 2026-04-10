@@ -50,7 +50,7 @@ export function AssignPlanModal({ familyId, personId, plan, onClose }: AssignPla
   return (
     <MobileModal title={`Asignar ${plan.name}`} onClose={onClose}>
       <div className="space-y-6">
-        <p className="text-sm opacity-60">Selecciona el rango de fechas para aplicar este plan alimenticio.</p>
+        <p className="text-sm text-muted">Selecciona el rango de fechas para aplicar este plan alimenticio.</p>
 
         {error && <div className="alert alert-error text-xs">{error}</div>}
 

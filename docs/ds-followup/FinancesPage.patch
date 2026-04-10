@@ -1,0 +1,281 @@
+diff --git a/src/pages/FinancesPage.tsx b/src/pages/FinancesPage.tsx
+index 347d778..001fc32 100644
+--- a/src/pages/FinancesPage.tsx
++++ b/src/pages/FinancesPage.tsx
+@@ -11,6 +11,7 @@ import { DateInput } from "../components/ui/DateInput";
+ import { Input } from "../components/ui/Input";
+ import { Select } from "../components/ui/Select";
+ import { AnimatedTabs } from "../components/ui/AnimatedTabs";
++import { StickyHeader } from "../components/ui/StickyHeader";
+ import type { Id, Doc } from "../../convex/_generated/dataModel";
+ import { MobileModal } from "../components/ui/MobileModal";
+ import { ExpenseCard } from "../components/finances/ExpenseCard";
+@@ -36,12 +37,9 @@ export function FinancesPage() {
+ 
+   return (
+     <div className="pb-4">
+-      {/* Top Navigation */}
+-      <div className="navbar bg-base-100 sticky top-0 z-10 px-4 min-h-[4rem]">
+-        <div className="flex-1">
+-          <h1 className="text-xl font-bold">Finanzas</h1>
+-        </div>
+-        <div className="flex-none">
++      <StickyHeader
++        title="Finanzas"
++        action={
+           <div className="join bg-base-200 p-1 rounded-lg">
+             <button
+               className={`join-item btn btn-sm border-0 ${activeSection === "expenses" ? "btn-active btn-primary" : "btn-ghost"}`}
+@@ -56,8 +54,8 @@ export function FinancesPage() {
+               <HandCoins className="w-4 h-4" /> Préstamos
+             </button>
+           </div>
+-        </div>
+-      </div>
++        }
++      />
+ 
+       <div className="mt-2">
+         {activeSection === "expenses" ? <ExpensesView /> : <LoansView />}
+@@ -68,15 +66,11 @@ export function FinancesPage() {
+ 
+ function LoansView() {
+   const { currentFamily } = useFamily();
+-  const { sessionToken } = useAuth();
+   const [showNewLoan, setShowNewLoan] = useState(false);
+   const [paymentLoanId, setPaymentLoanId] = useState<Id<"loans"> | null>(null);
+   const { confirm } = useConfirmModal();
+ 
+-  const loans = useQuery(
+-    api.loans.list,
+-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
+-  );
++  const loans = useQuery(api.loans.list, currentFamily ? { familyId: currentFamily._id } : "skip");
+   const deleteLoan = useMutation(api.loans.deleteLoan);
+ 
+   if (!loans) return <SkeletonPageContent cards={3} />;
+@@ -143,7 +137,7 @@ function LoansView() {
+                       </div>
+                     )}
+                     {loan.dueDate && (
+-                      <div className="text-xs text-base-content/50 mt-1">
++                      <div className="text-xs text-subtle mt-1">
+                         Vence: {new Date(loan.dueDate).toLocaleDateString()}
+                       </div>
+                     )}
+@@ -158,10 +152,10 @@ function LoansView() {
+                       </button>
+                     )}
+                     <button
+-                      className="btn btn-ghost btn-xs text-base-content/40 hover:text-error"
++                      className="btn btn-ghost btn-xs text-faint hover:text-error"
+                       onClick={async () => {
+                         if (await confirm({ title: "Borrar préstamo", message: "Esto eliminará el registro y sus abonos.", variant: "danger" })) {
+-                          if (sessionToken) deleteLoan({ sessionToken, loanId: loan._id });
++                          deleteLoan({ loanId: loan._id });
+                         }
+                       }}
+                     >
+@@ -176,12 +170,11 @@ function LoansView() {
+       )}
+ 
+       {currentFamily && showNewLoan && (
+-        <NewLoanModal sessionToken={sessionToken ?? ""} familyId={currentFamily._id} onClose={() => setShowNewLoan(false)} />
++        <NewLoanModal familyId={currentFamily._id} onClose={() => setShowNewLoan(false)} />
+       )}
+ 
+       {currentFamily && paymentLoanId && (
+         <PaymentModal
+-          sessionToken={sessionToken ?? ""}
+           loanId={paymentLoanId}
+           familyId={currentFamily._id}
+           onClose={() => setPaymentLoanId(null)}
+@@ -191,7 +184,7 @@ function LoansView() {
+   );
+ }
+ 
+-function NewLoanModal({ sessionToken, familyId, onClose }: { sessionToken: string, familyId: Id<"families">, onClose: () => void }) {
++function NewLoanModal({ familyId, onClose }: { familyId: Id<"families">, onClose: () => void }) {
+   const createLoan = useMutation(api.loans.create);
+   const [type, setType] = useState<"lent" | "borrowed">("lent");
+   const [person, setPerson] = useState("");
+@@ -204,9 +197,7 @@ function NewLoanModal({ sessionToken, familyId, onClose }: { sessionToken: strin
+     if (!person || !amount) return;
+     setIsLoading(true);
+     try {
+-      if (!sessionToken) return;
+       await createLoan({
+-        sessionToken,
+         familyId,
+         type,
+         personName: person,
+@@ -256,7 +247,7 @@ function NewLoanModal({ sessionToken, familyId, onClose }: { sessionToken: strin
+   );
+ }
+ 
+-function PaymentModal({ sessionToken, loanId, familyId, onClose }: { sessionToken: string, loanId: Id<"loans">, familyId: Id<"families">, onClose: () => void }) {
++function PaymentModal({ loanId, familyId, onClose }: { loanId: Id<"loans">, familyId: Id<"families">, onClose: () => void }) {
+   const addPayment = useMutation(api.loans.addPayment);
+   // unused familyId warning
+   console.log("Family context:", familyId);
+@@ -270,9 +261,7 @@ function PaymentModal({ sessionToken, loanId, familyId, onClose }: { sessionToke
+     if (!amount) return;
+     setIsLoading(true);
+     try {
+-      if (!sessionToken) return;
+       await addPayment({
+-        sessionToken,
+         loanId,
+         amount: parseFloat(amount),
+         date: new Date(date).getTime(),
+@@ -306,7 +295,7 @@ function PaymentModal({ sessionToken, loanId, familyId, onClose }: { sessionToke
+ 
+ function ExpensesView() {
+   const { currentFamily } = useFamily();
+-  const { user, sessionToken } = useAuth();
++  const { user } = useAuth();
+   const [activeTab, setActiveTab] = useState<ExpenseType>("all");
+   const [dateFilter, setDateFilter] = useState<DateFilter>("thisMonth");
+   const [showNewExpense, setShowNewExpense] = useState(false);
+@@ -317,19 +306,19 @@ function ExpensesView() {
+ 
+   const expenses = useQuery(
+     api.expenses.getExpenses,
+-    currentFamily && sessionToken
+-      ? { sessionToken, familyId: currentFamily._id, type: activeTab === "all" ? undefined : activeTab }
++    currentFamily
++      ? { familyId: currentFamily._id, type: activeTab === "all" ? undefined : activeTab }
+       : "skip"
+   );
+ 
+   const subscriptions = useQuery(
+     api.expenses.getSubscriptions,
+-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
++    currentFamily ? { familyId: currentFamily._id } : "skip"
+   );
+ 
+   const summary = useQuery(
+     api.expenses.getExpenseSummary,
+-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
++    currentFamily ? { familyId: currentFamily._id } : "skip"
+   );
+ 
+   const deleteExpense = useMutation(api.expenses.deleteExpense);
+@@ -443,13 +432,13 @@ function ExpensesView() {
+             <div className="card-body p-4">
+               <div className="flex items-center justify-between">
+                 <div>
+-                  <div className="text-sm text-base-content/60">Este mes</div>
++                  <div className="text-sm text-muted">Este mes</div>
+                   <div className="text-2xl font-bold text-emerald-600">
+                     {summary.totalThisMonth?.toLocaleString("es-MX", { style: "currency", currency: "MXN" }) || "$0.00"}
+                   </div>
+                 </div>
+                 <div className="text-right text-sm">
+-                  <div className="text-base-content/60">{summary.countThisMonth} gastos</div>
++                  <div className="text-muted">{summary.countThisMonth} gastos</div>
+                 </div>
+               </div>
+             </div>
+@@ -474,7 +463,7 @@ function ExpensesView() {
+                     <span className="text-xl">{SUBSCRIPTION_TYPES[sub.type as keyof typeof SUBSCRIPTION_TYPES]?.icon || "📋"}</span>
+                     <div className="flex-1 min-w-0">
+                       <div className="font-semibold">{sub.name}</div>
+-                      <div className="text-xs text-base-content/60">
++                      <div className="text-xs text-muted">
+                         {sub.amount ? `$${sub.amount.toLocaleString()}` : "Variable"} • {sub.billingCycle === "monthly" ? "Mensual" : sub.billingCycle === "annual" ? "Anual" : sub.billingCycle}
+                       </div>
+                     </div>
+@@ -493,8 +482,7 @@ function ExpensesView() {
+                           variant: "danger",
+                         });
+                         if (confirmed) {
+-                          if (!sessionToken) return;
+-                          await deleteSubscription({ sessionToken, subscriptionId: sub._id });
++                          await deleteSubscription({ subscriptionId: sub._id });
+                         }
+                       }}
+                       className="btn btn-ghost btn-xs text-error"
+@@ -506,7 +494,7 @@ function ExpensesView() {
+               </div>
+             ))}
+           </div>
+-          <div className="divider text-xs text-base-content/40">Historial de pagos</div>
++          <div className="divider text-xs text-faint">Historial de pagos</div>
+         </div>
+       )}
+ 
+@@ -539,10 +527,7 @@ function ExpensesView() {
+                 key={expense._id}
+                 expense={expense}
+                 onEdit={handleEditExpense}
+-                onDelete={async (id) => {
+-                  if (!sessionToken) return;
+-                  await deleteExpense({ sessionToken, expenseId: id });
+-                }}
++                onDelete={async (id) => await deleteExpense({ expenseId: id })}
+               />
+             ))}
+           </div>
+@@ -560,7 +545,6 @@ function ExpensesView() {
+ 
+       {showNewSubscription && currentFamily && (
+         <NewSubscriptionModal
+-          sessionToken={sessionToken}
+           familyId={currentFamily._id}
+           onClose={() => setShowNewSubscription(false)}
+         />
+@@ -568,7 +552,6 @@ function ExpensesView() {
+ 
+       {showPaySubscription && currentFamily && user && (
+         <PaySubscriptionModal
+-          sessionToken={sessionToken}
+           subscriptionId={showPaySubscription}
+           familyId={currentFamily._id}
+           subscriptions={subscriptions || []}
+@@ -585,11 +568,9 @@ function ExpensesView() {
+ 
+ // New Subscription Modal
+ function NewSubscriptionModal({
+-  sessionToken,
+   familyId,
+   onClose,
+ }: {
+-  sessionToken: string | null;
+   familyId: Id<"families">;
+   onClose: () => void;
+ }) {
+@@ -608,9 +589,7 @@ function NewSubscriptionModal({
+ 
+     setIsLoading(true);
+     try {
+-      if (!sessionToken) return;
+       await createSubscription({
+-        sessionToken,
+         familyId,
+         name: name.trim(),
+         type,
+@@ -688,13 +667,11 @@ function NewSubscriptionModal({
+ }
+ 
+ function PaySubscriptionModal({
+-  sessionToken,
+   subscriptionId,
+   familyId,
+   subscriptions,
+   onClose,
+ }: {
+-  sessionToken: string | null;
+   subscriptionId: Id<"subscriptions">;
+   familyId: Id<"families">;
+   userId?: Id<"users">;
+@@ -716,9 +693,7 @@ function PaySubscriptionModal({
+ 
+     setIsLoading(true);
+     try {
+-      if (!sessionToken) return;
+       await createExpense({
+-        sessionToken,
+         familyId,
+         type: "subscription",
+         description: `Pago de ${sub.name}`,

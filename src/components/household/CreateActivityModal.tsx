@@ -29,7 +29,7 @@ interface CreateActivityModalProps {
 
 export function CreateActivityModal({ isOpen, onClose, activityToEdit }: CreateActivityModalProps) {
   const { currentFamily } = useFamily();
-  const { user } = useAuth();
+  const { user, sessionToken } = useAuth();
 
   const [name, setName] = useState(activityToEdit?.name ?? "");
   const [emoji, setEmoji] = useState(activityToEdit?.emoji ?? "✨");
@@ -42,10 +42,11 @@ export function CreateActivityModal({ isOpen, onClose, activityToEdit }: CreateA
   const updateActivity = useMutation(api.household.updateActivity);
 
   const handleSubmit = async () => {
-    if (!currentFamily || !user || !name.trim()) return;
+    if (!currentFamily || !user || !sessionToken || !name.trim()) return;
 
     if (activityToEdit) {
       await updateActivity({
+        sessionToken,
         activityId: activityToEdit._id,
         familyId: currentFamily._id,
         name: name.trim(),
@@ -55,8 +56,8 @@ export function CreateActivityModal({ isOpen, onClose, activityToEdit }: CreateA
       });
     } else {
       await createActivity({
+        sessionToken,
         familyId: currentFamily._id,
-        userId: user._id,
         name: name.trim(),
         emoji,
         points,

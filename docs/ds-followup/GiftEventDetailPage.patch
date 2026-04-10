@@ -1,0 +1,110 @@
+diff --git a/src/pages/GiftEventDetailPage.tsx b/src/pages/GiftEventDetailPage.tsx
+index d50ba4c..5b68b83 100644
+--- a/src/pages/GiftEventDetailPage.tsx
++++ b/src/pages/GiftEventDetailPage.tsx
+@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
+ import { useParams, useNavigate } from "react-router-dom";
+ import { useQuery, useMutation } from "convex/react";
+ import { api } from "../../convex/_generated/api";
++import { useFamily } from "../contexts/FamilyContext";
+ import { useAuth } from "../contexts/AuthContext";
+ import { PageLoader } from "../components/ui/LoadingSpinner";
+ import { EmptyState } from "../components/ui/EmptyState";
+@@ -26,7 +27,8 @@ type FilterType = "all" | "pending" | "bought" | "gifts";
+ export function GiftEventDetailPage() {
+   const { eventId } = useParams<{ eventId: string }>();
+   const navigate = useNavigate();
+-  const { sessionToken } = useAuth();
++  const { currentFamily } = useFamily();
++  const { user } = useAuth();
+ 
+   // Modals state
+   const [showAddRecipient, setShowAddRecipient] = useState(false);
+@@ -41,17 +43,17 @@ export function GiftEventDetailPage() {
+   // Queries
+   const event = useQuery(
+     api.gifts.getGiftEvent,
+-    eventId && sessionToken ? { sessionToken, eventId: eventId as Id<"giftEvents"> } : "skip"
++    eventId ? { eventId: eventId as Id<"giftEvents"> } : "skip"
+   );
+ 
+   const recipientsWithItems = useQuery(
+     api.gifts.getAllGiftItemsForEvent,
+-    eventId && sessionToken ? { sessionToken, eventId: eventId as Id<"giftEvents"> } : "skip"
++    eventId ? { eventId: eventId as Id<"giftEvents"> } : "skip"
+   );
+ 
+   const unassignedGifts = useQuery(
+     api.gifts.getUnassignedGifts,
+-    eventId && sessionToken ? { sessionToken, eventId: eventId as Id<"giftEvents"> } : "skip"
++    eventId ? { eventId: eventId as Id<"giftEvents"> } : "skip"
+   );
+ 
+   // Mutations
+@@ -164,8 +166,7 @@ export function GiftEventDetailPage() {
+     });
+ 
+     if (confirmed) {
+-      if (!sessionToken) return;
+-      await deleteEvent({ sessionToken, eventId: eventId as Id<"giftEvents"> });
++      await deleteEvent({ eventId: eventId as Id<"giftEvents"> });
+       navigate("/gifts");
+     }
+   };
+@@ -183,8 +184,7 @@ export function GiftEventDetailPage() {
+       if (!confirmed) return;
+     }
+ 
+-    if (!sessionToken) return;
+-    await updateEvent({ sessionToken, eventId: eventId as Id<"giftEvents">, isCompleted: isNowCompleted });
++    await updateEvent({ eventId: eventId as Id<"giftEvents">, isCompleted: isNowCompleted });
+     if (isNowCompleted) {
+       navigate("/gifts"); // Return to list after archiving
+     }
+@@ -234,11 +234,11 @@ export function GiftEventDetailPage() {
+                         <p className={`text-sm truncate ${isBought ? "line-through opacity-60" : ""}`}>
+                           {item.title}
+                         </p>
+-                        <p className="text-xs text-base-content/50">
++                        <p className="text-xs text-subtle">
+                           {recipientName === "Sin asignar" ? <span className="text-warning">Sin asignar</span> : `→ ${recipientName}`}
+                         </p>
+                       </div>
+-                      {item.priceEstimate && <span className="text-xs text-base-content/50">${item.priceEstimate}</span>}
++                      {item.priceEstimate && <span className="text-xs text-subtle">${item.priceEstimate}</span>}
+                     </div>
+                   );
+                 })}
+@@ -294,9 +294,11 @@ export function GiftEventDetailPage() {
+ 
+             {/* Recipients List */}
+             {filteredData.length === 0 ? (
+-              <div className="text-center py-8 text-base-content/50 animate-fade-in">
+-                <p>No hay receptores con regalos {filter === "bought" ? "listos" : "pendientes"}</p>
+-              </div>
++              <EmptyState
++                icon={Package}
++                title="Sin regalos en esta vista"
++                description={`No hay receptores con regalos ${filter === "bought" ? "listos" : "pendientes"}`}
++              />
+             ) : (
+               <div className="space-y-3 stagger-children">
+                 {filteredData.map(({ recipient, items }: { recipient: Doc<"giftRecipients">, items: Doc<"giftItems">[] }) => (
+@@ -304,6 +306,8 @@ export function GiftEventDetailPage() {
+                     key={recipient._id}
+                     recipient={recipient}
+                     items={items}
++                    familyId={currentFamily?._id}
++                    userId={user?._id}
+                     onAddItem={() => setAddingToRecipient(recipient._id)}
+                     onEditItem={(item) => setEditingItem(item)}
+                     confirmDialog={confirmDialog}
+@@ -317,7 +321,7 @@ export function GiftEventDetailPage() {
+             {filter === "all" && !event.isCompleted && (
+               <button
+                 onClick={() => setShowAddRecipient(true)}
+-                className="btn btn-ghost btn-sm btn-block border-dashed border mt-2 text-base-content/50"
++                className="btn btn-ghost btn-sm btn-block border-dashed border mt-2 text-subtle"
+               >
+                 <UserPlus className="w-4 h-4" /> Agregar persona
+               </button>

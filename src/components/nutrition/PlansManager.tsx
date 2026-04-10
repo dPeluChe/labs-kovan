@@ -2,6 +2,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { PlusCircle, FileText } from "lucide-react";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
+import { EmptyState } from "../ui/EmptyState";
 
 interface PlansManagerProps {
   sessionToken: string;
@@ -29,7 +30,7 @@ export function PlansManager({ sessionToken, familyId, onCreate, onAssign, onEdi
 
       <div className="grid gap-3">
         {plans?.map((plan: Doc<"nutritionPlans">) => (
-          <div key={plan._id} className="card bg-base-100 border border-base-200 shadow-sm relative group">
+          <div key={plan._id} className="surface-card relative group">
             <button
               onClick={(e) => { e.stopPropagation(); onEdit(plan); }}
               className="absolute top-3 right-3 btn btn-xs btn-ghost btn-circle opacity-0 group-hover:opacity-100 transition-opacity"
@@ -41,7 +42,7 @@ export function PlansManager({ sessionToken, familyId, onCreate, onAssign, onEdi
               <div className="flex justify-between items-start">
                 <div className="cursor-pointer flex-1" onClick={() => onEdit(plan)}>
                   <h3 className="font-bold">{plan.name}</h3>
-                  <p className="text-xs opacity-60 mb-2 line-clamp-2">{plan.description || "Sin descripción"}</p>
+                  <p className="text-xs text-muted mb-2 line-clamp-2">{plan.description || "Sin descripción"}</p>
                   <div className="flex flex-wrap gap-2">
                     {plan.targets?.calories ? (
                       <span className="badge badge-xs badge-neutral text-neutral-content">
@@ -62,9 +63,16 @@ export function PlansManager({ sessionToken, familyId, onCreate, onAssign, onEdi
           </div>
         ))}
         {plans?.length === 0 && (
-          <div className="text-center p-8 opacity-50 text-sm bg-base-100 rounded-xl border border-dashed border-base-300">
-            No hay planes creados aún.
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="Sin planes"
+            description="Crea tu primer plan alimenticio para empezar."
+            action={
+              <button onClick={onCreate} className="btn btn-sm btn-primary">
+                <PlusCircle className="w-4 h-4" /> Nuevo plan
+              </button>
+            }
+          />
         )}
       </div>
     </div>

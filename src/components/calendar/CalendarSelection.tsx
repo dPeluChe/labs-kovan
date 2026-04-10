@@ -104,7 +104,7 @@ export function CalendarSelection({ sessionToken, syncedIds, familyId }: Calenda
             );
           })}
           {calendars.length === 0 && !isLoading && (
-            <p className="text-xs text-base-content/50 text-center py-2">
+            <p className="text-xs text-subtle text-center py-2">
               No se encontraron calendarios. Sincroniza para actualizar.
             </p>
           )}

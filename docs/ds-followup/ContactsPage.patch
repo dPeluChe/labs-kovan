@@ -1,0 +1,116 @@
+diff --git a/src/pages/ContactsPage.tsx b/src/pages/ContactsPage.tsx
+index 2896b1f..a16a935 100644
+--- a/src/pages/ContactsPage.tsx
++++ b/src/pages/ContactsPage.tsx
+@@ -43,20 +43,20 @@ const CATEGORY_CONFIG: Record<ContactCategory, { label: string; icon: LucideIcon
+ 
+ export function ContactsPage() {
+   const { currentFamily } = useFamily();
+-  const { sessionToken } = useAuth();
++  const { user } = useAuth();
+   const [showNewContact, setShowNewContact] = useState(false);
+   const [filter, setFilter] = useState<ContactCategory | "all" | "favorites">("all");
+   const { confirm, ConfirmModal } = useConfirmModal();
+ 
+   const contacts = useQuery(
+     api.contacts.getContacts,
+-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
++    currentFamily ? { familyId: currentFamily._id } : "skip"
+   );
+ 
+   const toggleFavorite = useMutation(api.contacts.toggleFavorite);
+   const deleteContact = useMutation(api.contacts.deleteContact);
+ 
+-  if (!currentFamily || !sessionToken) return null;
++  if (!currentFamily || !user) return null;
+ 
+   const filteredContacts = contacts?.filter((c) => {
+     if (filter === "all") return true;
+@@ -158,7 +158,7 @@ export function ContactsPage() {
+                           )}
+                         </div>
+                         {contact.specialty && (
+-                          <p className="text-xs text-base-content/60">{contact.specialty}</p>
++                          <p className="text-xs text-muted">{contact.specialty}</p>
+                         )}
+                         <div className="flex flex-wrap gap-2 mt-2">
+                           {contact.phone && (
+@@ -181,20 +181,20 @@ export function ContactsPage() {
+                           )}
+                         </div>
+                         {contact.address && (
+-                          <p className="text-xs text-base-content/50 mt-1 flex items-center gap-1">
++                          <p className="text-xs text-subtle mt-1 flex items-center gap-1">
+                             <MapPin className="w-3 h-3" />
+                             {contact.address}
+                           </p>
+                         )}
+                         {contact.notes && (
+-                          <p className="text-xs text-base-content/60 mt-1 italic">
++                          <p className="text-xs text-muted mt-1 italic">
+                             {contact.notes}
+                           </p>
+                         )}
+                       </div>
+                       <div className="flex flex-col gap-1">
+                         <button
+-                          onClick={() => toggleFavorite({ sessionToken, contactId: contact._id })}
++                          onClick={() => toggleFavorite({ contactId: contact._id })}
+                           className={`btn btn-ghost btn-xs btn-circle ${contact.isFavorite ? "text-amber-500" : ""
+                             }`}
+                         >
+@@ -211,7 +211,7 @@ export function ContactsPage() {
+                               icon: "trash",
+                             });
+                             if (confirmed) {
+-                              await deleteContact({ sessionToken, contactId: contact._id });
++                              await deleteContact({ contactId: contact._id });
+                             }
+                           }}
+                           className="btn btn-ghost btn-xs btn-circle text-error"
+@@ -228,10 +228,10 @@ export function ContactsPage() {
+         )}
+       </div>
+ 
+-      {showNewContact && currentFamily && sessionToken && (
++      {showNewContact && currentFamily && user && (
+         <NewContactModal
+-          sessionToken={sessionToken}
+           familyId={currentFamily._id}
++          userId={user._id}
+           onClose={() => setShowNewContact(false)}
+         />
+       )}
+@@ -242,12 +242,12 @@ export function ContactsPage() {
+ }
+ 
+ function NewContactModal({
+-  sessionToken,
+   familyId,
++  userId,
+   onClose,
+ }: {
+-  sessionToken: string;
+   familyId: Id<"families">;
++  userId: Id<"users">;
+   onClose: () => void;
+ }) {
+   const [name, setName] = useState("");
+@@ -267,9 +267,7 @@ function NewContactModal({
+ 
+     setIsLoading(true);
+     try {
+-      if (!sessionToken) return;
+       await createContact({
+-        sessionToken,
+         familyId,
+         name: name.trim(),
+         category,
+@@ -278,6 +276,7 @@ function NewContactModal({
+         email: email.trim() || undefined,
+         address: address.trim() || undefined,
+         notes: notes.trim() || undefined,
++        addedBy: userId,
+       });
+       onClose();
+     } finally {

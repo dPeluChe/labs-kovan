@@ -1,41 +1,5 @@
-import {
-  GripVertical,
-  Home,
-  Gift,
-  MapPin,
-  Heart,
-  MoreHorizontal,
-  Calendar,
-  DollarSign,
-  ChefHat,
-  Book,
-  Car,
-  RotateCcw,
-  Bot,
-  Contact,
-  Dices,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
-export const ALL_NAV_ITEMS: { id: string; icon: LucideIcon; label: string }[] = [
-  { id: "home", icon: Home, label: "Inicio" },
-  { id: "agent", icon: Bot, label: "Kovan" },
-  { id: "gifts", icon: Gift, label: "Regalos" },
-  { id: "places", icon: MapPin, label: "Lugares" },
-  { id: "health", icon: Heart, label: "Salud" },
-  { id: "calendar", icon: Calendar, label: "Calendario" },
-  { id: "finances", icon: DollarSign, label: "Finanzas" },
-  { id: "recipes", icon: ChefHat, label: "Recetas" },
-  { id: "collections", icon: Book, label: "Colecciones" },
-  { id: "vehicles", icon: Car, label: "Autos" },
-  { id: "contacts", icon: Contact, label: "Directorio" },
-  { id: "activities", icon: Dices, label: "Juegos" },
-  { id: "expenses", icon: DollarSign, label: "Gastos" },
-  { id: "library", icon: Book, label: "Librería" },
-  { id: "services", icon: Car, label: "Servicios" },
-];
-
-export const DEFAULT_NAV_ORDER = ["home", "agent", "finances", "places"];
+import { GripVertical, Home, MoreHorizontal, RotateCcw } from "lucide-react";
+import { ALL_NAV_ITEMS } from "./navOrderConstants";
 
 interface NavOrderEditorProps {
   navOrder: string[];
@@ -74,7 +38,7 @@ export function NavOrderEditor({
         </button>
       </div>
 
-      <p className="text-sm text-base-content/60 mb-3">
+      <p className="text-sm text-muted mb-3">
         Arrastra para reordenar. Los primeros 4 aparecen en la barra inferior.
       </p>
 
@@ -95,7 +59,7 @@ export function NavOrderEditor({
                 : "border-base-300 hover:border-primary/50"
               }`}
             >
-              <GripVertical className="w-4 h-4 text-base-content/40" />
+              <GripVertical className="w-4 h-4 text-faint" />
               <div className="bg-primary/10 p-2 rounded-lg">
                 <Icon className="w-4 h-4 text-primary" />
               </div>
@@ -123,15 +87,15 @@ export function NavOrderEditor({
         <div className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-base-300 bg-base-200/50">
           <div className="w-4 h-4" />
           <div className="bg-base-300 p-2 rounded-lg">
-            <MoreHorizontal className="w-4 h-4 text-base-content/50" />
+            <MoreHorizontal className="w-4 h-4 text-subtle" />
           </div>
-          <span className="flex-1 font-medium text-sm text-base-content/50">Más (fijo)</span>
+          <span className="flex-1 font-medium text-sm text-subtle">Más (fijo)</span>
         </div>
       </div>
 
       {moreItems.length > 0 && (
         <div className="space-y-1">
-          <div className="text-xs font-medium text-base-content/60 mb-2">En menú "Más"</div>
+          <div className="text-xs font-medium text-muted mb-2">En menú "Más"</div>
           {moreItems.map((id, index) => {
             const item = getNavItem(id);
             const Icon = item.icon;
@@ -147,11 +111,11 @@ export function NavOrderEditor({
                   : "border-base-300 hover:border-primary/50"
                 }`}
               >
-                <GripVertical className="w-4 h-4 text-base-content/40" />
+                <GripVertical className="w-4 h-4 text-faint" />
                 <div className="bg-base-200 p-2 rounded-lg">
-                  <Icon className="w-4 h-4 text-base-content/60" />
+                  <Icon className="w-4 h-4 text-muted" />
                 </div>
-                <span className="flex-1 font-medium text-sm text-base-content/70">{item.label}</span>
+                <span className="flex-1 font-medium text-sm text-body">{item.label}</span>
                 <div className="flex gap-1">
                   <button
                     onClick={() => onMoveItem(id, "up")}

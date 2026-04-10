@@ -86,7 +86,7 @@ export function LoansView() {
                       </div>
                     )}
                     {loan.dueDate && (
-                      <div className="text-xs text-base-content/50 mt-1">
+                      <div className="text-xs text-subtle mt-1">
                         Vence: {new Date(loan.dueDate).toLocaleDateString()}
                       </div>
                     )}
@@ -101,7 +101,7 @@ export function LoansView() {
                       </button>
                     )}
                     <button
-                      className="btn btn-ghost btn-xs text-base-content/40 hover:text-error"
+                      className="btn btn-ghost btn-xs text-faint hover:text-error"
                       onClick={async () => {
                         if (await confirm({ title: "Borrar préstamo", message: "Esto eliminará el registro y sus abonos.", variant: "danger" })) {
                           if (sessionToken) deleteLoan({ sessionToken, loanId: loan._id });

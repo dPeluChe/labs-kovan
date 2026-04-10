@@ -156,13 +156,13 @@ export function ExpensesView() {
             <div className="card-body p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm text-base-content/60">Este mes</div>
+                  <div className="text-sm text-muted">Este mes</div>
                   <div className="text-2xl font-bold text-emerald-600">
                     {summary.totalThisMonth?.toLocaleString("es-MX", { style: "currency", currency: "MXN" }) || "$0.00"}
                   </div>
                 </div>
                 <div className="text-right text-sm">
-                  <div className="text-base-content/60">{summary.countThisMonth} gastos</div>
+                  <div className="text-muted">{summary.countThisMonth} gastos</div>
                 </div>
               </div>
             </div>
@@ -186,7 +186,7 @@ export function ExpensesView() {
                     <span className="text-xl">{SUBSCRIPTION_TYPES[sub.type as keyof typeof SUBSCRIPTION_TYPES]?.icon || "📋"}</span>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold">{sub.name}</div>
-                      <div className="text-xs text-base-content/60">
+                      <div className="text-xs text-muted">
                         {sub.amount ? `$${sub.amount.toLocaleString()}` : "Variable"} • {sub.billingCycle === "monthly" ? "Mensual" : sub.billingCycle === "annual" ? "Anual" : sub.billingCycle}
                       </div>
                     </div>
@@ -218,7 +218,7 @@ export function ExpensesView() {
               </div>
             ))}
           </div>
-          <div className="divider text-xs text-base-content/40">Historial de pagos</div>
+          <div className="divider text-xs text-faint">Historial de pagos</div>
         </div>
       )}
 

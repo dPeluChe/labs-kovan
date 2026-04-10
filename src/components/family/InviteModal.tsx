@@ -97,7 +97,7 @@ export function InviteModal({
   return (
     <MobileModal isOpen={true} onClose={onClose} title="Invitar a la familia">
       <div className="space-y-3 mb-6">
-        <p className="text-sm text-base-content/70">Comparte un link de invitación:</p>
+        <p className="text-sm text-body">Comparte un link de invitación:</p>
 
         <div className="card bg-base-200 p-3">
           <div className="flex items-center gap-3">
@@ -107,9 +107,9 @@ export function InviteModal({
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm">Unirse a "{familyName}"</p>
               {inviteLink ? (
-                <p className="text-xs text-base-content/60 truncate">{inviteLink}</p>
+                <p className="text-xs text-muted truncate">{inviteLink}</p>
               ) : (
-                <p className="text-xs text-base-content/60">
+                <p className="text-xs text-muted">
                   Primero genera la invitación por email para crear un link seguro.
                 </p>
               )}
@@ -147,7 +147,7 @@ export function InviteModal({
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm">Crear su propia familia</p>
-              <p className="text-xs text-base-content/60 truncate">{registerLink}</p>
+              <p className="text-xs text-muted truncate">{registerLink}</p>
             </div>
             <div className="flex gap-1">
               <button
@@ -169,7 +169,7 @@ export function InviteModal({
         </div>
       </div>
 
-      <div className="divider text-xs text-base-content/50">O invita por email</div>
+      <div className="divider text-xs text-subtle">O invita por email</div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="form-control">
@@ -185,7 +185,7 @@ export function InviteModal({
             disabled={isLoading}
           />
           <label className="label">
-            <span className="label-text-alt text-base-content/60">
+            <span className="label-text-alt text-muted">
               Se enviará una invitación segura atada a este correo.
             </span>
           </label>

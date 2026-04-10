@@ -1,0 +1,244 @@
+diff --git a/src/pages/VehicleDetailPage.tsx b/src/pages/VehicleDetailPage.tsx
+index 538d2f5..c8fb11b 100644
+--- a/src/pages/VehicleDetailPage.tsx
++++ b/src/pages/VehicleDetailPage.tsx
+@@ -6,17 +6,17 @@ import { useFamily } from "../contexts/FamilyContext";
+ import { useAuth } from "../contexts/AuthContext";
+ import { PageLoader } from "../components/ui/LoadingSpinner";
+ import { EmptyState } from "../components/ui/EmptyState";
++import { ContextMenu } from "../components/ui/ContextMenu";
++import { DetailHeader } from "../components/ui/DetailHeader";
+ import { useConfirmModal } from "../hooks/useConfirmModal";
+ import { DateInput } from "../components/ui/DateInput";
+ import {
+-  ArrowLeft,
+   Plus,
+   Car,
+   Fuel,
+   Wrench,
+   Shield,
+   FileCheck,
+-  MoreVertical,
+   Edit2,
+   Trash2,
+   Calendar,
+@@ -40,19 +40,19 @@ export function VehicleDetailPage() {
+   const { vehicleId } = useParams<{ vehicleId: string }>();
+   const navigate = useNavigate();
+   const { currentFamily } = useFamily();
+-  const { sessionToken } = useAuth();
++  const { user } = useAuth();
+   const [showAddEvent, setShowAddEvent] = useState(false);
+   const [editingVehicle, setEditingVehicle] = useState(false);
+   const { confirm, ConfirmModal } = useConfirmModal();
+ 
+   const vehicle = useQuery(
+     api.vehicles.getVehicle,
+-    vehicleId && sessionToken ? { sessionToken, vehicleId: vehicleId as Id<"vehicles"> } : "skip"
++    vehicleId ? { vehicleId: vehicleId as Id<"vehicles"> } : "skip"
+   );
+ 
+   const events = useQuery(
+     api.vehicles.getVehicleEvents,
+-    vehicleId && sessionToken ? { sessionToken, vehicleId: vehicleId as Id<"vehicles"> } : "skip"
++    vehicleId ? { vehicleId: vehicleId as Id<"vehicles"> } : "skip"
+   );
+ 
+   const deleteVehicle = useMutation(api.vehicles.deleteVehicle);
+@@ -88,8 +88,7 @@ export function VehicleDetailPage() {
+       icon: "trash",
+     });
+     if (confirmed) {
+-      if (!sessionToken) return;
+-      await deleteVehicle({ sessionToken, vehicleId: vehicle._id });
++      await deleteVehicle({ vehicleId: vehicle._id });
+       navigate("/vehicles");
+     }
+   };
+@@ -102,8 +101,7 @@ export function VehicleDetailPage() {
+       variant: "danger",
+     });
+     if (confirmed) {
+-      if (!sessionToken) return;
+-      await deleteEvent({ sessionToken, eventId });
++      await deleteEvent({ eventId });
+     }
+   };
+ 
+@@ -115,30 +113,24 @@ export function VehicleDetailPage() {
+ 
+   return (
+     <div className="pb-4">
+-      {/* Header */}
+-      <div className="bg-base-100 border-b border-base-300 sticky top-0 z-10">
+-        <div className="flex items-center gap-3 p-4">
+-          <button onClick={() => navigate("/vehicles")} className="btn btn-ghost btn-sm btn-circle">
+-            <ArrowLeft className="w-5 h-5" />
+-          </button>
+-          <div className="flex-1 min-w-0">
+-            <h1 className="text-lg font-bold truncate">{vehicle.name}</h1>
+-            <p className="text-sm text-base-content/60">
+-              {[vehicle.brand, vehicle.model, vehicle.year].filter(Boolean).join(" ")}
+-              {vehicle.plate && ` • ${vehicle.plate}`}
+-            </p>
+-          </div>
+-          <div className="dropdown dropdown-end">
+-            <button tabIndex={0} className="btn btn-ghost btn-sm btn-circle">
+-              <MoreVertical className="w-5 h-5" />
+-            </button>
+-            <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-48">
+-              <li><a onClick={() => setEditingVehicle(true)}><Edit2 className="w-4 h-4" /> Editar</a></li>
+-              <li><a onClick={handleDeleteVehicle} className="text-error"><Trash2 className="w-4 h-4" /> Eliminar</a></li>
+-            </ul>
+-          </div>
+-        </div>
+-      </div>
++      <DetailHeader
++        title={vehicle.name}
++        onBack={() => navigate("/vehicles")}
++        subtitle={
++          <>
++            {[vehicle.brand, vehicle.model, vehicle.year].filter(Boolean).join(" ")}
++            {vehicle.plate && ` • ${vehicle.plate}`}
++          </>
++        }
++        action={
++          <ContextMenu
++            items={[
++              { icon: Edit2, label: "Editar", onClick: () => setEditingVehicle(true) },
++              { icon: Trash2, label: "Eliminar", onClick: handleDeleteVehicle, variant: "danger" },
++            ]}
++          />
++        }
++      />
+ 
+       {/* Summary Card */}
+       <div className="px-4 py-4">
+@@ -151,13 +143,13 @@ export function VehicleDetailPage() {
+               <div className="flex-1">
+                 <div className="grid grid-cols-2 gap-4">
+                   <div>
+-                    <div className="text-xs text-base-content/60">Total gastado</div>
++                    <div className="text-xs text-muted">Total gastado</div>
+                     <div className="text-xl font-bold text-green-600">
+                       ${totalSpent.toLocaleString()}
+                     </div>
+                   </div>
+                   <div>
+-                    <div className="text-xs text-base-content/60">Eventos</div>
++                    <div className="text-xs text-muted">Eventos</div>
+                     <div className="text-xl font-bold">{events.length}</div>
+                   </div>
+                 </div>
+@@ -207,7 +199,7 @@ export function VehicleDetailPage() {
+                       </div>
+                       <div className="flex-1 min-w-0">
+                         <div className="font-semibold">{event.title}</div>
+-                        <div className="flex items-center gap-2 text-xs text-base-content/60">
++                        <div className="flex items-center gap-2 text-xs text-muted">
+                           <span className="badge badge-sm badge-ghost">{config.label}</span>
+                           <span>{new Date(event.date).toLocaleDateString("es-MX")}</span>
+                           {event.odometer && (
+@@ -230,7 +222,7 @@ export function VehicleDetailPage() {
+                       </button>
+                     </div>
+                     {event.notes && (
+-                      <p className="text-xs text-base-content/60 mt-1 pl-12">{event.notes}</p>
++                      <p className="text-xs text-muted mt-1 pl-12">{event.notes}</p>
+                     )}
+                   </div>
+                 </div>
+@@ -241,11 +233,12 @@ export function VehicleDetailPage() {
+       </div>
+ 
+       {/* Add Event Modal */}
+-      {showAddEvent && currentFamily && sessionToken && (
++      {showAddEvent && currentFamily && user && (
+         <AddEventModal
+-          sessionToken={sessionToken}
+           vehicleId={vehicle._id}
+           vehicleName={vehicle.name}
++          familyId={currentFamily._id}
++          userId={user._id}
+           onClose={() => setShowAddEvent(false)}
+         />
+       )}
+@@ -253,7 +246,6 @@ export function VehicleDetailPage() {
+       {/* Edit Vehicle Modal */}
+       {editingVehicle && (
+         <EditVehicleModal
+-          sessionToken={sessionToken ?? ""}
+           vehicle={vehicle}
+           onClose={() => setEditingVehicle(false)}
+         />
+@@ -265,14 +257,16 @@ export function VehicleDetailPage() {
+ }
+ 
+ function AddEventModal({
+-  sessionToken,
+   vehicleId,
+   vehicleName,
++  familyId,
++  userId,
+   onClose,
+ }: {
+-  sessionToken: string;
+   vehicleId: Id<"vehicles">;
+   vehicleName: string;
++  familyId: Id<"families">;
++  userId: Id<"users">;
+   onClose: () => void;
+ }) {
+   const [type, setType] = useState<EventType>("service");
+@@ -292,17 +286,17 @@ function AddEventModal({
+ 
+     setIsLoading(true);
+     try {
+-      if (!sessionToken) return;
+       await createEvent({
+-        sessionToken,
+         vehicleId,
++        familyId,
+         type,
+         title: title.trim(),
+         date: new Date(date).getTime(),
+         amount: amount ? parseFloat(amount) : undefined,
+         odometer: odometer ? parseInt(odometer) : undefined,
+         nextDate: nextDate ? new Date(nextDate).getTime() : undefined,
+-        notes: notes.trim() || undefined
++        notes: notes.trim() || undefined,
++        paidBy: amount ? userId : undefined,
+       });
+       onClose();
+     } finally {
+@@ -324,7 +318,7 @@ function AddEventModal({
+       onClose={onClose}
+       title="Nuevo evento"
+     >
+-      <p className="text-sm text-base-content/60 mb-4">{vehicleName}</p>
++      <p className="text-sm text-muted mb-4">{vehicleName}</p>
+ 
+       <form onSubmit={handleSubmit} className="space-y-4">
+         {/* Event Type */}
+@@ -427,11 +421,9 @@ function AddEventModal({
+ }
+ 
+ function EditVehicleModal({
+-  sessionToken,
+   vehicle,
+   onClose,
+ }: {
+-  sessionToken: string;
+   vehicle: {
+     _id: Id<"vehicles">;
+     name: string;
+@@ -460,9 +452,7 @@ function EditVehicleModal({
+ 
+     setIsLoading(true);
+     try {
+-      if (!sessionToken) return;
+       await updateVehicle({
+-        sessionToken,
+         vehicleId: vehicle._id,
+         name: name.trim(),
+         plate: plate.trim() || undefined,

@@ -22,6 +22,9 @@ import {
 import { LogMealModal } from "./LogMealModal";
 import { NUTRIENTS } from "./constants";
 import { getLocalDateString } from "./utils";
+import { IconBadge } from "../ui/IconBadge";
+import { SectionTitle } from "../ui/SectionTitle";
+import { EmptyState } from "../ui/EmptyState";
 
 interface DailyTrackerProps {
   sessionToken: string;
@@ -107,7 +110,7 @@ export function DailyTracker({ sessionToken, familyId, personId }: DailyTrackerP
         />
       )}
 
-      <div className="flex items-center justify-between bg-base-100 p-2 rounded-xl border border-base-200 shadow-sm">
+      <div className="flex items-center justify-between surface-card p-2">
         <button onClick={() => shiftDate(-1)} className="btn btn-sm btn-ghost btn-circle">
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -115,7 +118,7 @@ export function DailyTracker({ sessionToken, familyId, personId }: DailyTrackerP
           <span className="font-bold block capitalize">
             {selectedDate.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "short" })}
           </span>
-          <span className="text-xs opacity-50 block">Hoy: {new Date().toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</span>
+          <span className="text-xs text-subtle block">Hoy: {new Date().toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</span>
         </div>
         <button onClick={() => shiftDate(1)} className="btn btn-sm btn-ghost btn-circle">
           <ChevronRight className="w-5 h-5" />
@@ -123,25 +126,25 @@ export function DailyTracker({ sessionToken, familyId, personId }: DailyTrackerP
       </div>
 
       {activeAssignment ? (
-        <div className="bg-base-100 rounded-2xl p-4 border border-base-200 shadow-sm relative overflow-hidden">
+        <div className="surface-card p-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-3 opacity-10">
             <CalendarIcon className="w-16 h-16" />
           </div>
           <div className="relative z-10">
-            <p className="text-xs font-bold uppercase tracking-wider opacity-50 mb-1">Plan Asignado</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-subtle mb-1">Plan Asignado</p>
             <h2 className="text-2xl font-black">{plan?.name}</h2>
-            <p className="text-sm opacity-60 line-clamp-2">{plan?.description}</p>
-            <div className="mt-4 flex items-center gap-2 text-xs font-mono opacity-50">
+            <p className="text-sm text-muted line-clamp-2">{plan?.description}</p>
+            <div className="mt-4 flex items-center gap-2 text-xs font-mono text-subtle">
               <span>{plan?.targets?.calories ? `${plan.targets.calories} kcal` : "Sin meta calórica"}</span>
             </div>
           </div>
         </div>
       ) : (
-        <div className="text-center p-8 bg-base-100 rounded-xl border border-dashed border-base-300">
-          <Sparkles className="w-8 h-8 mx-auto mb-2 text-primary opacity-50" />
-          <p className="font-bold">Sin Plan Activo</p>
-          <p className="text-xs opacity-60 mb-4">No hay un plan asignado para esta fecha.</p>
-        </div>
+        <EmptyState
+          icon={Sparkles}
+          title="Sin plan activo"
+          description="No hay un plan asignado para esta fecha."
+        />
       )}
 
       <div className="flex justify-end">
@@ -163,18 +166,18 @@ export function DailyTracker({ sessionToken, familyId, personId }: DailyTrackerP
             const remaining = Math.max(0, target - current);
 
             return (
-              <div key={t.key} className="card bg-base-100 border border-base-200 shadow-sm">
+              <div key={t.key} className="surface-card">
                 <div className="card-body p-4 flex-row items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${t.bg} ${t.color}`}>
+                  <IconBadge color={`${t.bg} ${t.color}`} size="md">
                     <t.icon className="w-6 h-6" />
-                  </div>
+                  </IconBadge>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline mb-1">
                       <h3 className="font-bold text-sm">{t.label}</h3>
                       <span className="text-xs font-mono">
                         <span className="font-bold text-base">{current}</span>
-                        <span className="opacity-40"> / {target}</span>
+                        <span className="text-faint"> / {target}</span>
                       </span>
                     </div>
                     <div className="w-full bg-base-200 rounded-full h-2 overflow-hidden">
@@ -185,7 +188,7 @@ export function DailyTracker({ sessionToken, familyId, personId }: DailyTrackerP
                     </div>
                     <div className="flex justify-between items-center mt-1">
                       {remaining > 0 ? (
-                        <p className="text-[10px] opacity-50">Faltan {remaining}</p>
+                        <p className="text-[10px] text-subtle">Faltan {remaining}</p>
                       ) : (
                         <p className="text-[10px] text-success font-bold">¡Completado!</p>
                       )}
@@ -213,28 +216,28 @@ export function DailyTracker({ sessionToken, familyId, personId }: DailyTrackerP
           })}
         </div>
       ) : activeAssignment ? (
-        <div className="text-center p-8 opacity-40 text-sm">
+        <div className="text-center p-8 text-faint text-sm">
           No hay objetivos definidos ni registros para este día.
         </div>
       ) : null}
 
       {todayMeals && todayMeals.length > 0 && (
         <div className="mt-8">
-          <h3 className="font-bold text-sm opacity-50 uppercase tracking-wider mb-3">Historial de hoy</h3>
+          <SectionTitle className="uppercase tracking-wider text-subtle mb-3">Historial de hoy</SectionTitle>
           <div className="space-y-2">
             {todayMeals.map((meal: Doc<"nutritionMeals">) => (
-              <div key={meal._id} className="card bg-base-100 border border-base-200 p-3 flex-row justify-between items-center">
+              <div key={meal._id} className="surface-card p-3 flex-row justify-between items-center">
                 <div>
                   <p className="font-bold text-sm">{meal.name}</p>
-                  <p className="text-xs opacity-50 flex gap-2">
+                  <p className="text-xs text-subtle flex gap-2">
                     {Object.entries(meal.content || {}).map(([k, v]) => {
                       if (!v) return null;
                       const label = NUTRIENTS.find((n) => n.key === k)?.label || (k === "other" ? "Cheat Meal" : k);
-                      return <span key={k} className={k === "other" ? "text-red-500 font-bold" : ""}>{label}: {String(v)}</span>;
+                      return <span key={k} className={k === "other" ? "text-error font-bold" : ""}>{label}: {String(v)}</span>;
                     })}
                   </p>
                 </div>
-                <span className="text-xs opacity-30 font-mono">
+                <span className="text-xs text-faint font-mono">
                   {new Date(meal.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
