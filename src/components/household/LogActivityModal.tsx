@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { MobileModal } from "../ui/MobileModal";
+import { Avatar } from "../ui/Avatar";
 import { useFamily } from "../../contexts/FamilyContext";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -68,17 +69,7 @@ export function LogActivityModal({ isOpen, onClose, activity }: LogActivityModal
                 }`}
               >
                 <div className="flex flex-col items-center gap-1">
-                  {member.photoUrl ? (
-                    <img
-                      src={member.photoUrl}
-                      alt={member.name}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-base-300 flex items-center justify-center text-sm font-bold">
-                      {member.name?.charAt(0) ?? "?"}
-                    </div>
-                  )}
+                  <Avatar src={member.photoUrl} name={member.name} size="sm" />
                   <span className="text-xs truncate max-w-full">
                     {member.name ?? "Usuario"}
                   </span>

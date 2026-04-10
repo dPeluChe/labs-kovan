@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { ArrowLeft, Calendar, Plus, LayoutDashboard, Plane, DollarSign, Lightbulb, Pencil, MapPin, CheckCircle2, Circle, Building, Car, Ticket, FileText } from "lucide-react";
+import { Calendar, Plus, LayoutDashboard, Plane, DollarSign, Lightbulb, Pencil, MapPin, CheckCircle2, Circle, Building, Car, Ticket, FileText } from "lucide-react";
 import { MobileModal } from "../components/ui/MobileModal";
 import { SwipeableCard } from "../components/ui/SwipeableCard";
 import { Input } from "../components/ui/Input";
 import { TextArea } from "../components/ui/TextArea";
 import { DateInput } from "../components/ui/DateInput";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
+import { DetailHeader } from "../components/ui/DetailHeader";
 import { TripOverviewTab } from "../components/trips/tabs/TripOverviewTab";
 import { TripBookingsTab } from "../components/trips/tabs/TripBookingsTab";
 import { TripFinancesTab } from "../components/trips/tabs/TripFinancesTab";
@@ -100,31 +101,28 @@ export function TripDetailPage() {
 
     return (
         <div className="pb-24">
-            <div className="sticky top-0 z-20 bg-base-100/80 backdrop-blur-md border-b border-base-200">
-                <div className="navbar min-h-16 px-4 gap-2">
-                    <button onClick={() => navigate(-1)} className="btn btn-ghost btn-circle btn-sm">
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
-                    <div className="flex-1 min-w-0">
-                        <h1 className="font-bold text-lg truncate leading-tight">{trip.name}</h1>
-                        <p className="text-xs text-muted truncate flex items-center gap-1">
-                            {trip.destination && <span>{trip.destination} • </span>}
-                            {trip.status}
-                        </p>
-                    </div>
-                    <button onClick={() => setIsEditOpen(true)} className="btn btn-ghost btn-circle btn-sm">
+            <DetailHeader
+                title={trip.name}
+                subtitle={
+                    <span className="flex items-center gap-1">
+                        {trip.destination && <span>{trip.destination} • </span>}
+                        {trip.status}
+                    </span>
+                }
+                onBack={() => navigate(-1)}
+                action={
+                    <button onClick={() => setIsEditOpen(true)} className="btn btn-ghost btn-circle btn-sm" aria-label="Editar viaje">
                         <Pencil className="w-4 h-4" />
                     </button>
-                </div>
-
-                <div className="px-4 pb-2">
+                }
+                tabs={
                     <AnimatedTabs
                         tabs={tabs}
                         activeTab={activeTab}
                         onTabChange={setActiveTab}
                     />
-                </div>
-            </div>
+                }
+            />
 
             <div className="p-4 space-y-6">
                 {activeTab === "overview" && (

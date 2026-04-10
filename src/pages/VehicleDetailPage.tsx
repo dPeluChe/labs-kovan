@@ -6,6 +6,7 @@ import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
+import { ContextMenu } from "../components/ui/ContextMenu";
 import { useConfirmModal } from "../hooks/useConfirmModal";
 import { DateInput } from "../components/ui/DateInput";
 import {
@@ -16,7 +17,6 @@ import {
   Wrench,
   Shield,
   FileCheck,
-  MoreVertical,
   Edit2,
   Trash2,
   Calendar,
@@ -126,15 +126,12 @@ export function VehicleDetailPage() {
               {vehicle.plate && ` • ${vehicle.plate}`}
             </p>
           </div>
-          <div className="dropdown dropdown-end">
-            <button tabIndex={0} className="btn btn-ghost btn-sm btn-circle">
-              <MoreVertical className="w-5 h-5" />
-            </button>
-            <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-48">
-              <li><a onClick={() => setEditingVehicle(true)}><Edit2 className="w-4 h-4" /> Editar</a></li>
-              <li><a onClick={handleDeleteVehicle} className="text-error"><Trash2 className="w-4 h-4" /> Eliminar</a></li>
-            </ul>
-          </div>
+          <ContextMenu
+            items={[
+              { icon: Edit2, label: "Editar", onClick: () => setEditingVehicle(true) },
+              { icon: Trash2, label: "Eliminar", onClick: handleDeleteVehicle, variant: "danger" },
+            ]}
+          />
         </div>
       </div>
 

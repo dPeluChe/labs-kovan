@@ -2,6 +2,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Trash2 } from "lucide-react";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { Avatar } from "../ui/Avatar";
 
 interface LogEntry {
   _id: Id<"householdActivityLogs">;
@@ -38,17 +39,7 @@ export function ActivityFeed({ logs, onDelete }: ActivityFeedProps) {
           <span className="text-2xl">{log.activityEmoji}</span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              {log.userPhoto ? (
-                <img
-                  src={log.userPhoto}
-                  alt={log.userName}
-                  className="w-5 h-5 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-5 h-5 rounded-full bg-base-300 flex items-center justify-center text-[10px] font-bold">
-                  {log.userName.charAt(0)}
-                </div>
-              )}
+              <Avatar src={log.userPhoto} name={log.userName} size="xs" />
               <span className="font-medium text-sm">{log.userName}</span>
               <span className="badge badge-primary badge-xs">+{log.points}</span>
             </div>

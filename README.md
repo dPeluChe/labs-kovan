@@ -179,18 +179,39 @@ Definidos en `src/index.css`. Reemplazan `text-base-content/XX`:
 
 ### Componentes unificados
 
-| Componente        | Uso                                                  |
-| ----------------- | ---------------------------------------------------- |
-| `PageHeader`      | Título de página estático sin tabs                   |
-| `StickyHeader`    | Header con título + acción + tabs (sticky con blur)  |
-| `SectionTitle`    | Label de sección (h3) con icono opcional             |
-| `CircleAddButton` | Botón circular "+" para agregar desde el header      |
-| `EmptyState`      | Estados vacíos (prohibido hacer divs inline)         |
-| `MobileModal`     | Modales (bottom-sheet mobile / centrado desktop)     |
-| `AnimatedTabs`    | Tabs animados con indicador deslizante               |
-| `ConfirmModal`    | Via `useConfirmModal` hook                           |
+| Componente        | Uso                                                     |
+| ----------------- | ------------------------------------------------------- |
+| `PageHeader`      | Título de página estático sin tabs                      |
+| `StickyHeader`    | Header con título + acción + tabs (sticky con blur)     |
+| `DetailHeader`    | Header de página de detalle con botón back + slots      |
+| `SectionTitle`    | Label de sección (h3) con icono opcional                |
+| `CircleAddButton` | Botón circular "+" para agregar desde el header         |
+| `IconBadge`       | Container coloreado con icono (feature badges)          |
+| `ContextMenu`     | Dropdown "⋮" de acciones para cards/rows                |
+| `Avatar`          | Foto de usuario con fallback a iniciales                |
+| `EmptyState`      | Estados vacíos (prohibido hacer divs inline)            |
+| `MobileModal`     | Modales (bottom-sheet mobile / centrado desktop)        |
+| `AnimatedTabs`    | Tabs animados con indicador deslizante                  |
+| `ConfirmModal`    | Via `useConfirmModal` hook                              |
 
-### Ejemplo: página con tabs
+### Registry de colores de módulos
+
+Cada feature tiene un color distintivo (Finanzas=emerald, Hogar=yellow, etc).
+Centralizado en `src/lib/moduleColors.ts` para evitar duplicación:
+
+```tsx
+import { moduleColor } from "../lib/moduleColors";
+import { IconBadge } from "../components/ui/IconBadge";
+
+<IconBadge color={moduleColor("finances")} size="md">
+  <DollarSign className="w-5 h-5" />
+</IconBadge>
+```
+
+Cambiar el color de un módulo en `moduleColors.ts` lo actualiza en todas partes
+(BottomNav, MorePage, DashboardPage, agent chips, etc.).
+
+### Ejemplo: página con tabs (top-level)
 
 ```tsx
 <StickyHeader
@@ -200,15 +221,40 @@ Definidos en `src/index.css`. Reemplazan `text-base-content/XX`:
 />
 ```
 
+### Ejemplo: página de detalle (con back)
+
+```tsx
+<DetailHeader
+  title={trip.name}
+  subtitle={`${trip.destination} • ${trip.status}`}
+  action={<button onClick={edit} className="btn btn-ghost btn-circle btn-sm"><Pencil/></button>}
+  tabs={<AnimatedTabs .../>}
+/>
+```
+
+### Ejemplo: menú contextual
+
+```tsx
+<ContextMenu items={[
+  { icon: Edit2, label: "Editar", onClick: onEdit },
+  { icon: Trash2, label: "Eliminar", onClick: onDelete, variant: "danger" },
+]} />
+```
+
 ### Reglas
 
 1. **No usar** `text-base-content/40`, `/50`, `/60`, `/70` directamente. Usar
    los aliases semánticos. Los valores `/5`, `/10`, `/20`, `/80`, `/90` sí
    pueden usarse para casos especiales (hover, dividers, emphasis).
-2. **No construir** sticky headers inline. Usar `StickyHeader`.
+2. **No construir** sticky headers inline. Usar `StickyHeader` (top-level) o
+   `DetailHeader` (detalle con back button).
 3. **No usar** `<div className="text-center py-8...">` para empty states. Usar
    `EmptyState` con un `LucideIcon`.
 4. **No hardcodear** `btn btn-primary btn-sm btn-circle`. Usar `CircleAddButton`.
+5. **No hardcodear** colores de módulo como `bg-emerald-500/10 text-emerald-600`.
+   Usar `moduleColor("finances")` de `lib/moduleColors.ts`.
+6. **No construir** dropdowns "⋮" inline. Usar `ContextMenu` con items.
+7. **No construir** avatars inline con `<img>` + fallback. Usar `<Avatar src={url} name={name} size="sm" />`.
 
 ## Feature destacada: Gamificación del hogar
 

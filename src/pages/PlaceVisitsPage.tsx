@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { ArrowLeft, Search, Calendar } from "lucide-react";
+import { Search, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFamily } from "../contexts/FamilyContext";
+import { DetailHeader } from "../components/ui/DetailHeader";
 // Actually we need the user's family. Since this is a page, we need to get family context.
 // Assuming we pass familyId relative to the wrapper or fetch it.
 // For now, let's assume we use the same hook pattern as Dashboard or others. 
@@ -40,17 +41,10 @@ export function PlaceVisitsPage() {
 
     return (
         <div className="min-h-screen bg-base-100 pb-20">
-            {/* Header */}
-            <div className="sticky top-0 z-20 bg-base-100/80 backdrop-blur-md border-b border-base-content/5 px-4 py-3">
-                <div className="flex items-center gap-3">
-                    <button onClick={() => navigate(-1)} className="btn btn-circle btn-ghost btn-sm">
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
-                    <h1 className="text-xl font-bold font-display">Bitácora de Visitas</h1>
-                </div>
-
-                {/* Search */}
-                <div className="mt-3">
+            <DetailHeader
+                title="Bitácora de Visitas"
+                onBack={() => navigate(-1)}
+                description={
                     <label className="input input-sm flex items-center gap-2 bg-base-200/50 rounded-xl px-3 border-transparent focus-within:border-primary/50 focus-within:ring-2 ring-primary/10 transition-all shadow-sm">
                         <Search className="w-4 h-4 opacity-50" />
                         <input
@@ -61,8 +55,8 @@ export function PlaceVisitsPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </label>
-                </div>
-            </div>
+                }
+            />
 
             {/* Content */}
             <div className="p-4 space-y-6">

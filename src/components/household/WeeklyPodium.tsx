@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Avatar } from "../ui/Avatar";
 
 interface LeaderboardEntry {
   rank: number;
@@ -159,17 +160,7 @@ export function WeeklyPodium({ leaderboard, weekStart }: WeeklyPodiumProps) {
               <span className="font-bold text-faint w-6 text-center">
                 {entry.rank}
               </span>
-              {entry.userPhoto ? (
-                <img
-                  src={entry.userPhoto}
-                  alt={entry.userName}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-base-300 flex items-center justify-center text-sm font-bold">
-                  {entry.userName.charAt(0)}
-                </div>
-              )}
+              <Avatar src={entry.userPhoto} name={entry.userName} size="sm" />
               <span className="font-medium flex-1">{entry.userName}</span>
               <span className="badge badge-ghost badge-sm">
                 {entry.activities} acts.

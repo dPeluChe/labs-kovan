@@ -1,10 +1,11 @@
 
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { Trash2, Check, ShoppingCart, Box, MoreVertical } from "lucide-react";
+import { Trash2, Check, ShoppingCart, Box } from "lucide-react";
 import { TYPE_CONFIG, STATUS_LABELS } from "./CollectionConstants";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import type { ConfirmOptions } from "../../hooks/useConfirmModal";
+import { ContextMenu } from "../ui/ContextMenu";
 
 export function ItemCard({
     item,
@@ -80,24 +81,17 @@ export function ItemCard({
                     </div>
 
                     {/* Context Menu */}
-                    <div className="dropdown dropdown-end">
-                        <button tabIndex={0} className="btn btn-ghost btn-xs btn-circle -mr-1 -mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <MoreVertical className="w-4 h-4" />
-                        </button>
-                        <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[50] w-40 p-1 shadow-xl border border-base-200 text-sm">
-                            <li>
-                                <button onClick={toggleOwned} className="py-2">
-                                    {item.owned ? <ShoppingCart className="w-4 h-4" /> : <Check className="w-4 h-4" />}
-                                    {item.owned ? "A Deseados" : "Ya lo tengo"}
-                                </button>
-                            </li>
-                            <li>
-                                <button onClick={handleDelete} className="text-error py-2">
-                                    <Trash2 className="w-4 h-4" /> Eliminar
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
+                    <ContextMenu
+                        items={[
+                            {
+                                icon: item.owned ? ShoppingCart : Check,
+                                label: item.owned ? "A Deseados" : "Ya lo tengo",
+                                onClick: toggleOwned,
+                            },
+                            { icon: Trash2, label: "Eliminar", onClick: handleDelete, variant: "danger" },
+                        ]}
+                        contentClassName="w-40"
+                    />
                 </div>
 
                 {/* Footer Info */}

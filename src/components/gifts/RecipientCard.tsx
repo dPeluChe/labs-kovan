@@ -2,10 +2,11 @@
 import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { Plus, MoreVertical, Edit2, Trash2, Gift, CheckCircle2, ExternalLink } from "lucide-react";
+import { Plus, Edit2, Trash2, Gift, CheckCircle2, ExternalLink } from "lucide-react";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import type { ConfirmOptions } from "../../hooks/useConfirmModal";
 import { sortGifts } from "./GiftConstants";
+import { ContextMenu } from "../ui/ContextMenu";
 
 export function RecipientCard({
     recipient,
@@ -122,15 +123,13 @@ export function RecipientCard({
                                 <Plus className="w-4 h-4" />
                             </button>
 
-                            <div className="dropdown dropdown-end">
-                                <button tabIndex={0} className="btn btn-ghost btn-xs btn-circle">
-                                    <MoreVertical className="w-4 h-4" />
-                                </button>
-                                <ul tabIndex={0} className="dropdown-content menu p-1 shadow-lg bg-base-100 rounded-lg w-40 z-50 border border-base-200 text-sm">
-                                    <li><button onClick={() => setIsEditing(true)} className="py-1.5"><Edit2 className="w-3.5 h-3.5" /> Editar</button></li>
-                                    <li><button onClick={handleDelete} className="text-error py-1.5"><Trash2 className="w-3.5 h-3.5" /> Eliminar</button></li>
-                                </ul>
-                            </div>
+                            <ContextMenu
+                                items={[
+                                    { icon: Edit2, label: "Editar", onClick: () => setIsEditing(true) },
+                                    { icon: Trash2, label: "Eliminar", onClick: handleDelete, variant: "danger" },
+                                ]}
+                                contentClassName="w-40"
+                            />
                         </>
                     )}
                 </div>

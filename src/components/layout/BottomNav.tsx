@@ -18,31 +18,19 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string; description?: string; color?: string }> = {
-  home: { to: "/", icon: Home, label: "Inicio" },
-  gifts: { to: "/gifts", icon: Gift, label: "Regalos" },
-  calendar: { to: "/calendar", icon: Calendar, label: "Calendario" },
-  health: { to: "/health", icon: Heart, label: "Salud" },
-  agent: { to: "/agent", icon: Bot, label: "Kovan", color: "bg-purple-500/10 text-purple-600" },
-  places: { to: "/places", icon: MapPin, label: "Lugares" },
-  finances: {
-    to: "/finances",
-    icon: DollarSign,
-    label: "Finanzas",
-    description: "Control de gastos familiares",
-    color: "bg-emerald-500/10 text-emerald-600",
-  },
-  recipes: { to: "/recipes", icon: ChefHat, label: "Recetas" },
-  collections: {
-    to: "/collections",
-    icon: Book,
-    label: "Colecciones",
-    description: "Libros, mangas, juegos y más",
-    color: "bg-blue-500/10 text-blue-600",
-  },
-  vehicles: { to: "/vehicles", icon: Car, label: "Autos" },
-  household: { to: "/household", icon: Medal, label: "Hogar", description: "Actividades y puntos familiares", color: "bg-yellow-500/10 text-yellow-600" },
-  more: { to: "/more", icon: MoreHorizontal, label: "Más" },
+const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string }> = {
+  home:        { to: "/",            icon: Home,        label: "Inicio" },
+  gifts:       { to: "/gifts",       icon: Gift,        label: "Regalos" },
+  calendar:    { to: "/calendar",    icon: Calendar,    label: "Calendario" },
+  health:      { to: "/health",      icon: Heart,       label: "Salud" },
+  agent:       { to: "/agent",       icon: Bot,         label: "Kovan" },
+  places:      { to: "/places",      icon: MapPin,      label: "Lugares" },
+  finances:    { to: "/finances",    icon: DollarSign,  label: "Finanzas" },
+  recipes:     { to: "/recipes",     icon: ChefHat,     label: "Recetas" },
+  collections: { to: "/collections", icon: Book,        label: "Colecciones" },
+  vehicles:    { to: "/vehicles",    icon: Car,         label: "Autos" },
+  household:   { to: "/household",   icon: Medal,       label: "Hogar" },
+  more:        { to: "/more",        icon: MoreHorizontal, label: "Más" },
 };
 
 const DEFAULT_NAV_ORDER = ["home", "agent", "finances", "places"];
