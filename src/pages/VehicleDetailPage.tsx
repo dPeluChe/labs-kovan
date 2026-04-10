@@ -7,15 +7,10 @@ import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useConfirmModal } from "../hooks/useConfirmModal";
-import { DateInput } from "../components/ui/DateInput";
 import {
   ArrowLeft,
   Plus,
   Car,
-  Fuel,
-  Wrench,
-  Shield,
-  FileCheck,
   MoreVertical,
   Edit2,
   Trash2,
@@ -23,18 +18,9 @@ import {
   Gauge,
 } from "lucide-react";
 import type { Id } from "../../convex/_generated/dataModel";
-import { MobileModal } from "../components/ui/MobileModal";
-
-const EVENT_TYPE_CONFIG = {
-  verification: { label: "Verificación", icon: FileCheck, color: "text-blue-600 bg-blue-500/10" },
-  service: { label: "Servicio", icon: Wrench, color: "text-orange-600 bg-orange-500/10" },
-  insurance: { label: "Seguro", icon: Shield, color: "text-purple-600 bg-purple-500/10" },
-  fuel: { label: "Gasolina", icon: Fuel, color: "text-yellow-600 bg-yellow-500/10" },
-  repair: { label: "Reparación", icon: Wrench, color: "text-red-600 bg-red-500/10" },
-  other: { label: "Otro", icon: Car, color: "text-gray-600 bg-gray-500/10" },
-};
-
-type EventType = keyof typeof EVENT_TYPE_CONFIG;
+import { AddVehicleEventModal } from "../components/vehicles/modals/AddVehicleEventModal";
+import { EditVehicleModal } from "../components/vehicles/modals/EditVehicleModal";
+import { EVENT_TYPE_CONFIG, type EventType } from "../components/vehicles/constants";
 
 export function VehicleDetailPage() {
   const { vehicleId } = useParams<{ vehicleId: string }>();
@@ -107,15 +93,11 @@ export function VehicleDetailPage() {
     }
   };
 
-  // Calculate total spent
   const totalSpent = events.reduce((sum, e) => sum + (e.amount || 0), 0);
-
-  // Sort events by date (most recent first)
   const sortedEvents = [...events].sort((a, b) => b.date - a.date);
 
   return (
     <div className="pb-4">
-      {/* Header */}
       <div className="bg-base-100 border-b border-base-300 sticky top-0 z-10">
         <div className="flex items-center gap-3 p-4">
           <button onClick={() => navigate("/vehicles")} className="btn btn-ghost btn-sm btn-circle">
@@ -140,7 +122,6 @@ export function VehicleDetailPage() {
         </div>
       </div>
 
-      {/* Summary Card */}
       <div className="px-4 py-4">
         <div className="card bg-gradient-to-r from-green-500/20 to-emerald-500/10 border border-green-500/30">
           <div className="card-body p-4">
@@ -167,7 +148,6 @@ export function VehicleDetailPage() {
         </div>
       </div>
 
-      {/* Add Event Button */}
       <div className="px-4 mb-4">
         <button
           onClick={() => setShowAddEvent(true)}
@@ -178,7 +158,6 @@ export function VehicleDetailPage() {
         </button>
       </div>
 
-      {/* Events List */}
       <div className="px-4">
         <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <Calendar className="w-4 h-4" /> Historial
@@ -240,9 +219,8 @@ export function VehicleDetailPage() {
         )}
       </div>
 
-      {/* Add Event Modal */}
       {showAddEvent && currentFamily && sessionToken && (
-        <AddEventModal
+        <AddVehicleEventModal
           sessionToken={sessionToken}
           vehicleId={vehicle._id}
           vehicleName={vehicle.name}
@@ -250,7 +228,6 @@ export function VehicleDetailPage() {
         />
       )}
 
-      {/* Edit Vehicle Modal */}
       {editingVehicle && (
         <EditVehicleModal
           sessionToken={sessionToken ?? ""}
@@ -261,265 +238,5 @@ export function VehicleDetailPage() {
 
       <ConfirmModal />
     </div>
-  );
-}
-
-function AddEventModal({
-  sessionToken,
-  vehicleId,
-  vehicleName,
-  onClose,
-}: {
-  sessionToken: string;
-  vehicleId: Id<"vehicles">;
-  vehicleName: string;
-  onClose: () => void;
-}) {
-  const [type, setType] = useState<EventType>("service");
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [amount, setAmount] = useState("");
-  const [odometer, setOdometer] = useState("");
-  const [nextDate, setNextDate] = useState("");
-  const [notes, setNotes] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const createEvent = useMutation(api.vehicles.createVehicleEvent);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-
-    setIsLoading(true);
-    try {
-      if (!sessionToken) return;
-      await createEvent({
-        sessionToken,
-        vehicleId,
-        type,
-        title: title.trim(),
-        date: new Date(date).getTime(),
-        amount: amount ? parseFloat(amount) : undefined,
-        odometer: odometer ? parseInt(odometer) : undefined,
-        nextDate: nextDate ? new Date(nextDate).getTime() : undefined,
-        notes: notes.trim() || undefined
-      });
-      onClose();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Auto-fill title based on type
-  const handleTypeChange = (newType: EventType) => {
-    setType(newType);
-    if (!title.trim()) {
-      setTitle(EVENT_TYPE_CONFIG[newType].label);
-    }
-  };
-
-  return (
-    <MobileModal
-      isOpen={true}
-      onClose={onClose}
-      title="Nuevo evento"
-    >
-      <p className="text-sm text-base-content/60 mb-4">{vehicleName}</p>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Event Type */}
-        <div className="form-control">
-          <label className="label"><span className="label-text">Tipo de evento</span></label>
-          <div className="grid grid-cols-3 gap-2">
-            {(Object.entries(EVENT_TYPE_CONFIG) as [EventType, typeof EVENT_TYPE_CONFIG[EventType]][]).map(([key, config]) => {
-              const Icon = config.icon;
-              const isActive = type === key;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => handleTypeChange(key)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${isActive
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-base-300 hover:border-primary/50"
-                    }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-xs">{config.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Title */}
-        <div className="form-control">
-          <label className="label"><span className="label-text">Descripción *</span></label>
-          <input
-            type="text"
-            placeholder="Ej: Cambio de aceite"
-            className="input input-bordered w-full"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-
-        {/* Date and Amount */}
-        <div className="grid grid-cols-2 gap-2">
-          <DateInput
-            label="Fecha"
-            value={date}
-            onChange={setDate}
-          />
-          <div className="form-control">
-            <label className="label"><span className="label-text">Monto</span></label>
-            <input
-              type="number"
-              placeholder="$0.00"
-              className="input input-bordered w-full"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              step="0.01"
-            />
-          </div>
-        </div>
-
-        {/* Odometer and Next Date */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Kilometraje</span></label>
-            <input
-              type="number"
-              placeholder="123,456"
-              className="input input-bordered w-full"
-              value={odometer}
-              onChange={(e) => setOdometer(e.target.value)}
-            />
-          </div>
-          <DateInput
-            label="Próxima fecha"
-            value={nextDate}
-            onChange={setNextDate}
-          />
-        </div>
-
-        {/* Notes */}
-        <div className="form-control">
-          <label className="label"><span className="label-text">Notas (opcional)</span></label>
-          <textarea
-            placeholder="Detalles adicionales..."
-            className="textarea textarea-bordered w-full"
-            rows={2}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-        </div>
-
-        <div className="modal-action">
-          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-          <button type="submit" className="btn btn-primary" disabled={isLoading || !title.trim()}>
-            {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
-          </button>
-        </div>
-      </form>
-    </MobileModal>
-  );
-}
-
-function EditVehicleModal({
-  sessionToken,
-  vehicle,
-  onClose,
-}: {
-  sessionToken: string;
-  vehicle: {
-    _id: Id<"vehicles">;
-    name: string;
-    plate?: string;
-    brand?: string;
-    model?: string;
-    year?: number;
-    color?: string;
-    notes?: string;
-  };
-  onClose: () => void;
-}) {
-  const [name, setName] = useState(vehicle.name);
-  const [plate, setPlate] = useState(vehicle.plate || "");
-  const [brand, setBrand] = useState(vehicle.brand || "");
-  const [model, setModel] = useState(vehicle.model || "");
-  const [year, setYear] = useState(vehicle.year?.toString() || "");
-  const [color, setColor] = useState(vehicle.color || "");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const updateVehicle = useMutation(api.vehicles.updateVehicle);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-
-    setIsLoading(true);
-    try {
-      if (!sessionToken) return;
-      await updateVehicle({
-        sessionToken,
-        vehicleId: vehicle._id,
-        name: name.trim(),
-        plate: plate.trim() || undefined,
-        brand: brand.trim() || undefined,
-        model: model.trim() || undefined,
-        year: year ? parseInt(year) : undefined,
-        color: color.trim() || undefined,
-      });
-      onClose();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <MobileModal isOpen={true} onClose={onClose} title="Editar vehículo">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="form-control">
-          <label className="label"><span className="label-text">Nombre *</span></label>
-          <input
-            type="text"
-            className="input input-bordered w-full"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Marca</span></label>
-            <input type="text" className="input input-bordered w-full" value={brand} onChange={(e) => setBrand(e.target.value)} />
-          </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">Modelo</span></label>
-            <input type="text" className="input input-bordered w-full" value={model} onChange={(e) => setModel(e.target.value)} />
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          <div className="form-control">
-            <label className="label"><span className="label-text">Año</span></label>
-            <input type="number" className="input input-bordered w-full" value={year} onChange={(e) => setYear(e.target.value)} />
-          </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">Color</span></label>
-            <input type="text" className="input input-bordered w-full" value={color} onChange={(e) => setColor(e.target.value)} />
-          </div>
-          <div className="form-control">
-            <label className="label"><span className="label-text">Placa</span></label>
-            <input type="text" className="input input-bordered w-full" value={plate} onChange={(e) => setPlate(e.target.value)} />
-          </div>
-        </div>
-        <div className="modal-action">
-          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-          <button type="submit" className="btn btn-primary" disabled={isLoading || !name.trim()}>
-            {isLoading ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
-          </button>
-        </div>
-      </form>
-    </MobileModal>
   );
 }
