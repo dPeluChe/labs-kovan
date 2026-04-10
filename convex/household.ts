@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
+import { requireFamilyAccessFromSession } from "./lib/auth";
 
 // ==================== DEFAULT ACTIVITIES ====================
 
@@ -28,8 +29,10 @@ const DEFAULT_ACTIVITIES = [
 // ==================== QUERIES ====================
 
 export const getActivities = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+
     const activities = await ctx.db
       .query("householdActivities")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -40,8 +43,10 @@ export const getActivities = query({
 });
 
 export const getAllActivities = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+
     return await ctx.db
       .query("householdActivities")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -51,10 +56,13 @@ export const getAllActivities = query({
 
 export const getRecentLogs = query({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+
     const logs = await ctx.db
       .query("householdActivityLogs")
       .withIndex("by_family_date", (q) => q.eq("familyId", args.familyId))
@@ -83,8 +91,10 @@ export const getRecentLogs = query({
 });
 
 export const getWeeklyLeaderboard = query({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+
     // Calculate start of current week (Monday)
     const now = new Date();
     const dayOfWeek = now.getDay();
@@ -142,10 +152,13 @@ export const getWeeklyLeaderboard = query({
 
 export const getUserWeeklyStats = query({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+
     const now = new Date();
     const dayOfWeek = now.getDay();
     const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -196,10 +209,16 @@ export const getUserWeeklyStats = query({
 
 export const seedDefaultActivities = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
-    userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    const { user } = await requireFamilyAccessFromSession(
+      ctx,
+      args.sessionToken,
+      args.familyId
+    );
+
     // Check if already seeded
     const existing = await ctx.db
       .query("householdActivities")
@@ -216,7 +235,7 @@ export const seedDefaultActivities = mutation({
         points: activity.points,
         category: activity.category,
         isActive: true,
-        createdBy: args.userId,
+        createdBy: user._id,
       });
     }
   },
@@ -224,8 +243,8 @@ export const seedDefaultActivities = mutation({
 
 export const createActivity = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
-    userId: v.id("users"),
     name: v.string(),
     emoji: v.string(),
     points: v.number(),
@@ -241,6 +260,12 @@ export const createActivity = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    const { user } = await requireFamilyAccessFromSession(
+      ctx,
+      args.sessionToken,
+      args.familyId
+    );
+
     return await ctx.db.insert("householdActivities", {
       familyId: args.familyId,
       name: args.name,
@@ -248,13 +273,14 @@ export const createActivity = mutation({
       points: args.points,
       category: args.category,
       isActive: true,
-      createdBy: args.userId,
+      createdBy: user._id,
     });
   },
 });
 
 export const updateActivity = mutation({
   args: {
+    sessionToken: v.string(),
     activityId: v.id("householdActivities"),
     familyId: v.id("families"),
     name: v.optional(v.string()),
@@ -275,21 +301,26 @@ export const updateActivity = mutation({
     isActive: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+
     const activity = await ctx.db.get(args.activityId);
     if (!activity) throw new Error("Activity not found");
     if (activity.familyId !== args.familyId) throw new Error("Unauthorized");
 
-    const { activityId, familyId: _familyId, ...updates } = args;
+    const { sessionToken: _t, activityId, familyId: _familyId, ...updates } = args;
     await ctx.db.patch(activityId, updates);
   },
 });
 
 export const deleteActivity = mutation({
   args: {
+    sessionToken: v.string(),
     activityId: v.id("householdActivities"),
     familyId: v.id("families"),
   },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+
     const activity = await ctx.db.get(args.activityId);
     if (!activity) throw new Error("Activity not found");
     if (activity.familyId !== args.familyId) throw new Error("Unauthorized");
@@ -300,22 +331,42 @@ export const deleteActivity = mutation({
 
 export const logActivity = mutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     activityId: v.id("householdActivities"),
-    userId: v.id("users"), // Who did the activity
-    loggedBy: v.id("users"), // Who is logging it
+    userId: v.id("users"), // Who did the activity (may differ from loggedBy)
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const { user: loggedByUser } = await requireFamilyAccessFromSession(
+      ctx,
+      args.sessionToken,
+      args.familyId
+    );
+
     const activity = await ctx.db.get(args.activityId);
     if (!activity) throw new Error("Activity not found");
     if (activity.familyId !== args.familyId) throw new Error("Unauthorized");
+
+    // If logging for a different family member, verify that member is actually
+    // part of the same family.
+    if (args.userId !== loggedByUser._id) {
+      const otherMembership = await ctx.db
+        .query("familyMembers")
+        .withIndex("by_family_user", (q) =>
+          q.eq("familyId", args.familyId).eq("userId", args.userId)
+        )
+        .first();
+      if (!otherMembership || otherMembership.status !== "active") {
+        throw new Error("El usuario no es miembro activo de esta familia");
+      }
+    }
 
     return await ctx.db.insert("householdActivityLogs", {
       familyId: args.familyId,
       activityId: args.activityId,
       userId: args.userId,
-      loggedBy: args.loggedBy,
+      loggedBy: loggedByUser._id,
       points: activity.points,
       date: Date.now(),
       notes: args.notes,
@@ -325,10 +376,13 @@ export const logActivity = mutation({
 
 export const deleteLog = mutation({
   args: {
+    sessionToken: v.string(),
     logId: v.id("householdActivityLogs"),
     familyId: v.id("families"),
   },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+
     const log = await ctx.db.get(args.logId);
     if (!log) throw new Error("Log not found");
     if (log.familyId !== args.familyId) throw new Error("Unauthorized");

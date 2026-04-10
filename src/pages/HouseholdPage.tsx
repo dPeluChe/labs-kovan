@@ -30,7 +30,7 @@ const CATEGORY_LABELS: Record<string, { label: string; emoji: string }> = {
 
 export function HouseholdPage() {
   const { currentFamily } = useFamily();
-  const { user } = useAuth();
+  const { sessionToken } = useAuth();
   const { confirm, ConfirmModal } = useConfirmModal();
   const [activeTab, setActiveTab] = useState<"activities" | "feed" | "ranking">("activities");
   const [showLogModal, setShowLogModal] = useState(false);
@@ -42,19 +42,27 @@ export function HouseholdPage() {
   // Queries
   const activities = useQuery(
     api.household.getActivities,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken
+      ? { sessionToken, familyId: currentFamily._id }
+      : "skip"
   );
   const allActivities = useQuery(
     api.household.getAllActivities,
-    currentFamily && showManage ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken && showManage
+      ? { sessionToken, familyId: currentFamily._id }
+      : "skip"
   );
   const recentLogs = useQuery(
     api.household.getRecentLogs,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken
+      ? { sessionToken, familyId: currentFamily._id }
+      : "skip"
   );
   const leaderboard = useQuery(
     api.household.getWeeklyLeaderboard,
-    currentFamily ? { familyId: currentFamily._id } : "skip"
+    currentFamily && sessionToken
+      ? { sessionToken, familyId: currentFamily._id }
+      : "skip"
   );
 
   // Mutations
@@ -65,10 +73,10 @@ export function HouseholdPage() {
 
   // Auto-seed default activities on first visit
   useEffect(() => {
-    if (activities && activities.length === 0 && currentFamily && user) {
-      seedActivities({ familyId: currentFamily._id, userId: user._id });
+    if (activities && activities.length === 0 && currentFamily && sessionToken) {
+      seedActivities({ sessionToken, familyId: currentFamily._id });
     }
-  }, [activities, currentFamily, user, seedActivities]);
+  }, [activities, currentFamily, sessionToken, seedActivities]);
 
   const handleActivityClick = (activity: Doc<"householdActivities">) => {
     setSelectedActivity(activity);
@@ -76,7 +84,7 @@ export function HouseholdPage() {
   };
 
   const handleDeleteActivity = async (activityId: Id<"householdActivities">) => {
-    if (!currentFamily) return;
+    if (!currentFamily || !sessionToken) return;
     const ok = await confirm({
       title: "Eliminar actividad",
       message: "Se eliminará esta actividad. Los registros existentes se mantienen.",
@@ -85,13 +93,14 @@ export function HouseholdPage() {
       icon: "trash",
     });
     if (ok) {
-      await deleteActivity({ activityId, familyId: currentFamily._id });
+      await deleteActivity({ sessionToken, activityId, familyId: currentFamily._id });
     }
   };
 
   const handleToggleActive = async (activity: Doc<"householdActivities">) => {
-    if (!currentFamily) return;
+    if (!currentFamily || !sessionToken) return;
     await updateActivity({
+      sessionToken,
       activityId: activity._id,
       familyId: currentFamily._id,
       isActive: activity.isActive === false ? true : false,
@@ -99,7 +108,7 @@ export function HouseholdPage() {
   };
 
   const handleDeleteLog = async (logId: Id<"householdActivityLogs">) => {
-    if (!currentFamily) return;
+    if (!currentFamily || !sessionToken) return;
     const ok = await confirm({
       title: "Eliminar registro",
       message: "Se eliminará este registro y se restarán los puntos.",
@@ -108,7 +117,7 @@ export function HouseholdPage() {
       icon: "trash",
     });
     if (ok) {
-      await deleteLog({ logId, familyId: currentFamily._id });
+      await deleteLog({ sessionToken, logId, familyId: currentFamily._id });
     }
   };
 
