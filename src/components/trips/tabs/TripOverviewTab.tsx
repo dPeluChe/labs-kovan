@@ -108,7 +108,7 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
                 <div className="flex justify-between items-end px-1">
                     <div>
                         <h3 className="font-bold text-lg leading-none">{agendaTitle}</h3>
-                        <p className="text-xs text-base-content/60 capitalize">{agendaDateDisplay}</p>
+                        <p className="text-xs text-muted capitalize">{agendaDateDisplay}</p>
                     </div>
                     <button onClick={() => onChangeTab("itinerary")} className="btn btn-xs btn-ghost text-primary">
                         Ver todo <ArrowRight className="w-3 h-3 ml-1" />
@@ -121,23 +121,23 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
                             {agendaPlans.map(plan => (
                                 <div key={plan._id} className="p-3 flex gap-3 items-start hover:bg-base-50 transition-colors">
                                     <div className="w-12 pt-1 flex flex-col items-center shrink-0">
-                                        <span className="font-mono text-xs font-bold text-base-content/70">
+                                        <span className="font-mono text-xs font-bold text-body">
                                             {plan.time || "--:--"}
                                         </span>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className={`font-medium text-sm ${plan.isCompleted ? 'line-through text-base-content/50' : ''}`}>
+                                        <div className={`font-medium text-sm ${plan.isCompleted ? 'line-through text-subtle' : ''}`}>
                                             {plan.activity}
                                         </div>
                                         {plan.notes && (
-                                            <p className="text-xs text-base-content/60 truncate">{plan.notes}</p>
+                                            <p className="text-xs text-muted truncate">{plan.notes}</p>
                                         )}
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="p-6 text-center text-base-content/50">
+                        <div className="p-6 text-center text-subtle">
                             <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
                             <p className="text-sm">No hay actividades programadas para este periodo.</p>
                             <button onClick={() => onChangeTab("itinerary")} className="btn btn-sm btn-outline btn-primary mt-3">
@@ -158,7 +158,7 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
                         <div className="p-1.5 bg-green-100 text-green-600 rounded-md">
                             <DollarSign className="w-4 h-4" />
                         </div>
-                        <span className="text-xs font-semibold text-base-content/60">Finanzas</span>
+                        <span className="text-xs font-semibold text-muted">Finanzas</span>
                     </div>
                     <div>
                         <div className="text-lg font-bold">${totalSpent.toLocaleString()}</div>
@@ -173,12 +173,12 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
                         <div className="p-1.5 bg-blue-100 text-blue-600 rounded-md">
                             <Calendar className="w-4 h-4" />
                         </div>
-                        <span className="text-xs font-semibold text-base-content/60">Progreso</span>
+                        <span className="text-xs font-semibold text-muted">Progreso</span>
                     </div>
                     <div className="w-full">
                         <div className="flex justify-between items-end mb-1">
                             <div className="text-lg font-bold">{completedPlans}/{totalPlans}</div>
-                            <div className="text-[10px] text-base-content/50">{completionRate.toFixed(0)}%</div>
+                            <div className="text-[10px] text-subtle">{completionRate.toFixed(0)}%</div>
                         </div>
                         <progress className="progress progress-primary w-full h-1.5" value={completedPlans} max={totalPlans || 1}></progress>
                     </div>
@@ -214,7 +214,7 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
                                                 )}
                                             </div>
 
-                                            <div className="text-xs text-base-content/60 flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
+                                            <div className="text-xs text-muted flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
                                                 <span className="capitalize font-medium text-base-content/80">{booking.type}</span>
                                                 {booking.location && <span>• {booking.location}</span>}
                                                 {booking.startDate && (
@@ -226,7 +226,7 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
                                 );
                             })
                         ) : (
-                            <div className="p-4 text-center text-sm text-base-content/60">
+                            <div className="p-4 text-center text-sm text-muted">
                                 {bookings.length} reservas registradas.
                             </div>
                         )}

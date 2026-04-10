@@ -40,7 +40,7 @@ export function TripPlaceDetailModal({ place, onClose, onAddToItinerary }: TripP
                 <div className="space-y-3 text-sm">
                     {place.address && (
                         <div className="flex gap-2">
-                            <MapPin className="w-4 h-4 text-base-content/50 shrink-0 mt-0.5" />
+                            <MapPin className="w-4 h-4 text-subtle shrink-0 mt-0.5" />
                             <span>{place.address}</span>
                         </div>
                     )}
@@ -76,7 +76,7 @@ export function TripPlaceDetailModal({ place, onClose, onAddToItinerary }: TripP
                     >
                         <Plus className="w-4 h-4" /> Agregar al Itinerario
                     </button>
-                    <p className="text-center text-xs text-base-content/50 mt-2">
+                    <p className="text-center text-xs text-subtle mt-2">
                         Programa una visita a este lugar en tu calendario.
                     </p>
                 </div>

@@ -35,7 +35,7 @@ export function TripFinancesTab({ tripId }: { tripId: Id<"trips"> }) {
                     <div className="flex items-end gap-2 mb-1">
                         <span className="text-3xl font-bold">${totalSpent.toLocaleString()}</span>
                         {budget > 0 && (
-                            <span className="text-sm text-base-content/60 mb-2">
+                            <span className="text-sm text-muted mb-2">
                                 de ${budget.toLocaleString()}
                             </span>
                         )}
@@ -72,7 +72,7 @@ export function TripFinancesTab({ tripId }: { tripId: Id<"trips"> }) {
                 </div>
 
                 {expenses.length === 0 ? (
-                    <div className="text-center py-8 text-base-content/50 bg-base-100 rounded-xl border border-dashed border-base-200">
+                    <div className="text-center py-8 text-subtle bg-base-100 rounded-xl border border-dashed border-base-200">
                         <DollarSign className="w-8 h-8 mx-auto mb-2 opacity-30" />
                         <p className="text-sm">No hay gastos registrados aún.</p>
                         <button onClick={() => setIsAddExpenseOpen(true)} className="btn btn-link btn-sm mt-1">
@@ -89,7 +89,7 @@ export function TripFinancesTab({ tripId }: { tripId: Id<"trips"> }) {
                                     </div>
                                     <div>
                                         <div className="font-medium text-sm">{expense.description}</div>
-                                        <div className="flex items-center gap-2 text-[10px] text-base-content/60">
+                                        <div className="flex items-center gap-2 text-[10px] text-muted">
                                             <span>{new Date(expense.date).toLocaleDateString()}</span>
                                             {expense.category && expense.category !== "trip" && (
                                                 <span className="badge badge-ghost badge-xs text-[9px] h-4">{expense.category}</span>

@@ -182,11 +182,11 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                                 onChange={() => setOpenSection(openSection === "scan" ? null : "scan")}
                             />
                             <div className="collapse-title text-sm font-medium flex items-center gap-2">
-                                <Smartphone className="w-4 h-4" /> Código Escaneable <span className="text-xs text-base-content/40 font-normal">(Barras/QR)</span>
+                                <Smartphone className="w-4 h-4" /> Código Escaneable <span className="text-xs text-faint font-normal">(Barras/QR)</span>
                             </div>
                             <div className="collapse-content pt-2">
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-base-content/40">Tipo y Valor</label>
+                                    <label className="text-xs font-bold uppercase text-faint">Tipo y Valor</label>
                                     <div className="flex gap-2">
                                         <select
                                             className="select select-sm select-bordered"
@@ -204,7 +204,7 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                                             onChange={e => setFormData({ ...formData, barcodeValue: e.target.value })}
                                         />
                                     </div>
-                                    <p className="text-[10px] text-base-content/40">Visible directamente en el detalle.</p>
+                                    <p className="text-[10px] text-faint">Visible directamente en el detalle.</p>
                                 </div>
                             </div>
                         </div>
@@ -259,10 +259,10 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                         </div>
 
                         <div className="flex flex-wrap gap-2 mt-2">
-                            <span className="text-xs font-medium text-base-content/60 bg-base-200 px-2.5 py-0.5 rounded-full">
+                            <span className="text-xs font-medium text-muted bg-base-200 px-2.5 py-0.5 rounded-full">
                                 {CYCLE_LABELS[subscription.billingCycle]}
                             </span>
-                            <span className="text-xs font-medium text-base-content/60 bg-base-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                            <span className="text-xs font-medium text-muted bg-base-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                                 {subscription.amount ? `$${subscription.amount}` : "Variable"}
                             </span>
                             {subscription.dueDay && (
@@ -280,7 +280,7 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                         {/* Reference Number - Clean design */}
                         {subscription.referenceNumber && (
                             <div className="bg-base-100 p-3 rounded-xl border border-base-200 flex flex-col items-center">
-                                <span className="text-[10px] uppercase text-base-content/40 font-bold tracking-wider mb-1">
+                                <span className="text-[10px] uppercase text-faint font-bold tracking-wider mb-1">
                                     Contrato / Referencia
                                 </span>
                                 <div className="text-xl font-mono font-bold tracking-widest text-center select-all">
@@ -310,7 +310,7 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                     </div>
                 ) : (
                     <div className="text-center p-6 bg-base-100 rounded-xl border border-base-200 border-dashed">
-                        <p className="text-sm text-base-content/40">Sin datos de pago registrados.</p>
+                        <p className="text-sm text-faint">Sin datos de pago registrados.</p>
                         <button onClick={handleEditClick} className="btn btn-link btn-sm mt-1 no-underline hover:underline">Agregar datos de pago</button>
                     </div>
                 )}
@@ -318,7 +318,7 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                 {/* Notes */}
                 {subscription.notes && (
                     <div className="bg-base-100 border border-base-200 rounded-xl p-4">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-base-content/40 mb-2">Notas</h3>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-faint mb-2">Notas</h3>
                         <p className="text-sm whitespace-pre-wrap break-words text-base-content/80">{subscription.notes}</p>
                     </div>
                 )}

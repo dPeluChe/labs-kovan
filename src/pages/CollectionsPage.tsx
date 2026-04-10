@@ -143,7 +143,7 @@ export function CollectionsPage() {
         {standalone.length > 0 && (
           <div>
             {bySeries.size > 0 && (
-              <h3 className="font-semibold text-sm mb-3 px-1 text-base-content/60">Individuales</h3>
+              <h3 className="font-semibold text-sm mb-3 px-1 text-muted">Individuales</h3>
             )}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {standalone.map((item) => (

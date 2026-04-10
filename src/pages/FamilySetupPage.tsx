@@ -64,7 +64,7 @@ export function FamilySetupPage() {
           <div className="text-center mb-4">
             <span className="text-5xl">{emoji}</span>
             <h1 className="text-xl font-bold mt-2">Crea tu primera familia</h1>
-            <p className="text-base-content/60 text-sm">
+            <p className="text-muted text-sm">
               Un espacio para organizar todo juntos
             </p>
           </div>

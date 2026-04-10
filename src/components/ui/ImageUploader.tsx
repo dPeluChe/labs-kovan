@@ -149,7 +149,7 @@ export function ImageUploader({
             <div className="flex flex-col items-center gap-1">
               <Loader2 className={`${ICON_SIZES[size]} animate-spin text-primary`} />
               {isUploading && progress > 0 && (
-                <span className="text-xs text-base-content/60">{progress}%</span>
+                <span className="text-xs text-muted">{progress}%</span>
               )}
             </div>
           ) : displayUrl ? (
@@ -159,7 +159,7 @@ export function ImageUploader({
               className={`w-full h-full object-cover ${SHAPE_CLASSES[shape]}`}
             />
           ) : (
-            <div className="flex flex-col items-center gap-1 text-base-content/40">
+            <div className="flex flex-col items-center gap-1 text-faint">
               <PlaceholderIcon className={ICON_SIZES[size]} />
               {size !== "sm" && (
                 <Upload className="w-3 h-3" />
@@ -202,7 +202,7 @@ export function ImageUploader({
 
       {/* Label */}
       {label && (
-        <span className="text-sm text-base-content/60">{label}</span>
+        <span className="text-sm text-muted">{label}</span>
       )}
 
       {/* Error message */}

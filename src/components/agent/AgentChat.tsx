@@ -150,7 +150,7 @@ export function AgentChat() {
                     {/* Messages */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-base-200/50" ref={scrollRef}>
                         {messages.length === 0 && (
-                            <div className="text-center text-base-content/50 mt-10">
+                            <div className="text-center text-subtle mt-10">
                                 <Bot className="w-12 h-12 mx-auto mb-2 opacity-50" />
                                 <p>¡Hola! Soy tu asistente personal.</p>
                                 <p className="text-sm mt-2">Puedes pedirme:</p>

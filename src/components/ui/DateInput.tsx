@@ -59,8 +59,8 @@ export function DateInput({
         className={`relative flex items-center input input-bordered w-full cursor-pointer ${disabled ? "opacity-50 cursor-not-allowed" : "hover:border-primary"
           }`}
       >
-        <Calendar className="w-4 h-4 text-base-content/50 mr-2 flex-shrink-0" />
-        <span className={`flex-1 ${value ? "" : "text-base-content/40"}`}>
+        <Calendar className="w-4 h-4 text-subtle mr-2 flex-shrink-0" />
+        <span className={`flex-1 ${value ? "" : "text-faint"}`}>
           {value ? formatDisplayDate(value) : placeholder}
         </span>
         <input

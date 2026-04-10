@@ -60,7 +60,7 @@ export function TaskItem({ task, onToggle, onClick, onDelete }: TaskItemProps) {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                        <span className={`font-medium truncate ${isCompleted ? "line-through text-base-content/50" : "text-base-content"}`}>
+                        <span className={`font-medium truncate ${isCompleted ? "line-through text-subtle" : "text-base-content"}`}>
                             {task.title}
                         </span>
                         {task.priority && task.priority !== "low" && !isCompleted && (
@@ -68,7 +68,7 @@ export function TaskItem({ task, onToggle, onClick, onDelete }: TaskItemProps) {
                         )}
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs text-base-content/60">
+                    <div className="flex items-center gap-3 text-xs text-muted">
                         {task.dueDate && (
                             <span className={`flex items-center gap-1 ${task.dueDate < new Date().getTime() && !isCompleted ? "text-error" : ""
                                 }`}>

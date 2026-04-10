@@ -6,7 +6,6 @@ import { api } from "../../convex/_generated/api";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { useConfirmModal } from "../hooks/useConfirmModal";
 import {
-    ArrowLeft,
     Trash2,
     Stethoscope,
     Pill,
@@ -18,6 +17,9 @@ import {
 } from "lucide-react";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
+import { DetailHeader } from "../components/ui/DetailHeader";
+import { IconBadge } from "../components/ui/IconBadge";
+import { moduleColor } from "../lib/moduleColors";
 
 // Components
 import { RecordsTab } from "../components/health/RecordsTab";
@@ -124,22 +126,19 @@ export function PetProfilePage() {
 
     return (
         <div className="pb-20">
-            {/* Header */}
-            <div className="flex items-center gap-2 px-4 py-3 bg-base-100 border-b border-base-300 sticky top-0 z-20">
-                <button onClick={() => navigate("/pets")} className="btn btn-ghost btn-sm btn-circle">
-                    <ArrowLeft className="w-5 h-5" />
-                </button>
-                <div className="p-2 rounded-lg bg-orange-500/10">
-                    <Cat className="w-5 h-5 text-orange-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-end gap-2">
-                        <h1 className="text-lg font-bold truncate leading-none">{profile.name}</h1>
+            <DetailHeader
+                title={profile.name}
+                onBack={() => navigate("/pets")}
+                badge={
+                    <IconBadge color={moduleColor("pets")} size="xs">
+                        <Cat className="w-4 h-4" />
+                    </IconBadge>
+                }
+                subtitle={
+                    <div className="flex items-center gap-2">
                         {profile.nickname && (
-                            <span className="text-xs text-base-content/60 italic leading-none mb-0.5">"{profile.nickname}"</span>
+                            <span className="italic">"{profile.nickname}"</span>
                         )}
-                    </div>
-                    <div className="flex items-center text-sm text-base-content/60 gap-2">
                         <span>{profile.relation}</span>
                         {profile.birthDate && (
                             <>
@@ -151,23 +150,25 @@ export function PetProfilePage() {
                             </>
                         )}
                     </div>
-                </div>
-                <button onClick={() => setShowEditProfile(true)} className="btn btn-ghost btn-sm btn-circle">
-                    <Pencil className="w-4 h-4" />
-                </button>
-                <button onClick={handleDelete} className="btn btn-ghost btn-sm btn-circle text-error">
-                    <Trash2 className="w-4 h-4" />
-                </button>
-            </div>
-
-            {/* Tabs */}
-            <div className="px-4 pt-4 bg-base-100 pb-2 sticky top-14 z-10 overflow-x-auto">
-                <AnimatedTabs
-                    tabs={tabs}
-                    activeTab={activeTab}
-                    onTabChange={(id) => setActiveTab(id as Tab)}
-                />
-            </div>
+                }
+                action={
+                    <>
+                        <button onClick={() => setShowEditProfile(true)} className="btn btn-ghost btn-sm btn-circle" aria-label="Editar">
+                            <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={handleDelete} className="btn btn-ghost btn-sm btn-circle text-error" aria-label="Eliminar">
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    </>
+                }
+                tabs={
+                    <AnimatedTabs
+                        tabs={tabs}
+                        activeTab={activeTab}
+                        onTabChange={(id) => setActiveTab(id as Tab)}
+                    />
+                }
+            />
 
             <div className="px-4 py-2">
                 {activeTab === "records" && (

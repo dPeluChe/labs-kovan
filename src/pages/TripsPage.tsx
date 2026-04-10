@@ -104,13 +104,13 @@ export function TripsPage() {
                                         </h3>
 
                                         {trip.destination && (
-                                            <div className="flex items-center text-sm text-base-content/70 mb-2">
+                                            <div className="flex items-center text-sm text-body mb-2">
                                                 <MapPin className="w-3.5 h-3.5 mr-1" />
                                                 {trip.destination}
                                             </div>
                                         )}
 
-                                        <div className="flex items-center gap-4 text-xs text-base-content/60 mt-4">
+                                        <div className="flex items-center gap-4 text-xs text-muted mt-4">
                                             {trip.startDate && (
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex items-center bg-base-200 px-2 py-1 rounded-md">

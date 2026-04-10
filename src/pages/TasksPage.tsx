@@ -4,9 +4,11 @@ import { api } from "../../convex/_generated/api";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
+import { StickyHeader } from "../components/ui/StickyHeader";
+import { CircleAddButton } from "../components/ui/CircleAddButton";
 import { TaskItem } from "../components/tasks/TaskItem";
 import { TaskFormModal } from "../components/tasks/CreateTaskModal"; // Import updated component
-import { CheckSquare, ShoppingCart, Repeat, Plus } from "lucide-react";
+import { CheckSquare, ShoppingCart, Repeat } from "lucide-react";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -83,26 +85,17 @@ export function TasksPage() {
 
     return (
         <div className="pb-20">
-            {/* Header */}
-            <div className="sticky top-0 z-40 bg-base-100/80 backdrop-blur-md pt-safe-top">
-                <div className="px-4 py-3 flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Tareas</h1>
-                    <button
-                        onClick={handleCreate}
-                        className="btn btn-primary btn-sm btn-circle"
-                    >
-                        <Plus className="w-5 h-5" />
-                    </button>
-                </div>
-
-                <div className="px-4 pb-2">
+            <StickyHeader
+                title="Tareas"
+                action={<CircleAddButton onClick={handleCreate} label="Nueva tarea" />}
+                tabs={
                     <AnimatedTabs
                         tabs={tabs}
                         activeTab={activeTab}
                         onTabChange={(id) => setActiveTab(id as "general" | "shopping" | "chore")}
                     />
-                </div>
-            </div>
+                }
+            />
 
             <div className="px-4 py-4 space-y-4">
                 {/* Active Tasks */}

@@ -46,7 +46,7 @@ export function MedicationsTab({
                     </h3>
                     {active.length === 0 ? (
                         <div className="text-center py-4 bg-base-200/30 rounded-lg border border-dashed border-base-300">
-                            <p className="text-sm text-base-content/50">No hay medicaciones activas</p>
+                            <p className="text-sm text-subtle">No hay medicaciones activas</p>
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -66,7 +66,7 @@ export function MedicationsTab({
                     <div>
                         <button
                             onClick={() => setShowHistory(!showHistory)}
-                            className="flex items-center gap-2 text-sm font-medium text-base-content/60 hover:text-base-content transition-colors w-full"
+                            className="flex items-center gap-2 text-sm font-medium text-muted hover:text-base-content transition-colors w-full"
                         >
                             <Clock className="w-4 h-4" />
                             Historial ({past.length})
@@ -119,12 +119,12 @@ function MedicationCard({
                 <div className="flex justify-between items-start">
                     <div className="flex-1">
                         <div className="flex items-center gap-2">
-                            <h4 className={`font-semibold text-sm ${isPast ? "text-base-content/70" : ""}`}>{medication.name}</h4>
+                            <h4 className={`font-semibold text-sm ${isPast ? "text-body" : ""}`}>{medication.name}</h4>
                             {medication.status === "paused" && <PauseCircle className="w-3 h-3 text-warning" />}
-                            {medication.status === "completed" && <StopCircle className="w-3 h-3 text-base-content/40" />}
+                            {medication.status === "completed" && <StopCircle className="w-3 h-3 text-faint" />}
                         </div>
-                        <p className="text-xs text-base-content/70">{medication.dosage}</p>
-                        <p className="text-xs text-base-content/50 mt-1">
+                        <p className="text-xs text-body">{medication.dosage}</p>
+                        <p className="text-xs text-subtle mt-1">
                             {new Date(medication.startDate).toLocaleDateString("es-MX")}
                             {!medication.endDate ? " - Indefinido" : ` - ${new Date(medication.endDate).toLocaleDateString("es-MX")}`}
                         </p>

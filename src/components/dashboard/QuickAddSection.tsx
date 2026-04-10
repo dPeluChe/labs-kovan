@@ -43,7 +43,7 @@ export function QuickAddSection({
 
     return (
         <div className="mt-4">
-            <h3 className="text-xs font-medium text-base-content/50 uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-medium text-subtle uppercase tracking-wider mb-3">
                 Agregar más
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -56,8 +56,8 @@ export function QuickAddSection({
                         <div className={`${color} opacity-60 group-hover:opacity-100`}>
                             <Icon className="w-4 h-4" />
                         </div>
-                        <span className="text-sm text-base-content/60 group-hover:text-base-content">{label}</span>
-                        <Plus className="w-3 h-3 text-base-content/40 group-hover:text-primary" />
+                        <span className="text-sm text-muted group-hover:text-base-content">{label}</span>
+                        <Plus className="w-3 h-3 text-faint group-hover:text-primary" />
                     </Link>
                 ))}
             </div>

@@ -14,33 +14,23 @@ import {
   Book,
   Car,
   Bot,
+  Medal,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string; description?: string; color?: string }> = {
-  home: { to: "/", icon: Home, label: "Inicio" },
-  gifts: { to: "/gifts", icon: Gift, label: "Regalos" },
-  calendar: { to: "/calendar", icon: Calendar, label: "Calendario" },
-  health: { to: "/health", icon: Heart, label: "Salud" },
-  agent: { to: "/agent", icon: Bot, label: "Kovan", color: "bg-purple-500/10 text-purple-600" },
-  places: { to: "/places", icon: MapPin, label: "Lugares" },
-  finances: {
-    to: "/finances",
-    icon: DollarSign,
-    label: "Finanzas",
-    description: "Control de gastos familiares",
-    color: "bg-emerald-500/10 text-emerald-600",
-  },
-  recipes: { to: "/recipes", icon: ChefHat, label: "Recetas" },
-  collections: {
-    to: "/collections",
-    icon: Book,
-    label: "Colecciones",
-    description: "Libros, mangas, juegos y más",
-    color: "bg-blue-500/10 text-blue-600",
-  },
-  vehicles: { to: "/vehicles", icon: Car, label: "Autos" },
-  more: { to: "/more", icon: MoreHorizontal, label: "Más" },
+const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string }> = {
+  home:        { to: "/",            icon: Home,        label: "Inicio" },
+  gifts:       { to: "/gifts",       icon: Gift,        label: "Regalos" },
+  calendar:    { to: "/calendar",    icon: Calendar,    label: "Calendario" },
+  health:      { to: "/health",      icon: Heart,       label: "Salud" },
+  agent:       { to: "/agent",       icon: Bot,         label: "Kovan" },
+  places:      { to: "/places",      icon: MapPin,      label: "Lugares" },
+  finances:    { to: "/finances",    icon: DollarSign,  label: "Finanzas" },
+  recipes:     { to: "/recipes",     icon: ChefHat,     label: "Recetas" },
+  collections: { to: "/collections", icon: Book,        label: "Colecciones" },
+  vehicles:    { to: "/vehicles",    icon: Car,         label: "Autos" },
+  household:   { to: "/household",   icon: Medal,       label: "Hogar" },
+  more:        { to: "/more",        icon: MoreHorizontal, label: "Más" },
 };
 
 const DEFAULT_NAV_ORDER = ["home", "agent", "finances", "places"];
@@ -78,7 +68,7 @@ export function BottomNav() {
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-w-[64px] rounded-xl transition-all duration-200 ${isActive
                   ? "text-primary scale-105"
-                  : "text-base-content/60 hover:text-base-content hover:bg-base-content/5 active:scale-95"
+                  : "text-muted hover:text-base-content hover:bg-base-content/5 active:scale-95"
                 }`
               }
             >
@@ -94,7 +84,7 @@ export function BottomNav() {
           className={({ isActive }) =>
             `flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-w-[64px] rounded-xl transition-all duration-200 ${isActive
               ? "text-primary scale-105"
-              : "text-base-content/60 hover:text-base-content hover:bg-base-content/5 active:scale-95"
+              : "text-muted hover:text-base-content hover:bg-base-content/5 active:scale-95"
             }`
           }
         >

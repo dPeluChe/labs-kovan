@@ -52,23 +52,23 @@ export function VehiclesPage() {
             <div className="card-body p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm text-base-content/60">Gastos del mes</div>
+                  <div className="text-sm text-muted">Gastos del mes</div>
                   <div className="text-xl font-bold text-green-600">
                     ${summary.totalSpentThisMonth.toLocaleString()}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm text-base-content/60">Vehículos</div>
+                  <div className="text-sm text-muted">Vehículos</div>
                   <div className="text-xl font-bold">{summary.vehicleCount}</div>
                 </div>
               </div>
               {summary.upcomingEvents.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-base-content/10">
-                  <div className="text-xs text-base-content/60 mb-1">Próximos eventos</div>
+                  <div className="text-xs text-muted mb-1">Próximos eventos</div>
                   {summary.upcomingEvents.slice(0, 2).map((item, i) => (
                     <div key={i} className="text-sm flex justify-between">
                       <span>{item.event.title}</span>
-                      <span className="text-base-content/60">
+                      <span className="text-muted">
                         {new Date(item.event.date).toLocaleDateString("es-MX", { day: "numeric", month: "short" })}
                       </span>
                     </div>

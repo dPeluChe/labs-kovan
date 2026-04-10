@@ -40,7 +40,7 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
                         <span className="text-2xl">{config.icon}</span>
                         <div className="flex-1 min-w-0">
                             <div className="font-semibold truncate">{expense.description}</div>
-                            <div className="flex items-center gap-2 text-xs text-base-content/60">
+                            <div className="flex items-center gap-2 text-xs text-muted">
                                 <span className="badge badge-sm badge-ghost gap-1 opacity-70">
                                     {expense.type}
                                 </span>

@@ -44,7 +44,7 @@ export function ResourceCard({
                 <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-base leading-tight truncate">{title}</h3>
                     {subtitle && (
-                        <div className="text-sm text-base-content/60 truncate mt-0.5">
+                        <div className="text-sm text-muted truncate mt-0.5">
                             {subtitle}
                         </div>
                     )}

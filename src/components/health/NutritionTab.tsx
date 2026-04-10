@@ -72,7 +72,7 @@ export function NutritionTab({
                                                     record.type === "treats" ? "Premios" :
                                                         record.type === "supplement" ? "Suplemento" : "Otro"}
                                             </span>
-                                            <span className="text-xs text-base-content/60 flex items-center gap-1">
+                                            <span className="text-xs text-muted flex items-center gap-1">
                                                 <Calendar className="w-3 h-3" />
                                                 {new Date(record.purchaseDate).toLocaleDateString("es-MX", {
                                                     month: "short", day: "numeric", year: "numeric"
@@ -85,7 +85,7 @@ export function NutritionTab({
                                             <p className="text-sm opacity-80">{record.productName}</p>
                                         )}
 
-                                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-base-content/70">
+                                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-body">
                                             {record.amount && (
                                                 <span className="flex items-center gap-1 font-medium text-success">
                                                     <DollarSign className="w-3 h-3" />

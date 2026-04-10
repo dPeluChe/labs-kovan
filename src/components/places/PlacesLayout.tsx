@@ -7,6 +7,8 @@ import { Plus, ListFilter, Map, MapPin, LayoutGrid, Clock, CheckCircle } from "l
 import { useNavigate } from "react-router-dom";
 import { AnimatedTabs } from "../ui/AnimatedTabs";
 import { useAuth } from "../../contexts/AuthContext";
+import { StickyHeader } from "../ui/StickyHeader";
+import { EmptyState } from "../ui/EmptyState";
 
 import { PlaceCard } from "./PlaceCard";
 import { CreateListModal } from "./modals/CreateListModal";
@@ -73,20 +75,21 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
 
     return (
         <div className="min-h-screen bg-base-100 pb-20">
-            {/* Header Area */}
-            <div className="bg-base-100 sticky top-0 z-20 px-4 py-3 border-b border-base-content/5">
-                <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-2xl font-bold font-display">Lugares</h1>
-                    <div className="flex gap-2">
+            <StickyHeader
+                title="Lugares"
+                action={
+                    <>
                         <button
                             className="btn btn-circle btn-ghost btn-sm"
                             onClick={() => navigate('/places/visits')}
+                            aria-label="Bitácora"
                         >
                             <MapPin className="w-5 h-5" />
                         </button>
                         <button
                             className="btn btn-circle btn-ghost btn-sm"
                             onClick={() => setShowCreateList(true)}
+                            aria-label="Crear lista"
                         >
                             <ListFilter className="w-5 h-5" />
                         </button>
@@ -96,60 +99,61 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
                         >
                             <Plus className="w-4 h-4" /> Nuevo
                         </button>
-                    </div>
-                </div>
-
-                {/* Lists Horizontal Scroll */}
-                <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-4 px-4 snap-x">
-                    {/* "All" Option */}
-                    <div className="snap-start shrink-0">
-                        <div
-                            onClick={() => setSelectedListId(null)}
-                            className={`h-12 px-4 rounded-xl flex items-center gap-2 border cursor-pointer transition-all whitespace-nowrap
-                                ${selectedListId === null
-                                    ? 'bg-neutral text-neutral-content border-neutral shadow-md'
-                                    : 'bg-base-100 border-base-content/10'
-                                }
-                             `}
-                        >
-                            <Map className="w-4 h-4" />
-                            <span className="font-bold text-sm">Todos</span>
-                        </div>
-                    </div>
-
-                    {lists?.map((list) => (
-                        <div key={list._id} className="snap-start shrink-0">
+                    </>
+                }
+                tabs={
+                    <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-4 px-4 snap-x">
+                        {/* "All" Option */}
+                        <div className="snap-start shrink-0">
                             <div
-                                onClick={() => setSelectedListId(list._id)}
+                                onClick={() => setSelectedListId(null)}
                                 className={`h-12 px-4 rounded-xl flex items-center gap-2 border cursor-pointer transition-all whitespace-nowrap
-                                    ${selectedListId === list._id
-                                        ? 'bg-primary text-primary-content border-primary shadow-md'
-                                        : 'bg-base-100 border-base-content/10'
+                                    ${selectedListId === null
+                                        ? 'bg-neutral text-neutral-content border-neutral shadow-md'
+                                        : 'bg-base-100 border-base-300'
                                     }
-                                `}
+                                 `}
                             >
-                                <span className="text-lg">{list.icon || "📁"}</span>
-                                <span className="font-bold text-sm">{list.name}</span>
-                                {list.count > 0 && (
-                                    <span className={`badge badge-sm badge-circle border-0 ml-1 ${selectedListId === list._id ? 'bg-white/20 text-white' : 'bg-base-content/10'}`}>
-                                        {list.count}
-                                    </span>
-                                )}
+                                <Map className="w-4 h-4" />
+                                <span className="font-bold text-sm">Todos</span>
                             </div>
                         </div>
-                    ))}
 
-                    {/* Add List Button Inline */}
-                    <div className="snap-start shrink-0">
-                        <button
-                            onClick={() => setShowCreateList(true)}
-                            className="h-12 w-12 rounded-xl flex items-center justify-center border border-dashed border-base-content/30 text-base-content/50 hover:bg-base-200"
-                        >
-                            <Plus className="w-5 h-5" />
-                        </button>
+                        {lists?.map((list) => (
+                            <div key={list._id} className="snap-start shrink-0">
+                                <div
+                                    onClick={() => setSelectedListId(list._id)}
+                                    className={`h-12 px-4 rounded-xl flex items-center gap-2 border cursor-pointer transition-all whitespace-nowrap
+                                        ${selectedListId === list._id
+                                            ? 'bg-primary text-primary-content border-primary shadow-md'
+                                            : 'bg-base-100 border-base-300'
+                                        }
+                                    `}
+                                >
+                                    <span className="text-lg">{list.icon || "📁"}</span>
+                                    <span className="font-bold text-sm">{list.name}</span>
+                                    {list.count > 0 && (
+                                        <span className={`badge badge-sm badge-circle border-0 ml-1 ${selectedListId === list._id ? 'bg-white/20 text-white' : 'bg-base-content/10'}`}>
+                                            {list.count}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Add List Button Inline */}
+                        <div className="snap-start shrink-0">
+                            <button
+                                onClick={() => setShowCreateList(true)}
+                                className="h-12 w-12 rounded-xl flex items-center justify-center border border-dashed border-base-300 text-subtle hover:bg-base-200"
+                                aria-label="Crear lista"
+                            >
+                                <Plus className="w-5 h-5" />
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </div>
+                }
+            />
 
             {/* Main Content */}
             <div className="p-4 space-y-4">
@@ -167,18 +171,21 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
                     {places === undefined ? (
                         <div className="flex justify-center py-10"><span className="loading loading-dots loading-lg text-primary/30"></span></div>
                     ) : filteredPlaces.length === 0 ? (
-                        <div className="text-center py-20 opacity-50 space-y-4">
-                            <Map className="w-16 h-16 mx-auto text-base-content/20" />
-                            <p>{filter === 'pending' ? '¡Todo visitado!' : filter === 'visited' ? 'Aún no has visitado nada.' : 'No hay lugares aquí aún.'}</p>
-                            {filter !== 'visited' && (
-                                <button
-                                    onClick={() => setShowCreatePlace(true)}
-                                    className="btn btn-outline btn-sm animate-pulse"
-                                >
-                                    Agregar lugar
-                                </button>
-                            )}
-                        </div>
+                        <EmptyState
+                            icon={Map}
+                            title={filter === 'pending' ? '¡Todo visitado!' : filter === 'visited' ? 'Aún no has visitado nada' : 'Sin lugares'}
+                            description={filter === 'visited' ? 'Registra visitas a tus lugares favoritos.' : 'Empieza agregando un lugar que te gustaría visitar.'}
+                            action={
+                                filter !== 'visited' && (
+                                    <button
+                                        onClick={() => setShowCreatePlace(true)}
+                                        className="btn btn-primary btn-sm"
+                                    >
+                                        Agregar lugar
+                                    </button>
+                                )
+                            }
+                        />
                     ) : (
                         filteredPlaces.map(place => (
                             <PlaceCard

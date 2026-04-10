@@ -117,7 +117,7 @@ export function EditDiaryEntryModal({ isOpen, onClose, entry }: EditDiaryEntryMo
 
                 {/* Content */}
                 <div>
-                    <label className="label text-xs font-medium text-base-content/60">Tu historia</label>
+                    <label className="label text-xs font-medium text-muted">Tu historia</label>
                     <textarea
                         className="textarea textarea-bordered w-full h-32 rounded-xl leading-relaxed resize-none text-base focus:outline-none focus:ring-1 focus:ring-primary"
                         placeholder="Edita tu historia..."

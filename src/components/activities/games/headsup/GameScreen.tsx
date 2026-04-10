@@ -65,11 +65,11 @@ export function GameScreen({
       <div className="flex justify-center gap-8 mb-6 text-center">
         <div>
           <div className="text-3xl font-black text-success">{score}</div>
-          <div className="text-xs text-base-content/60 uppercase">Aciertos</div>
+          <div className="text-xs text-muted uppercase">Aciertos</div>
         </div>
         <div>
           <div className="text-3xl font-black text-warning">{skipped}</div>
-          <div className="text-xs text-base-content/60 uppercase">Pasadas</div>
+          <div className="text-xs text-muted uppercase">Pasadas</div>
         </div>
       </div>
 
@@ -77,7 +77,7 @@ export function GameScreen({
       <div className="flex-1 flex flex-col justify-center items-center px-4">
         {isPaused ? (
           <div className="text-center">
-            <Pause className="w-16 h-16 text-base-content/40 mx-auto mb-4" />
+            <Pause className="w-16 h-16 text-faint mx-auto mb-4" />
             <p className="text-lg font-medium">Juego Pausado</p>
             <button onClick={onResume} className="btn btn-primary mt-4">
               Reanudar
@@ -93,7 +93,7 @@ export function GameScreen({
               </div>
             </div>
 
-            <div className="mt-8 text-center text-sm text-base-content/60">
+            <div className="mt-8 text-center text-sm text-muted">
               ¡Pon el celular en tu frente!
             </div>
           </div>

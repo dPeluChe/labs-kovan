@@ -115,7 +115,7 @@ export function LoginPage() {
               <h1 className="text-2xl font-bold mb-2">
                 {inviteData ? "¡Te invitaron!" : (mode === "register" ? "Crear cuenta" : "Bienvenido de nuevo")}
               </h1>
-              <p className="text-base-content/60 text-sm">
+              <p className="text-muted text-sm">
                 {inviteData
                   ? `Únete a la familia "${inviteData.familyName}"`
                   : mode === "register"
@@ -221,7 +221,7 @@ export function LoginPage() {
           </div>
         </div>
 
-        <p className="mt-8 text-center text-xs text-base-content/40">
+        <p className="mt-8 text-center text-xs text-faint">
           Labs Kovan v1.0 BETA
         </p>
       </div >

@@ -24,6 +24,7 @@ import type * as files from "../files.js";
 import type * as games from "../games.js";
 import type * as gifts from "../gifts.js";
 import type * as health from "../health.js";
+import type * as household from "../household.js";
 import type * as lib_agent_fuzzyMatch from "../lib/agent/fuzzyMatch.js";
 import type * as lib_agent_index from "../lib/agent/index.js";
 import type * as lib_utils from "../lib/utils.js";
@@ -61,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   games: typeof games;
   gifts: typeof gifts;
   health: typeof health;
+  household: typeof household;
   "lib/agent/fuzzyMatch": typeof lib_agent_fuzzyMatch;
   "lib/agent/index": typeof lib_agent_index;
   "lib/utils": typeof lib_utils;

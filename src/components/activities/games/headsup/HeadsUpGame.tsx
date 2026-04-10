@@ -176,7 +176,7 @@ export function HeadsUpGame({ onComplete }: HeadsUpGameProps) {
       <div className="pb-4">
         <div className="px-4">
           <h2 className="text-2xl font-black text-center mb-2">Heads Up!</h2>
-          <p className="text-center text-base-content/60 mb-6">
+          <p className="text-center text-muted mb-6">
             Selecciona una categoría para comenzar
           </p>
           <CategorySelector

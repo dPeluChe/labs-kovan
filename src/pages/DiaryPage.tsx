@@ -8,6 +8,7 @@ import { PageLoader } from "../components/ui/LoadingSpinner";
 import { CreateDiaryEntryModal } from "../components/diary/CreateDiaryEntryModal";
 import { EditDiaryEntryModal } from "../components/diary/EditDiaryEntryModal";
 import { EmptyState } from "../components/ui/EmptyState";
+import { Timeline, TimelineItem } from "../components/ui/Timeline";
 import { MOODS_MAP } from "../components/diary/constants";
 import { Plus, Users, Lock, Trash2, Calendar } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
@@ -81,11 +82,11 @@ export function DiaryPage() {
                         }, {} as Record<string, typeof entries>)).map(([monthYear, monthEntries]) => (
                             <div key={monthYear} className="space-y-4">
                                 <div className="sticky top-0 z-20 bg-base-100/95 backdrop-blur-sm py-2 px-4 -mx-4 border-b border-base-200 shadow-sm">
-                                    <h2 className="text-sm font-bold uppercase tracking-wider text-base-content/60">
+                                    <h2 className="text-sm font-bold uppercase tracking-wider text-muted">
                                         {monthYear}
                                     </h2>
                                 </div>
-                                <div className="relative space-y-8 pl-4 border-l-2 border-base-200 ml-4 py-4">
+                                <Timeline className="ml-4">
                                     {monthEntries.map((entry) => {
                                         const dateStr = getConversationalDate(entry.date);
                                         const moodEmoji = entry.moodEmoji || MOODS_MAP[entry.mood || "neutral"] || "📝";
@@ -94,64 +95,64 @@ export function DiaryPage() {
                                         // Conversational Title
                                         const titlePrefix = entry.userId === user?._id ? "Te sentiste" : "Se sintió";
                                         const conversationalTitle = `${dateStr} ${titlePrefix.toLowerCase()} ${moodLabel}`;
+                                        const isOwner = user && entry.userId === user._id;
 
                                         return (
-                                            <div
+                                            <TimelineItem
                                                 key={entry._id}
-                                                onClick={() => user && entry.userId === user._id && setEditingEntry(entry)}
-                                                className={`relative pl-6 animate-fade-in group cursor-pointer ${user && entry.userId === user._id ? "hover:translate-x-1 transition-transform" : ""}`}
+                                                dot={<span className="transition-transform hover:scale-110">{moodEmoji}</span>}
                                             >
-                                                {/* Timeline Dot */}
-                                                <div className="absolute -left-[21px] top-0 w-10 h-10 rounded-full bg-base-100 border-4 border-base-100 flex items-center justify-center text-xl shadow-sm z-10 transition-transform hover:scale-110">
-                                                    {moodEmoji}
-                                                </div>
-
-                                                <div className="flex flex-col gap-2">
-                                                    <div className="flex justify-between items-start">
-                                                        <div>
-                                                            <h3 className="font-bold text-lg leading-tight capitalize text-base-content/90">
-                                                                {conversationalTitle}
-                                                            </h3>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                <span className="text-xs text-base-content/50 font-medium capitalize">
-                                                                    {format(entry.date, "p", { locale: es })}
-                                                                </span>
-                                                                {entry.visibility === "private" ? (
-                                                                    <div className="badge badge-xs badge-ghost gap-1 pl-0 pr-2 bg-transparent border-0 text-base-content/40">
-                                                                        <Lock className="w-3 h-3" />
-                                                                        Solo yo
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="badge badge-xs badge-ghost gap-1 pl-0 pr-2 bg-transparent border-0 text-primary/70">
-                                                                        <Users className="w-3 h-3" />
-                                                                        Familia
-                                                                    </div>
-                                                                )}
+                                                <div
+                                                    onClick={() => isOwner && setEditingEntry(entry)}
+                                                    className={`animate-fade-in group ${isOwner ? "cursor-pointer hover:translate-x-1 transition-transform" : ""}`}
+                                                >
+                                                    <div className="flex flex-col gap-2">
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <h3 className="font-bold text-lg leading-tight capitalize text-base-content/90">
+                                                                    {conversationalTitle}
+                                                                </h3>
+                                                                <div className="flex items-center gap-2 mt-1">
+                                                                    <span className="text-xs text-subtle font-medium capitalize">
+                                                                        {format(entry.date, "p", { locale: es })}
+                                                                    </span>
+                                                                    {entry.visibility === "private" ? (
+                                                                        <div className="badge badge-xs badge-ghost gap-1 pl-0 pr-2 bg-transparent border-0 text-faint">
+                                                                            <Lock className="w-3 h-3" />
+                                                                            Solo yo
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="badge badge-xs badge-ghost gap-1 pl-0 pr-2 bg-transparent border-0 text-primary/70">
+                                                                            <Users className="w-3 h-3" />
+                                                                            Familia
+                                                                        </div>
+                                                                    )}
+                                                                </div>
                                                             </div>
+
+                                                            {/* Actions (Only for owner) */}
+                                                            {isOwner && (
+                                                                <button
+                                                                    onClick={(e) => handleDelete(e, entry._id)}
+                                                                    className="btn btn-ghost btn-xs btn-square text-base-content/20 hover:text-error hover:bg-error/10"
+                                                                    title="Eliminar"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            )}
                                                         </div>
 
-                                                        {/* Actions (Only for owner) */}
-                                                        {user && entry.userId === user._id && (
-                                                            <button
-                                                                onClick={(e) => handleDelete(e, entry._id)}
-                                                                className="btn btn-ghost btn-xs btn-square text-base-content/20 hover:text-error hover:bg-error/10"
-                                                                title="Eliminar"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                        {entry.content && (
+                                                            <div className="relative mt-1 bg-base-200/40 p-4 rounded-2xl rounded-tl-none text-base-content/80 text-sm leading-relaxed whitespace-pre-wrap hover:bg-base-200/60 transition-colors">
+                                                                {entry.content}
+                                                            </div>
                                                         )}
                                                     </div>
-
-                                                    {entry.content && (
-                                                        <div className="relative mt-1 bg-base-200/40 p-4 rounded-2xl rounded-tl-none text-base-content/80 text-sm leading-relaxed whitespace-pre-wrap hover:bg-base-200/60 transition-colors">
-                                                            {entry.content}
-                                                        </div>
-                                                    )}
                                                 </div>
-                                            </div>
+                                            </TimelineItem>
                                         );
                                     })}
-                                </div>
+                                </Timeline>
                             </div>
                         ))}
                     </div>

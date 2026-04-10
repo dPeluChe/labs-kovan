@@ -186,11 +186,11 @@ export default function AgentPage() {
                             <div className="text-center mt-20">
                                 <Bot className="w-16 h-16 mx-auto mb-4 opacity-50 text-primary" />
                                 <h2 className="text-2xl font-bold mb-2">¡Hola! Soy Kovan 👋</h2>
-                                <p className="text-base-content/70 mb-6">Tu asistente personal para gestionar tu familia</p>
+                                <p className="text-body mb-6">Tu asistente personal para gestionar tu familia</p>
                                 <div className="grid md:grid-cols-2 gap-3 max-w-2xl mx-auto text-left">
                                     <div className="card bg-base-100 shadow-sm p-4">
                                         <h3 className="font-bold text-sm mb-2">📊 Consultas</h3>
-                                        <ul className="text-xs space-y-1 text-base-content/70">
+                                        <ul className="text-xs space-y-1 text-body">
                                             <li>"¿Cuánto gasté este mes?"</li>
                                             <li>"¿Quién me debe dinero?"</li>
                                             <li>"¿Qué libros tengo?"</li>
@@ -198,7 +198,7 @@ export default function AgentPage() {
                                     </div>
                                     <div className="card bg-base-100 shadow-sm p-4">
                                         <h3 className="font-bold text-sm mb-2">✍️ Registros</h3>
-                                        <ul className="text-xs space-y-1 text-base-content/70">
+                                        <ul className="text-xs space-y-1 text-body">
                                             <li>"Agrega gasto de $500 en comida"</li>
                                             <li>"Guarda el restaurante La Taquería"</li>
                                             <li>"Anota receta de pozole"</li>

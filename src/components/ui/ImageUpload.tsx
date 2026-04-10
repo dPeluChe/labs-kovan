@@ -82,7 +82,7 @@ export function ImageUpload({ label, value, onChange, className = "" }: ImageUpl
               {preview ? (
                 <img src={preview} alt="Preview" className="w-full h-full object-cover" />
               ) : (
-                <ImageIcon className="w-8 h-8 text-base-content/40" />
+                <ImageIcon className="w-8 h-8 text-faint" />
               )}
             </div>
             <button
@@ -104,15 +104,15 @@ export function ImageUpload({ label, value, onChange, className = "" }: ImageUpl
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
             ) : (
               <>
-                <Upload className="w-6 h-6 text-base-content/40" />
-                <span className="text-[10px] text-base-content/60">Subir</span>
+                <Upload className="w-6 h-6 text-faint" />
+                <span className="text-[10px] text-muted">Subir</span>
               </>
             )}
           </div>
         )}
         
         {value && !preview && (
-          <div className="text-sm text-base-content/60">
+          <div className="text-sm text-muted">
             Imagen guardada
             <br />
             <button 

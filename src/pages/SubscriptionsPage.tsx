@@ -92,12 +92,12 @@ export function SubscriptionsPage() {
                             >
                                 <div className="flex justify-between items-center">
                                     <div className="flex gap-3 items-center">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${sub.isActive ? "bg-violet-500/10 text-violet-600" : "bg-base-200 text-base-content/40"}`}>
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${sub.isActive ? "bg-violet-500/10 text-violet-600" : "bg-base-200 text-faint"}`}>
                                             <Icon className="w-5 h-5" />
                                         </div>
                                         <div>
                                             <h3 className="font-semibold">{sub.name}</h3>
-                                            <div className="flex items-center gap-1.5 text-xs text-base-content/60">
+                                            <div className="flex items-center gap-1.5 text-xs text-muted">
                                                 <span>{sub.amount ? `$${sub.amount}` : "Variable"}</span>
                                                 <span>•</span>
                                                 <span className="capitalize">{sub.billingCycle === "bimonthly" ? "Bimestral" : sub.billingCycle === "monthly" ? "Mensual" : sub.billingCycle}</span>

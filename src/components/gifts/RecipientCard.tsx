@@ -2,11 +2,12 @@
 import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { Plus, MoreVertical, Edit2, Trash2, Gift, CheckCircle2, ExternalLink } from "lucide-react";
+import { Plus, Edit2, Trash2, Gift, CheckCircle2, ExternalLink } from "lucide-react";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import type { ConfirmOptions } from "../../hooks/useConfirmModal";
 import { sortGifts } from "./GiftConstants";
 import { useAuth } from "../../contexts/AuthContext";
+import { ContextMenu } from "../ui/ContextMenu";
 
 export function RecipientCard({
     recipient,
@@ -90,7 +91,7 @@ export function RecipientCard({
                 <div className="flex items-center gap-2">
                     {/* Avatar with status indicator */}
                     <div className="relative">
-                        <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center text-base-content/70 font-semibold text-sm">
+                        <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center text-body font-semibold text-sm">
                             {recipient.name.charAt(0).toUpperCase()}
                         </div>
                         <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-base-100 ${statusColor}`} />
@@ -104,7 +105,7 @@ export function RecipientCard({
                                 ? "bg-success/20 text-success"
                                 : hasIdeas
                                     ? "bg-warning/20 text-warning"
-                                    : "bg-base-200 text-base-content/50"
+                                    : "bg-base-200 text-subtle"
                                 }`}>
                                 {boughtCount}/{total}
                             </span>
@@ -122,22 +123,20 @@ export function RecipientCard({
                                 <Plus className="w-4 h-4" />
                             </button>
 
-                            <div className="dropdown dropdown-end">
-                                <button tabIndex={0} className="btn btn-ghost btn-xs btn-circle">
-                                    <MoreVertical className="w-4 h-4" />
-                                </button>
-                                <ul tabIndex={0} className="dropdown-content menu p-1 shadow-lg bg-base-100 rounded-lg w-40 z-50 border border-base-200 text-sm">
-                                    <li><button onClick={() => setIsEditing(true)} className="py-1.5"><Edit2 className="w-3.5 h-3.5" /> Editar</button></li>
-                                    <li><button onClick={handleDelete} className="text-error py-1.5"><Trash2 className="w-3.5 h-3.5" /> Eliminar</button></li>
-                                </ul>
-                            </div>
+                            <ContextMenu
+                                items={[
+                                    { icon: Edit2, label: "Editar", onClick: () => setIsEditing(true) },
+                                    { icon: Trash2, label: "Eliminar", onClick: handleDelete, variant: "danger" },
+                                ]}
+                                contentClassName="w-40"
+                            />
                         </>
                     )}
                 </div>
 
                 {/* Notes */}
                 {recipient.notes && !isEditing && (
-                    <p className="text-xs text-base-content/60 mt-1 italic px-1">📝 {recipient.notes}</p>
+                    <p className="text-xs text-muted mt-1 italic px-1">📝 {recipient.notes}</p>
                 )}
 
                 {/* Inline Edit Form */}
@@ -169,7 +168,7 @@ export function RecipientCard({
                     !isEventArchived && (
                         <button
                             onClick={onAddItem}
-                            className="btn btn-ghost btn-xs text-base-content/40 gap-1 mt-1 justify-start w-max"
+                            className="btn btn-ghost btn-xs text-faint gap-1 mt-1 justify-start w-max"
                         >
                             <Gift className="w-3 h-3" /> Agregar primer regalo
                         </button>

@@ -1,48 +1,66 @@
-
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { ConvexProvider } from "convex/react";
-import { convex } from "./lib/convex";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { FamilyProvider, useFamily } from "./contexts/FamilyContext";
+import { lazy, Suspense } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
+import { useFamily } from "./contexts/FamilyContext";
 import { AppLayout } from "./components/layout/AppLayout";
 import { PageLoader } from "./components/ui/LoadingSpinner";
-import { ToastProvider } from "./components/ui/Toast";
+import { AppProviders } from "./app/AppProviders";
 
-// Pages
+// Eagerly loaded: critical paths (auth + first paint)
 import { LoginPage } from "./pages/LoginPage";
+import { LandingPage } from "./pages/LandingPage";
 import { FamilySetupPage } from "./pages/FamilySetupPage";
 import { DashboardPage } from "./pages/DashboardPage";
-import { GiftsPage } from "./pages/GiftsPage";
-import { GiftEventDetailPage } from "./pages/GiftEventDetailPage";
-import { CalendarPage } from "./pages/CalendarPage";
-import { HealthPage } from "./pages/HealthPage";
-import { HealthProfilePage } from "./pages/HealthProfilePage";
-import { PetsPage } from "./pages/PetsPage";
-import { PetProfilePage } from "./pages/PetProfilePage";
-import { CollectionsPage } from "./pages/CollectionsPage";
-import { VehiclesPage } from "./pages/VehiclesPage";
-import { VehicleDetailPage } from "./pages/VehicleDetailPage";
-import { MorePage } from "./pages/MorePage";
-import { CalendarSettingsPage } from "./pages/CalendarSettingsPage";
-import { FamilyPage } from "./pages/FamilyPage";
-import { TasksPage } from "./pages/TasksPage";
-import { DocumentsPage } from "./pages/DocumentsPage";
-import { SubscriptionsPage } from "./pages/SubscriptionsPage";
-import { FinancesPage } from "./pages/FinancesPage";
-import { RecipesPage } from "./pages/RecipesPage";
-import { PlacesPage } from "./pages/PlacesPage";
-import { PlaceVisitsPage } from "./pages/PlaceVisitsPage";
-import { AdminDashboardPage } from "./pages/AdminDashboardPage";
-import { SettingsPage } from "./pages/SettingsPage";
-import { ContactsPage } from "./pages/ContactsPage";
-import { ActivitiesPage } from "./pages/ActivitiesPage";
-import { NutritionPage } from "./pages/NutritionPage";
-import AgentPage from "./pages/AgentPage";
-import { LandingPage } from "./pages/LandingPage";
-import { TripsPage } from "./pages/TripsPage";
-import { TripDetailPage } from "./pages/TripDetailPage";
-import { DiaryPage } from "./pages/DiaryPage";
+
+// Lazy-loaded: rest of the app split into per-page chunks
+const GiftsPage = lazy(() => import("./pages/GiftsPage").then((m) => ({ default: m.GiftsPage })));
+const GiftEventDetailPage = lazy(() =>
+  import("./pages/GiftEventDetailPage").then((m) => ({ default: m.GiftEventDetailPage }))
+);
+const CalendarPage = lazy(() => import("./pages/CalendarPage").then((m) => ({ default: m.CalendarPage })));
+const CalendarSettingsPage = lazy(() =>
+  import("./pages/CalendarSettingsPage").then((m) => ({ default: m.CalendarSettingsPage }))
+);
+const HealthPage = lazy(() => import("./pages/HealthPage").then((m) => ({ default: m.HealthPage })));
+const HealthProfilePage = lazy(() =>
+  import("./pages/HealthProfilePage").then((m) => ({ default: m.HealthProfilePage }))
+);
+const PetsPage = lazy(() => import("./pages/PetsPage").then((m) => ({ default: m.PetsPage })));
+const PetProfilePage = lazy(() => import("./pages/PetProfilePage").then((m) => ({ default: m.PetProfilePage })));
+const CollectionsPage = lazy(() =>
+  import("./pages/CollectionsPage").then((m) => ({ default: m.CollectionsPage }))
+);
+const VehiclesPage = lazy(() => import("./pages/VehiclesPage").then((m) => ({ default: m.VehiclesPage })));
+const VehicleDetailPage = lazy(() =>
+  import("./pages/VehicleDetailPage").then((m) => ({ default: m.VehicleDetailPage }))
+);
+const MorePage = lazy(() => import("./pages/MorePage").then((m) => ({ default: m.MorePage })));
+const FamilyPage = lazy(() => import("./pages/FamilyPage").then((m) => ({ default: m.FamilyPage })));
+const TasksPage = lazy(() => import("./pages/TasksPage").then((m) => ({ default: m.TasksPage })));
+const DocumentsPage = lazy(() => import("./pages/DocumentsPage").then((m) => ({ default: m.DocumentsPage })));
+const SubscriptionsPage = lazy(() =>
+  import("./pages/SubscriptionsPage").then((m) => ({ default: m.SubscriptionsPage }))
+);
+const FinancesPage = lazy(() => import("./pages/FinancesPage").then((m) => ({ default: m.FinancesPage })));
+const RecipesPage = lazy(() => import("./pages/RecipesPage").then((m) => ({ default: m.RecipesPage })));
+const NutritionPage = lazy(() => import("./pages/NutritionPage").then((m) => ({ default: m.NutritionPage })));
+const PlacesPage = lazy(() => import("./pages/PlacesPage").then((m) => ({ default: m.PlacesPage })));
+const PlaceVisitsPage = lazy(() =>
+  import("./pages/PlaceVisitsPage").then((m) => ({ default: m.PlaceVisitsPage }))
+);
+const TripsPage = lazy(() => import("./pages/TripsPage").then((m) => ({ default: m.TripsPage })));
+const TripDetailPage = lazy(() => import("./pages/TripDetailPage").then((m) => ({ default: m.TripDetailPage })));
+const ActivitiesPage = lazy(() =>
+  import("./pages/ActivitiesPage").then((m) => ({ default: m.ActivitiesPage }))
+);
+const AgentPage = lazy(() => import("./pages/AgentPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage").then((m) => ({ default: m.SettingsPage })));
+const ContactsPage = lazy(() => import("./pages/ContactsPage").then((m) => ({ default: m.ContactsPage })));
+const DiaryPage = lazy(() => import("./pages/DiaryPage").then((m) => ({ default: m.DiaryPage })));
+const HouseholdPage = lazy(() => import("./pages/HouseholdPage").then((m) => ({ default: m.HouseholdPage })));
+const AdminDashboardPage = lazy(() =>
+  import("./pages/AdminDashboardPage").then((m) => ({ default: m.AdminDashboardPage }))
+);
 
 function AppRoutes() {
   const { user, isLoading: authLoading } = useAuth();
@@ -71,59 +89,52 @@ function AppRoutes() {
   }
 
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/gifts" element={<GiftsPage />} />
-        <Route path="/gifts/:eventId" element={<GiftEventDetailPage />} />
-        <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/settings/calendar" element={<CalendarSettingsPage />} />
-        <Route path="/health" element={<HealthPage />} />
-        <Route path="/health/:profileId" element={<HealthProfilePage />} />
-        <Route path="/pets" element={<PetsPage />} />
-        <Route path="/pets/:profileId" element={<PetProfilePage />} />
-        <Route path="/collections" element={<CollectionsPage />} />
-        <Route path="/vehicles" element={<VehiclesPage />} />
-        <Route path="/vehicles/:vehicleId" element={<VehicleDetailPage />} />
-        <Route path="/more" element={<MorePage />} />
-        <Route path="/family" element={<FamilyPage />} />
-        <Route path="/tasks" element={<TasksPage />} />
-        <Route path="/documents" element={<DocumentsPage />} />
-        <Route path="/subscriptions" element={<SubscriptionsPage />} />
-        <Route path="/finances" element={<FinancesPage />} />
-        <Route path="/recipes" element={<RecipesPage />} />
-        <Route path="/nutrition" element={<NutritionPage />} />
-        <Route path="/admin" element={<AdminDashboardPage />} />
-        <Route path="/places/visits" element={<PlaceVisitsPage />} />
-        <Route path="/places" element={<PlacesPage />} />
-        <Route path="/trips" element={<TripsPage />} />
-        <Route path="/trips/:tripId" element={<TripDetailPage />} />
-        <Route path="/activities" element={<ActivitiesPage />} />
-        <Route path="/agent" element={<AgentPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/contacts" element={<ContactsPage />} />
-        <Route path="/diary" element={<DiaryPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
-    </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/gifts" element={<GiftsPage />} />
+          <Route path="/gifts/:eventId" element={<GiftEventDetailPage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/settings/calendar" element={<CalendarSettingsPage />} />
+          <Route path="/health" element={<HealthPage />} />
+          <Route path="/health/:profileId" element={<HealthProfilePage />} />
+          <Route path="/pets" element={<PetsPage />} />
+          <Route path="/pets/:profileId" element={<PetProfilePage />} />
+          <Route path="/collections" element={<CollectionsPage />} />
+          <Route path="/vehicles" element={<VehiclesPage />} />
+          <Route path="/vehicles/:vehicleId" element={<VehicleDetailPage />} />
+          <Route path="/more" element={<MorePage />} />
+          <Route path="/family" element={<FamilyPage />} />
+          <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/documents" element={<DocumentsPage />} />
+          <Route path="/subscriptions" element={<SubscriptionsPage />} />
+          <Route path="/finances" element={<FinancesPage />} />
+          <Route path="/recipes" element={<RecipesPage />} />
+          <Route path="/nutrition" element={<NutritionPage />} />
+          <Route path="/places/visits" element={<PlaceVisitsPage />} />
+          <Route path="/places" element={<PlacesPage />} />
+          <Route path="/trips" element={<TripsPage />} />
+          <Route path="/trips/:tripId" element={<TripDetailPage />} />
+          <Route path="/activities" element={<ActivitiesPage />} />
+          <Route path="/agent" element={<AgentPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/contacts" element={<ContactsPage />} />
+          <Route path="/diary" element={<DiaryPage />} />
+          <Route path="/household" element={<HouseholdPage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }
 
 function App() {
   return (
-    <ConvexProvider client={convex}>
-      <ThemeProvider>
-        <AuthProvider>
-          <FamilyProvider>
-            <ToastProvider>
-              <BrowserRouter>
-                <AppRoutes />
-              </BrowserRouter>
-            </ToastProvider>
-          </FamilyProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </ConvexProvider>
+    <AppProviders>
+      <AppRoutes />
+    </AppProviders>
   );
 }
 

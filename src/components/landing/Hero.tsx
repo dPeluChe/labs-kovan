@@ -27,7 +27,7 @@ export const Hero: React.FC = () => {
                     </span>
                 </h1>
 
-                <p className="text-xl text-base-content/70 max-w-2xl mx-auto mb-10 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                <p className="text-xl text-body max-w-2xl mx-auto mb-10 animate-slide-up" style={{ animationDelay: '0.2s' }}>
                     Labs Kovan es una potente aplicación web instalable diseñada para armonizar tu familia, finanzas y salud, todo en una experiencia perfecta.
                 </p>
 

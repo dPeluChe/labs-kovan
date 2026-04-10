@@ -148,7 +148,7 @@ export function CalendarPage() {
                 <Calendar className="w-8 h-8 text-primary" />
               </div>
               <h3 className="font-semibold text-lg">Conecta tu calendario</h3>
-              <p className="text-sm text-base-content/60 mb-4 max-w-xs mx-auto">
+              <p className="text-sm text-muted mb-4 max-w-xs mx-auto">
                 Vincula Google Calendar para ver tus eventos y citas en un solo lugar.
               </p>
               <Link to="/settings/calendar" className="btn btn-primary btn-sm w-fit mx-auto">
@@ -209,7 +209,7 @@ export function CalendarPage() {
                     <div key={dateKey}>
                       <div className="mb-2 px-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className={`text-sm font-bold uppercase tracking-wider ${isToday ? "text-secondary" : "text-base-content/70"}`}>
+                          <span className={`text-sm font-bold uppercase tracking-wider ${isToday ? "text-secondary" : "text-body"}`}>
                             {isToday
                               ? "Hoy"
                               : date.toLocaleDateString("es-MX", {
@@ -231,7 +231,7 @@ export function CalendarPage() {
                               >
                                 <div className="card-body p-3">
                                   <div className="flex items-start gap-3">
-                                    <div className={`p-2 rounded-lg flex flex-col items-center min-w-[3rem] relative ${isToday ? "bg-primary/10 text-primary" : "bg-base-200 text-base-content/70"
+                                    <div className={`p-2 rounded-lg flex flex-col items-center min-w-[3rem] relative ${isToday ? "bg-primary/10 text-primary" : "bg-base-200 text-body"
                                       }`}>
                                       {event.calendarId && (
                                         <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-secondary" title="Sincronizado" />
@@ -246,7 +246,7 @@ export function CalendarPage() {
 
                                     <div className="flex-1 min-w-0 py-0.5">
                                       <h4 className="font-semibold text-sm leading-tight mb-1">{event.title}</h4>
-                                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/60">
+                                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
                                         {!event.allDay && (
                                           <span className="flex items-center gap-1">
                                             <Clock className="w-3 h-3" />

@@ -231,3 +231,48 @@ body {
 .toast-exit {
   animation: slideUp 0.3s ease-in reverse forwards;
 }
+
+/* ==================== DESIGN TOKENS: TEXT HIERARCHY ==================== */
+/*
+ * Semantic text color aliases to centralize opacity choices.
+ * Use these instead of hardcoded text-base-content/XX values.
+ *
+ *   text-strong  = 100% (titles, primary content)
+ *   text-body    = 70%  (body copy, secondary headings)
+ *   text-muted   = 60%  (subtitles, descriptions)
+ *   text-subtle  = 50%  (tertiary, timestamps, hints)
+ *   text-faint   = 40%  (icons, dividers, disabled helpers)
+ */
+.text-strong { @apply text-base-content; }
+.text-body   { @apply text-base-content/70; }
+.text-muted  { @apply text-base-content/60; }
+.text-subtle { @apply text-base-content/50; }
+.text-faint  { @apply text-base-content/40; }
+
+/* ==================== DESIGN TOKENS: SURFACES ==================== */
+/*
+ * Unified card/surface styles.
+ *
+ *   surface-card  = standard card (bg-base-100 + border + rounded-xl)
+ *   surface-muted = soft inset (bg-base-200/50 + rounded-xl)
+ *   surface-row   = list row (border + rounded-xl + padding)
+ */
+.surface-card {
+  @apply bg-base-100 border border-base-300 rounded-xl;
+}
+.surface-muted {
+  @apply bg-base-200/50 rounded-xl;
+}
+.surface-row {
+  @apply bg-base-100 border border-base-300 rounded-xl p-3;
+}
+
+/* ==================== DESIGN TOKENS: STICKY HEADER ==================== */
+/*
+ * Shared sticky header surface for pages with tabs/actions on top.
+ * Apply to the outer container of PageHeader + tab row.
+ */
+.sticky-header {
+  @apply sticky top-0 z-40 bg-base-100/80 backdrop-blur-md;
+  padding-top: env(safe-area-inset-top);
+}

@@ -31,7 +31,7 @@ export function CategorySelector({
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-sm">{config.name}</h3>
-                <p className="text-xs text-base-content/60">
+                <p className="text-xs text-muted">
                   {cardCount > 0 ? `${cardCount} cartas` : "Personalizado"}
                 </p>
               </div>

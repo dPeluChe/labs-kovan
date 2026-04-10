@@ -141,13 +141,13 @@ export function RouletteGame({ onComplete }: RouletteGameProps) {
               <div className="text-4xl md:text-5xl lg:text-6xl font-black text-primary dark:text-primary/90 break-words">
                 {winner || "Girando..."}
               </div>
-              <div className="text-sm text-base-content/50 dark:text-base-content/60 mt-2">🎲</div>
+              <div className="text-sm text-subtle dark:text-muted mt-2">🎲</div>
             </div>
           ) : winner ? (
             <div className="w-full px-4">
               <div className="mb-4">
                 <Trophy className="w-16 h-16 text-yellow-500 dark:text-yellow-400 mx-auto mb-4 drop-shadow-lg" />
-                <div className="text-sm uppercase tracking-widest text-base-content/60 dark:text-base-content/70 mb-2">
+                <div className="text-sm uppercase tracking-widest text-muted dark:text-body mb-2">
                   EL GANADOR ES
                 </div>
               </div>
@@ -157,7 +157,7 @@ export function RouletteGame({ onComplete }: RouletteGameProps) {
               <div className="text-2xl animate-bounce mt-4">🎉</div>
             </div>
           ) : (
-            <div className="text-base-content/30 dark:text-base-content/40">
+            <div className="text-base-content/30 dark:text-faint">
               <Dices className="w-20 h-20 mx-auto mb-4 opacity-50" />
               <div className="text-lg">Presiona Girar</div>
               <div className="text-sm opacity-60">para comenzar</div>
@@ -169,7 +169,7 @@ export function RouletteGame({ onComplete }: RouletteGameProps) {
         
         {/* Información de opciones */}
         {currentPresetType !== "custom" && (
-          <div className="text-center text-xs text-base-content/60 mb-3">
+          <div className="text-center text-xs text-muted mb-3">
             {options.length}{" "}
             {currentPresetType === "integrantes" ? "participantes" : "opciones"}
           </div>

@@ -53,7 +53,7 @@ export function DocumentsPage() {
         if (days < 0) return { label: "Vencido", color: "text-red-500", bg: "bg-red-500/10" };
         if (days < 30) return { label: "Vence pronto", color: "text-amber-500", bg: "bg-amber-500/10" };
         if (days < 90) return { label: "Vence en 3 meses", color: "text-blue-500", bg: "bg-blue-500/10" };
-        return { label: new Date(timestamp).toLocaleDateString(), color: "text-base-content/60", bg: "bg-base-200" };
+        return { label: new Date(timestamp).toLocaleDateString(), color: "text-muted", bg: "bg-base-200" };
     };
 
     const handleCreate = () => {
@@ -112,7 +112,7 @@ export function DocumentsPage() {
                                     }
                                     subtitle={
                                         <div className="flex flex-col gap-1.5 mt-0.5">
-                                            <div className="flex items-center gap-1.5 text-xs text-base-content/60">
+                                            <div className="flex items-center gap-1.5 text-xs text-muted">
                                                 <User className="w-3 h-3" />
                                                 <span>{getPersonName(doc.personId)}</span>
                                                 {doc.documentNumber && (

@@ -85,7 +85,7 @@ export function EventDetailModal({ isOpen, onClose, event }: EventDetailModalPro
                 {/* Header Section */}
                 <div>
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-subtle uppercase tracking-wider">
                             {start.toLocaleDateString("es-MX", { weekday: 'long', day: 'numeric', month: 'long' })}
                         </span>
                         {statusBadge}
@@ -104,7 +104,7 @@ export function EventDetailModal({ isOpen, onClose, event }: EventDetailModalPro
                             {' - '}
                             {end.toLocaleTimeString("es-MX", { hour: '2-digit', minute: '2-digit' })}
                         </p>
-                        <p className="text-sm text-base-content/60">
+                        <p className="text-sm text-muted">
                             Duración: {Math.round((end.getTime() - start.getTime()) / (1000 * 60))} min
                         </p>
                     </div>
@@ -113,7 +113,7 @@ export function EventDetailModal({ isOpen, onClose, event }: EventDetailModalPro
                 {/* Location */}
                 {event.location && (
                     <div className="flex items-start gap-4">
-                        <div className="p-2 bg-base-200 rounded-lg text-base-content/70">
+                        <div className="p-2 bg-base-200 rounded-lg text-body">
                             <MapPin className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
@@ -139,7 +139,7 @@ export function EventDetailModal({ isOpen, onClose, event }: EventDetailModalPro
                 */}
 
                 <div className="flex items-start gap-4">
-                    <div className="p-2 bg-base-200 rounded-lg text-base-content/70">
+                    <div className="p-2 bg-base-200 rounded-lg text-body">
                         <AlignLeft className="w-6 h-6" />
                     </div>
                     <div>

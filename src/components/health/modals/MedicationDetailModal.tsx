@@ -196,20 +196,20 @@ export function MedicationDetailModal({
                 </div>
 
                 <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl ${medication.status === "completed" ? "bg-base-200 text-base-content/40" : "bg-purple-500/10 text-purple-600"}`}>
+                    <div className={`p-3 rounded-xl ${medication.status === "completed" ? "bg-base-200 text-faint" : "bg-purple-500/10 text-purple-600"}`}>
                         <Pill className="w-8 h-8" />
                     </div>
                     <div className="flex-1">
                         <h2 className="text-xl font-bold">{medication.name}</h2>
-                        <p className="text-base-content/70 font-medium">{medication.dosage}</p>
+                        <p className="text-body font-medium">{medication.dosage}</p>
                     </div>
                 </div>
 
                 <div className="bg-base-200/50 rounded-lg p-4 space-y-3">
                     <div className="flex items-center gap-3">
-                        <Clock className="w-4 h-4 text-base-content/40" />
+                        <Clock className="w-4 h-4 text-faint" />
                         <div>
-                            <div className="text-xs text-base-content/40 uppercase font-bold">Periodo</div>
+                            <div className="text-xs text-faint uppercase font-bold">Periodo</div>
                             <div className="text-sm">
                                 {new Date(medication.startDate).toLocaleDateString("es-MX", { month: "short", day: "numeric", year: "numeric" })}
                                 {medication.status === "completed" && medication.endDate ? (
@@ -225,7 +225,7 @@ export function MedicationDetailModal({
 
                     {medication.notes && (
                         <div className="pt-2 border-t border-base-content/5">
-                            <div className="text-xs text-base-content/40 uppercase font-bold mb-1">Notas</div>
+                            <div className="text-xs text-faint uppercase font-bold mb-1">Notas</div>
                             <p className="text-sm whitespace-pre-wrap">{medication.notes}</p>
                         </div>
                     )}
