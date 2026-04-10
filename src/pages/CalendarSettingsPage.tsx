@@ -160,7 +160,7 @@ export function CalendarSettingsPage() {
           {!integration?.accessToken ? (
             <div className="card bg-base-100 shadow-sm border border-base-300">
               <div className="card-body p-5 text-center">
-                <p className="text-base-content/70 mb-4">
+                <p className="text-body mb-4">
                   No hay calendarios conectados. Vincula tu cuenta de Google.
                 </p>
                 <button
@@ -170,7 +170,7 @@ export function CalendarSettingsPage() {
                   <ExternalLink className="w-4 h-4" />
                   Conectar Google Calendar
                 </button>
-                <p className="text-xs text-base-content/50 mt-4">
+                <p className="text-xs text-subtle mt-4">
                   Requiere configuración de credenciales en el servidor.
                 </p>
               </div>
@@ -185,7 +185,7 @@ export function CalendarSettingsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold truncate">{integration.displayName}</h4>
-                    <p className="text-xs text-base-content/60 truncate font-mono">{integration.calendarId}</p>
+                    <p className="text-xs text-muted truncate font-mono">{integration.calendarId}</p>
                     <span className="badge badge-success badge-xs gap-1 text-white mt-1">
                       <Check className="w-2 h-2" /> Activo
                     </span>
@@ -215,7 +215,7 @@ export function CalendarSettingsPage() {
         {/* Manual Configuration (Advanced) - Always visible or only when needed? User kept it. */}
         <div className="collapse collapse-arrow bg-base-100 border border-base-300">
           <input type="checkbox" />
-          <div className="collapse-title font-medium text-sm text-base-content/70">
+          <div className="collapse-title font-medium text-sm text-body">
             Configuración manual (Avanzado)
           </div>
           <div className="collapse-content">
@@ -362,7 +362,7 @@ function CalendarSelection({ syncedIds, familyId }: { accessToken: string, synce
             );
           })}
           {calendars.length === 0 && !isLoading && (
-            <p className="text-xs text-base-content/50 text-center py-2">
+            <p className="text-xs text-subtle text-center py-2">
               No se encontraron calendarios. Sincroniza para actualizar.
             </p>
           )}

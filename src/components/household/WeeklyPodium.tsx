@@ -70,7 +70,7 @@ function PodiumAvatar({
       >
         {entry.points} pts
       </motion.span>
-      <span className="text-xs text-base-content/50">
+      <span className="text-xs text-subtle">
         {entry.activities} {entry.activities === 1 ? "act." : "acts."}
       </span>
     </motion.div>
@@ -80,7 +80,7 @@ function PodiumAvatar({
 export function WeeklyPodium({ leaderboard, weekStart }: WeeklyPodiumProps) {
   if (leaderboard.length === 0) {
     return (
-      <div className="text-center py-8 text-base-content/50">
+      <div className="text-center py-8 text-subtle">
         <p className="text-4xl mb-2">🏠</p>
         <p className="font-medium">Sin actividad esta semana</p>
         <p className="text-sm">Registra actividades para ver el ranking!</p>
@@ -96,7 +96,7 @@ export function WeeklyPodium({ leaderboard, weekStart }: WeeklyPodiumProps) {
   return (
     <div className="space-y-4">
       {/* Week label */}
-      <p className="text-center text-sm text-base-content/60">
+      <p className="text-center text-sm text-muted">
         Semana: {formatWeekRange(weekStart)}
       </p>
 
@@ -112,7 +112,7 @@ export function WeeklyPodium({ leaderboard, weekStart }: WeeklyPodiumProps) {
               transition={{ delay: 0.3, duration: 0.4 }}
               className="w-20 bg-base-200 rounded-t-lg mt-2 flex items-end justify-center pb-1"
             >
-              <span className="font-bold text-base-content/40">2</span>
+              <span className="font-bold text-faint">2</span>
             </motion.div>
           </div>
         )}
@@ -142,7 +142,7 @@ export function WeeklyPodium({ leaderboard, weekStart }: WeeklyPodiumProps) {
               transition={{ delay: 0.5, duration: 0.4 }}
               className="w-20 bg-base-200 rounded-t-lg mt-2 flex items-end justify-center pb-1"
             >
-              <span className="font-bold text-base-content/40">3</span>
+              <span className="font-bold text-faint">3</span>
             </motion.div>
           </div>
         )}
@@ -154,9 +154,9 @@ export function WeeklyPodium({ leaderboard, weekStart }: WeeklyPodiumProps) {
           {rest.map((entry) => (
             <div
               key={entry.userName}
-              className="flex items-center gap-3 p-3 rounded-xl bg-base-200/50"
+              className="flex items-center gap-3 p-3 surface-muted"
             >
-              <span className="font-bold text-base-content/40 w-6 text-center">
+              <span className="font-bold text-faint w-6 text-center">
                 {entry.rank}
               </span>
               {entry.userPhoto ? (

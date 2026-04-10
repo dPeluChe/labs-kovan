@@ -61,7 +61,7 @@ export function TripBookingsTab({ tripId }: { tripId: Id<"trips"> }) {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h3 className="font-bold text-sm truncate">{booking.provider}</h3>
-                                        <p className="text-xs text-base-content/60 capitalize">
+                                        <p className="text-xs text-muted capitalize">
                                             {booking.type} {booking.location ? `• ${booking.location}` : ""}
                                         </p>
                                         <div className="text-xs mt-1 font-mono opacity-80">

@@ -158,7 +158,7 @@ export function ContactsPage() {
                           )}
                         </div>
                         {contact.specialty && (
-                          <p className="text-xs text-base-content/60">{contact.specialty}</p>
+                          <p className="text-xs text-muted">{contact.specialty}</p>
                         )}
                         <div className="flex flex-wrap gap-2 mt-2">
                           {contact.phone && (
@@ -181,13 +181,13 @@ export function ContactsPage() {
                           )}
                         </div>
                         {contact.address && (
-                          <p className="text-xs text-base-content/50 mt-1 flex items-center gap-1">
+                          <p className="text-xs text-subtle mt-1 flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
                             {contact.address}
                           </p>
                         )}
                         {contact.notes && (
-                          <p className="text-xs text-base-content/60 mt-1 italic">
+                          <p className="text-xs text-muted mt-1 italic">
                             {contact.notes}
                           </p>
                         )}

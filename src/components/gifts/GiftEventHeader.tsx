@@ -38,12 +38,12 @@ export function GiftEventHeader({
                         {event.name}
                         {event.isCompleted && <span className="badge badge-success badge-sm">Finalizado</span>}
                     </h1>
-                    <div className="flex items-center gap-2 text-xs text-base-content/60">
+                    <div className="flex items-center gap-2 text-xs text-muted">
                         <span>{stats.total} regalos</span>
                         <span>•</span>
                         <span className="text-success">{stats.bought} listos</span>
                         <span>•</span>
-                        <span className="text-base-content/60">${stats.approxCost.toLocaleString()} aprox</span>
+                        <span className="text-muted">${stats.approxCost.toLocaleString()} aprox</span>
                     </div>
                 </div>
                 <div className="dropdown dropdown-end">
@@ -71,7 +71,7 @@ export function GiftEventHeader({
             {event.description && (
                 <div className="px-4 pb-2">
                     <div className="bg-base-200 border border-base-300 rounded-lg px-3 py-2">
-                        <p className="text-sm text-base-content/70 whitespace-pre-wrap">{event.description}</p>
+                        <p className="text-sm text-body whitespace-pre-wrap">{event.description}</p>
                     </div>
                 </div>
             )}
@@ -106,7 +106,7 @@ export function GiftEventHeader({
 
             {/* Archived Banner */}
             {event.isCompleted && (
-                <div className="bg-base-200 px-4 py-2 text-xs text-center text-base-content/60 border-b border-base-300">
+                <div className="bg-base-200 px-4 py-2 text-xs text-center text-muted border-b border-base-300">
                     🔒 Este evento está finalizado y es solo de lectura.
                 </div>
             )}

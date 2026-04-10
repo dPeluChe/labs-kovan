@@ -145,7 +145,7 @@ export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent
                                 required
                                 style={{ WebkitAppearance: 'none' }}
                             />
-                            <span className="text-base-content/40">→</span>
+                            <span className="text-faint">→</span>
                             <input
                                 type="time"
                                 className="input input-ghost input-sm w-full font-medium appearance-none min-h-[2.5rem]"
@@ -160,7 +160,7 @@ export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent
 
                 {/* Location */}
                 <div className="flex items-center gap-3 text-base-content/80">
-                    <MapPin className="w-5 h-5 text-base-content/40" />
+                    <MapPin className="w-5 h-5 text-faint" />
                     <input
                         type="text"
                         placeholder="Ubicación (opcional)"
@@ -172,7 +172,7 @@ export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent
 
                 {/* Description */}
                 <div className="flex items-start gap-3 text-base-content/80">
-                    <AlignLeft className="w-5 h-5 text-base-content/40 mt-2" />
+                    <AlignLeft className="w-5 h-5 text-faint mt-2" />
                     <textarea
                         placeholder="Notas o descripción..."
                         className="textarea textarea-ghost w-full resize-none"

@@ -57,7 +57,7 @@ export function FamilyPage() {
       case "admin":
         return <Shield className="w-4 h-4 text-blue-500" />;
       default:
-        return <User className="w-4 h-4 text-base-content/40" />;
+        return <User className="w-4 h-4 text-faint" />;
     }
   };
 
@@ -83,7 +83,7 @@ export function FamilyPage() {
           <h1 className="text-lg font-bold">
             {currentFamily.emoji} {currentFamily.name}
           </h1>
-          <p className="text-xs text-base-content/60">Gestionar miembros</p>
+          <p className="text-xs text-muted">Gestionar miembros</p>
         </div>
         {isAdmin && (
           <button
@@ -121,7 +121,7 @@ export function FamilyPage() {
                 >
                   <div className="card-body p-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-base-content/70 font-semibold">
+                      <div className="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-body font-semibold">
                         {member.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -129,7 +129,7 @@ export function FamilyPage() {
                           <span className="font-semibold truncate">{member.name}</span>
                           {getRoleIcon(member.role)}
                         </div>
-                        <p className="text-xs text-base-content/60 truncate">
+                        <p className="text-xs text-muted truncate">
                           {member.email}
                         </p>
                       </div>
@@ -188,7 +188,7 @@ export function FamilyPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{invite.email}</p>
-                        <p className="text-xs text-base-content/60">
+                        <p className="text-xs text-muted">
                           Invitado el {new Date(invite.createdAt).toLocaleDateString("es-MX")}
                         </p>
                       </div>
@@ -313,7 +313,7 @@ function InviteModal({
     <MobileModal isOpen={true} onClose={onClose} title="Invitar a la familia">
       {/* Share Links */}
       <div className="space-y-3 mb-6">
-        <p className="text-sm text-base-content/70">Comparte un link de invitación:</p>
+        <p className="text-sm text-body">Comparte un link de invitación:</p>
 
         {/* Invite to this family */}
         <div className="card bg-base-200 p-3">
@@ -323,7 +323,7 @@ function InviteModal({
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm">Unirse a "{familyName}"</p>
-              <p className="text-xs text-base-content/60 truncate">{inviteLink}</p>
+              <p className="text-xs text-muted truncate">{inviteLink}</p>
             </div>
             <div className="flex gap-1">
               <button
@@ -352,7 +352,7 @@ function InviteModal({
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm">Crear su propia familia</p>
-              <p className="text-xs text-base-content/60 truncate">{registerLink}</p>
+              <p className="text-xs text-muted truncate">{registerLink}</p>
             </div>
             <div className="flex gap-1">
               <button
@@ -374,7 +374,7 @@ function InviteModal({
         </div>
       </div>
 
-      <div className="divider text-xs text-base-content/50">O invita por email</div>
+      <div className="divider text-xs text-subtle">O invita por email</div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="form-control">
@@ -390,7 +390,7 @@ function InviteModal({
             disabled={isLoading}
           />
           <label className="label">
-            <span className="label-text-alt text-base-content/60">
+            <span className="label-text-alt text-muted">
               Si ya tiene cuenta, se agregará automáticamente.
             </span>
           </label>

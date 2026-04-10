@@ -43,7 +43,7 @@ export function UnassignedGiftItem({
             <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">{item.title}</p>
                 {item.priceEstimate && (
-                    <p className="text-xs text-base-content/60">${item.priceEstimate}</p>
+                    <p className="text-xs text-muted">${item.priceEstimate}</p>
                 )}
             </div>
 

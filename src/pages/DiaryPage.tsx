@@ -81,7 +81,7 @@ export function DiaryPage() {
                         }, {} as Record<string, typeof entries>)).map(([monthYear, monthEntries]) => (
                             <div key={monthYear} className="space-y-4">
                                 <div className="sticky top-0 z-20 bg-base-100/95 backdrop-blur-sm py-2 px-4 -mx-4 border-b border-base-200 shadow-sm">
-                                    <h2 className="text-sm font-bold uppercase tracking-wider text-base-content/60">
+                                    <h2 className="text-sm font-bold uppercase tracking-wider text-muted">
                                         {monthYear}
                                     </h2>
                                 </div>
@@ -113,11 +113,11 @@ export function DiaryPage() {
                                                                 {conversationalTitle}
                                                             </h3>
                                                             <div className="flex items-center gap-2 mt-1">
-                                                                <span className="text-xs text-base-content/50 font-medium capitalize">
+                                                                <span className="text-xs text-subtle font-medium capitalize">
                                                                     {format(entry.date, "p", { locale: es })}
                                                                 </span>
                                                                 {entry.visibility === "private" ? (
-                                                                    <div className="badge badge-xs badge-ghost gap-1 pl-0 pr-2 bg-transparent border-0 text-base-content/40">
+                                                                    <div className="badge badge-xs badge-ghost gap-1 pl-0 pr-2 bg-transparent border-0 text-faint">
                                                                         <Lock className="w-3 h-3" />
                                                                         Solo yo
                                                                     </div>

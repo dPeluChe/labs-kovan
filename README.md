@@ -151,6 +151,65 @@ Combinado con el lazy loading de páginas, esto produce un grafo de chunks
 - **Validación de autorización**: Toda mutation que toca un documento de familia
   debe verificar `familyId` antes de patchear/borrar
 
+## Design system (clases y componentes unificados)
+
+Para mantener consistencia visual, **siempre usar** los tokens y componentes
+centralizados en vez de clases hardcoded.
+
+### Tokens de texto (jerarquía semántica)
+
+Definidos en `src/index.css`. Reemplazan `text-base-content/XX`:
+
+| Clase          | Uso                                               |
+| -------------- | ------------------------------------------------- |
+| `text-strong`  | Títulos y contenido primario                      |
+| `text-body`    | Body copy, encabezados secundarios                |
+| `text-muted`   | Subtítulos, descripciones                         |
+| `text-subtle`  | Terciario, timestamps, hints                      |
+| `text-faint`   | Íconos, dividers, helpers deshabilitados          |
+
+### Tokens de superficie
+
+| Clase           | Uso                                              |
+| --------------- | ------------------------------------------------ |
+| `surface-card`  | Card estándar (bg + border + rounded)            |
+| `surface-muted` | Inset suave (bg-base-200/50 + rounded)           |
+| `surface-row`   | Fila de lista (surface-card + padding)           |
+| `sticky-header` | Header sticky con blur + safe-area               |
+
+### Componentes unificados
+
+| Componente        | Uso                                                  |
+| ----------------- | ---------------------------------------------------- |
+| `PageHeader`      | Título de página estático sin tabs                   |
+| `StickyHeader`    | Header con título + acción + tabs (sticky con blur)  |
+| `SectionTitle`    | Label de sección (h3) con icono opcional             |
+| `CircleAddButton` | Botón circular "+" para agregar desde el header      |
+| `EmptyState`      | Estados vacíos (prohibido hacer divs inline)         |
+| `MobileModal`     | Modales (bottom-sheet mobile / centrado desktop)     |
+| `AnimatedTabs`    | Tabs animados con indicador deslizante               |
+| `ConfirmModal`    | Via `useConfirmModal` hook                           |
+
+### Ejemplo: página con tabs
+
+```tsx
+<StickyHeader
+  title="Tareas"
+  action={<CircleAddButton onClick={handleCreate} label="Nueva tarea" />}
+  tabs={<AnimatedTabs tabs={tabs} activeTab={activeTab} onTabChange={...} />}
+/>
+```
+
+### Reglas
+
+1. **No usar** `text-base-content/40`, `/50`, `/60`, `/70` directamente. Usar
+   los aliases semánticos. Los valores `/5`, `/10`, `/20`, `/80`, `/90` sí
+   pueden usarse para casos especiales (hover, dividers, emphasis).
+2. **No construir** sticky headers inline. Usar `StickyHeader`.
+3. **No usar** `<div className="text-center py-8...">` para empty states. Usar
+   `EmptyState` con un `LucideIcon`.
+4. **No hardcodear** `btn btn-primary btn-sm btn-circle`. Usar `CircleAddButton`.
+
 ## Feature destacada: Gamificación del hogar
 
 En `/household`, la familia puede:

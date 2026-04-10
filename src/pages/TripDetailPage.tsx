@@ -107,7 +107,7 @@ export function TripDetailPage() {
                     </button>
                     <div className="flex-1 min-w-0">
                         <h1 className="font-bold text-lg truncate leading-tight">{trip.name}</h1>
-                        <p className="text-xs text-base-content/60 truncate flex items-center gap-1">
+                        <p className="text-xs text-muted truncate flex items-center gap-1">
                             {trip.destination && <span>{trip.destination} • </span>}
                             {trip.status}
                         </p>
@@ -145,7 +145,7 @@ export function TripDetailPage() {
                                         <h3 className="font-bold text-lg mb-3 capitalize text-primary">{displayDate}</h3>
                                         <div className="space-y-3">
                                             {dayItems.length === 0 ? (
-                                                <div className="text-sm text-base-content/40 italic py-2">
+                                                <div className="text-sm text-faint italic py-2">
                                                     Nada planeado para este día
                                                 </div>
                                             ) : (
@@ -155,11 +155,11 @@ export function TripDetailPage() {
                                                         return (
                                                             <div key={item._id} className="card bg-base-200/50 border border-base-200 p-3 flex flex-row gap-3 items-center">
                                                                 <div className="p-2 bg-base-100 rounded-lg shrink-0">
-                                                                    <Icon className="w-4 h-4 text-base-content/70" />
+                                                                    <Icon className="w-4 h-4 text-body" />
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="font-bold text-sm truncate">{item.provider}</div>
-                                                                    <div className="text-xs text-base-content/60 flex gap-2">
+                                                                    <div className="text-xs text-muted flex gap-2">
                                                                         <span className="capitalize font-medium">{item.type}</span>
                                                                         <span>{new Date(item.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                                     </div>
@@ -196,7 +196,7 @@ export function TripDetailPage() {
                             <Calendar className="w-12 h-12 mx-auto text-base-content/20" />
                             <div>
                                 <h3 className="font-bold">Sin fechas definidas</h3>
-                                <p className="text-sm text-base-content/60">Configura las fechas de tu viaje para poder armar un itinerario detallado.</p>
+                                <p className="text-sm text-muted">Configura las fechas de tu viaje para poder armar un itinerario detallado.</p>
                             </div>
                             <button onClick={() => setIsEditOpen(true)} className="btn btn-primary btn-sm">Configurar fechas</button>
                         </div>
@@ -325,7 +325,7 @@ function PlanItem({ plan, onDelete, onCheckIn, onSelect }: {
                 )}
 
                 <div className="flex-1 min-w-0">
-                    <div className={`font-medium leading-tight ${plan.isCompleted ? 'line-through text-base-content/50' : 'text-base-content'}`}>
+                    <div className={`font-medium leading-tight ${plan.isCompleted ? 'line-through text-subtle' : 'text-base-content'}`}>
                         {plan.activity}
                     </div>
 
@@ -336,7 +336,7 @@ function PlanItem({ plan, onDelete, onCheckIn, onSelect }: {
                     )}
 
                     {plan.notes && (
-                        <p className="text-xs text-base-content/60 mt-1 line-clamp-2">
+                        <p className="text-xs text-muted mt-1 line-clamp-2">
                             {plan.notes}
                         </p>
                     )}

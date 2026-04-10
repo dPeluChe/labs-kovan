@@ -71,9 +71,9 @@ export function ItemCard({
                         </h4>
 
                         {/* Subtitle logic */}
-                        <div className="text-xs text-base-content/60 mt-1 truncate">
+                        <div className="text-xs text-muted mt-1 truncate">
                             {showVolume && item.volumeOrVersion
-                                ? <span className="text-base-content/40">{item.title}</span>
+                                ? <span className="text-faint">{item.title}</span>
                                 : (item.creator || <span className="opacity-50 italic">Sin autor</span>)
                             }
                         </div>
@@ -101,7 +101,7 @@ export function ItemCard({
                 </div>
 
                 {/* Footer Info */}
-                <div className="mt-auto pt-2 flex items-center justify-between text-[10px] text-base-content/40 uppercase font-medium tracking-wide">
+                <div className="mt-auto pt-2 flex items-center justify-between text-[10px] text-faint uppercase font-medium tracking-wide">
                     <span>{TYPE_CONFIG[item.type]?.label}</span>
                     {item.series && <span className="truncate max-w-[60%] text-right">{item.series}</span>}
                 </div>

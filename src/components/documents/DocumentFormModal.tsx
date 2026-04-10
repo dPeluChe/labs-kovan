@@ -190,7 +190,7 @@ export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormMod
                 {/* Dates & Numbers */}
                 <div className="space-y-3">
                     <div className="form-control w-full">
-                        <label className="label text-xs font-medium text-base-content/60">Número / Folio</label>
+                        <label className="label text-xs font-medium text-muted">Número / Folio</label>
                         <input
                             type="text"
                             className="input input-bordered w-full rounded-xl"
@@ -218,7 +218,7 @@ export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormMod
                     </div>
 
                     <div className="form-control w-full">
-                        <label className="label text-xs font-medium text-base-content/60">Notas</label>
+                        <label className="label text-xs font-medium text-muted">Notas</label>
                         <textarea
                             className="textarea textarea-bordered w-full rounded-xl"
                             placeholder="Detalles adicionales, ubicación física, contraseñas..."

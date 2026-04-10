@@ -94,7 +94,7 @@ export function LoginPage() {
               <h1 className="text-2xl font-bold mb-2">
                 {inviteFamily ? "¡Te invitaron!" : "Bienvenido a Casa"}
               </h1>
-              <p className="text-base-content/60 text-sm">
+              <p className="text-muted text-sm">
                 {inviteFamily
                   ? `Únete a la familia "${inviteFamily.name}"`
                   : "Tu hogar digital te espera"
@@ -167,7 +167,7 @@ export function LoginPage() {
           </div>
         </div>
 
-        <p className="mt-8 text-center text-xs text-base-content/40">
+        <p className="mt-8 text-center text-xs text-faint">
           Labs Kovan v1.0 BETA
         </p>
       </div>

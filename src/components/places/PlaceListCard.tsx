@@ -41,7 +41,7 @@ export function PlaceListCard({ list, placeCount = 0, isSelected, onClick, onEdi
 
             <div>
                 <h3 className="font-bold text-lg mb-1 line-clamp-1">{list.name}</h3>
-                <p className={`text-xs font-medium ${isSelected ? 'text-primary-content/70' : 'text-base-content/50'}`}>
+                <p className={`text-xs font-medium ${isSelected ? 'text-primary-content/70' : 'text-subtle'}`}>
                     {placeCount} lugares
                 </p>
             </div>

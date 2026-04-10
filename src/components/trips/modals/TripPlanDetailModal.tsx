@@ -55,7 +55,7 @@ export function TripPlanDetailModal({ planId, onClose, onEdit, onDelete, onToggl
                             )}
                             <div>
                                 <div className="font-bold text-sm">{place.name}</div>
-                                <div className="text-xs text-base-content/60 line-clamp-1">{place.address || place.category}</div>
+                                <div className="text-xs text-muted line-clamp-1">{place.address || place.category}</div>
                                 {place.mapsUrl && (
                                     <a href={place.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary font-medium mt-0.5 block hover:underline">
                                         Ver en mapa
@@ -67,7 +67,7 @@ export function TripPlanDetailModal({ planId, onClose, onEdit, onDelete, onToggl
 
                     {plan.notes && (
                         <div className="p-3 bg-base-100 border border-base-200 rounded-xl text-sm text-base-content/80 whitespace-pre-wrap">
-                            <div className="flex items-center gap-2 mb-1 text-xs font-bold text-base-content/40 uppercase tracking-wider">
+                            <div className="flex items-center gap-2 mb-1 text-xs font-bold text-faint uppercase tracking-wider">
                                 <FileText className="w-3 h-3" /> Notas
                             </div>
                             {plan.notes}

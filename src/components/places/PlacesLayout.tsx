@@ -134,7 +134,7 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
                     <div className="snap-start shrink-0">
                         <button
                             onClick={() => setShowCreateList(true)}
-                            className="h-12 w-12 rounded-xl flex items-center justify-center border border-dashed border-base-content/30 text-base-content/50 hover:bg-base-200"
+                            className="h-12 w-12 rounded-xl flex items-center justify-center border border-dashed border-base-content/30 text-subtle hover:bg-base-200"
                         >
                             <Plus className="w-5 h-5" />
                         </button>

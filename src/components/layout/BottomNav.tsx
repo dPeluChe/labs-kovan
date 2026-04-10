@@ -80,7 +80,7 @@ export function BottomNav() {
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-w-[64px] rounded-xl transition-all duration-200 ${isActive
                   ? "text-primary scale-105"
-                  : "text-base-content/60 hover:text-base-content hover:bg-base-content/5 active:scale-95"
+                  : "text-muted hover:text-base-content hover:bg-base-content/5 active:scale-95"
                 }`
               }
             >
@@ -96,7 +96,7 @@ export function BottomNav() {
           className={({ isActive }) =>
             `flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-w-[64px] rounded-xl transition-all duration-200 ${isActive
               ? "text-primary scale-105"
-              : "text-base-content/60 hover:text-base-content hover:bg-base-content/5 active:scale-95"
+              : "text-muted hover:text-base-content hover:bg-base-content/5 active:scale-95"
             }`
           }
         >

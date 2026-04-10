@@ -90,7 +90,7 @@ export function RecipientCard({
                 <div className="flex items-center gap-2">
                     {/* Avatar with status indicator */}
                     <div className="relative">
-                        <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center text-base-content/70 font-semibold text-sm">
+                        <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center text-body font-semibold text-sm">
                             {recipient.name.charAt(0).toUpperCase()}
                         </div>
                         <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-base-100 ${statusColor}`} />
@@ -104,7 +104,7 @@ export function RecipientCard({
                                 ? "bg-success/20 text-success"
                                 : hasIdeas
                                     ? "bg-warning/20 text-warning"
-                                    : "bg-base-200 text-base-content/50"
+                                    : "bg-base-200 text-subtle"
                                 }`}>
                                 {boughtCount}/{total}
                             </span>
@@ -137,7 +137,7 @@ export function RecipientCard({
 
                 {/* Notes */}
                 {recipient.notes && !isEditing && (
-                    <p className="text-xs text-base-content/60 mt-1 italic px-1">📝 {recipient.notes}</p>
+                    <p className="text-xs text-muted mt-1 italic px-1">📝 {recipient.notes}</p>
                 )}
 
                 {/* Inline Edit Form */}
@@ -169,7 +169,7 @@ export function RecipientCard({
                     !isEventArchived && (
                         <button
                             onClick={onAddItem}
-                            className="btn btn-ghost btn-xs text-base-content/40 gap-1 mt-1 justify-start w-max"
+                            className="btn btn-ghost btn-xs text-faint gap-1 mt-1 justify-start w-max"
                         >
                             <Gift className="w-3 h-3" /> Agregar primer regalo
                         </button>

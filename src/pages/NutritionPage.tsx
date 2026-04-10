@@ -242,7 +242,7 @@ export function NutritionPage() {
                     )}
                 </>
             ) : (
-                <div className="p-8 text-center text-base-content/50">
+                <div className="p-8 text-center text-subtle">
                     <Utensils className="w-12 h-12 mx-auto mb-4 opacity-20" />
                     <p>Selecciona un miembro de la familia</p>
                 </div>

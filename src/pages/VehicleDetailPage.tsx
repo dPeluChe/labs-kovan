@@ -121,7 +121,7 @@ export function VehicleDetailPage() {
           </button>
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-bold truncate">{vehicle.name}</h1>
-            <p className="text-sm text-base-content/60">
+            <p className="text-sm text-muted">
               {[vehicle.brand, vehicle.model, vehicle.year].filter(Boolean).join(" ")}
               {vehicle.plate && ` • ${vehicle.plate}`}
             </p>
@@ -149,13 +149,13 @@ export function VehicleDetailPage() {
               <div className="flex-1">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <div className="text-xs text-base-content/60">Total gastado</div>
+                    <div className="text-xs text-muted">Total gastado</div>
                     <div className="text-xl font-bold text-green-600">
                       ${totalSpent.toLocaleString()}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-base-content/60">Eventos</div>
+                    <div className="text-xs text-muted">Eventos</div>
                     <div className="text-xl font-bold">{events.length}</div>
                   </div>
                 </div>
@@ -205,7 +205,7 @@ export function VehicleDetailPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold">{event.title}</div>
-                        <div className="flex items-center gap-2 text-xs text-base-content/60">
+                        <div className="flex items-center gap-2 text-xs text-muted">
                           <span className="badge badge-sm badge-ghost">{config.label}</span>
                           <span>{new Date(event.date).toLocaleDateString("es-MX")}</span>
                           {event.odometer && (
@@ -228,7 +228,7 @@ export function VehicleDetailPage() {
                       </button>
                     </div>
                     {event.notes && (
-                      <p className="text-xs text-base-content/60 mt-1 pl-12">{event.notes}</p>
+                      <p className="text-xs text-muted mt-1 pl-12">{event.notes}</p>
                     )}
                   </div>
                 </div>
@@ -324,7 +324,7 @@ function AddEventModal({
       onClose={onClose}
       title="Nuevo evento"
     >
-      <p className="text-sm text-base-content/60 mb-4">{vehicleName}</p>
+      <p className="text-sm text-muted mb-4">{vehicleName}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Event Type */}

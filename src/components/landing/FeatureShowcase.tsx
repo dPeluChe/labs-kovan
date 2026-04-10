@@ -20,7 +20,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, descriptio
                 <Icon className={`w-6 h-6 ${textColor}`} />
             </div>
             <h3 className="text-xl font-bold mb-2">{title}</h3>
-            <p className="text-base-content/60 leading-relaxed">{description}</p>
+            <p className="text-muted leading-relaxed">{description}</p>
         </div>
     );
 };
@@ -98,7 +98,7 @@ export const FeatureShowcase: React.FC = () => {
             <div className="container mx-auto">
                 <div className="text-center max-w-3xl mx-auto mb-16">
                     <h2 className="text-4xl font-bold mb-4">Todo lo que Necesitas</h2>
-                    <p className="text-xl text-base-content/60">
+                    <p className="text-xl text-muted">
                         Una suite completa de herramientas diseñadas para simplificar la gestión de la vida moderna.
                     </p>
                 </div>

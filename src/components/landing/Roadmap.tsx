@@ -52,7 +52,7 @@ export const Roadmap: React.FC = () => {
                         <span>Roadmap 2026</span>
                     </div>
                     <h2 className="text-4xl font-bold mb-4">Hacia Dónde Vamos</h2>
-                    <p className="text-xl text-base-content/60">
+                    <p className="text-xl text-muted">
                         Apenas estamos comenzando. Esto es lo que estamos construyendo para tu familia.
                     </p>
                 </div>
@@ -72,9 +72,9 @@ export const Roadmap: React.FC = () => {
                                         )}
                                     </div>
                                     <h3 className="card-title text-lg mb-2">{item.title}</h3>
-                                    <p className="text-base-content/70 text-sm mb-4">{item.description}</p>
+                                    <p className="text-body text-sm mb-4">{item.description}</p>
                                     <div className="mt-auto pt-4 border-t border-base-content/5">
-                                        <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider">{item.quarter}</span>
+                                        <span className="text-xs font-bold text-faint uppercase tracking-wider">{item.quarter}</span>
                                     </div>
                                 </div>
                             </div>

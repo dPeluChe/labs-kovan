@@ -7,11 +7,14 @@ import { useConfirmModal } from "../hooks/useConfirmModal";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
+import { StickyHeader } from "../components/ui/StickyHeader";
+import { SectionTitle } from "../components/ui/SectionTitle";
+import { CircleAddButton } from "../components/ui/CircleAddButton";
 import { LogActivityModal } from "../components/household/LogActivityModal";
 import { CreateActivityModal } from "../components/household/CreateActivityModal";
 import { WeeklyPodium } from "../components/household/WeeklyPodium";
 import { ActivityFeed } from "../components/household/ActivityFeed";
-import { Plus, Trophy, ClipboardList, Sparkles, Settings2 } from "lucide-react";
+import { Trophy, ClipboardList, Sparkles, Settings2 } from "lucide-react";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 
 const CATEGORY_LABELS: Record<string, { label: string; emoji: string }> = {
@@ -141,51 +144,44 @@ export function HouseholdPage() {
     {} as Record<string, Doc<"householdActivities">[]>
   );
 
+  const weeklySubtitle =
+    leaderboard && leaderboard.totalPoints > 0
+      ? `${leaderboard.totalPoints} pts esta semana`
+      : undefined;
+
   return (
     <div className="pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-base-100/80 backdrop-blur-md pt-safe-top">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Hogar</h1>
-            {leaderboard && leaderboard.totalPoints > 0 && (
-              <p className="text-xs text-base-content/50">
-                {leaderboard.totalPoints} pts esta semana
-              </p>
-            )}
-          </div>
-          <div className="flex gap-2">
-            {activeTab === "activities" && (
-              <>
-                <button
-                  onClick={() => setShowManage(!showManage)}
-                  className={`btn btn-sm btn-circle ${showManage ? "btn-secondary" : "btn-ghost"}`}
-                >
-                  <Settings2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => {
-                    setEditingActivity(undefined);
-                    setShowCreateModal(true);
-                  }}
-                  className="btn btn-primary btn-sm btn-circle"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="px-4 pb-2">
+      <StickyHeader
+        title="Hogar"
+        subtitle={weeklySubtitle}
+        action={
+          activeTab === "activities" && (
+            <>
+              <CircleAddButton
+                onClick={() => setShowManage(!showManage)}
+                icon={<Settings2 className="w-4 h-4" />}
+                variant={showManage ? "secondary" : "ghost"}
+                label="Administrar actividades"
+              />
+              <CircleAddButton
+                onClick={() => {
+                  setEditingActivity(undefined);
+                  setShowCreateModal(true);
+                }}
+                label="Nueva actividad"
+              />
+            </>
+          )
+        }
+        tabs={
           <AnimatedTabs
             tabs={tabs}
             activeTab={activeTab}
             onTabChange={(id) => setActiveTab(id)}
             layoutId="householdTab"
           />
-        </div>
-      </div>
+        }
+      />
 
       <div className="px-4 py-4">
         {/* Activities Tab */}
@@ -194,7 +190,7 @@ export function HouseholdPage() {
             {showManage ? (
               /* Manage mode: show all activities including inactive */
               <div className="space-y-2">
-                <p className="text-sm text-base-content/60 mb-3">
+                <p className="text-sm text-muted mb-3">
                   Administra las actividades. Desactiva o elimina las que no necesites.
                 </p>
                 {(allActivities ?? activities ?? []).map((activity) => (
@@ -207,7 +203,7 @@ export function HouseholdPage() {
                     <span className="text-xl">{activity.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm">{activity.name}</p>
-                      <p className="text-xs text-base-content/50">{activity.points} pts</p>
+                      <p className="text-xs text-subtle">{activity.points} pts</p>
                     </div>
                     <button
                       onClick={() => handleToggleActive(activity)}
@@ -247,16 +243,17 @@ export function HouseholdPage() {
                 ) : (
                   Object.entries(grouped).map(([category, acts]) => (
                     <div key={category}>
-                      <h3 className="text-sm font-semibold text-base-content/60 mb-2">
-                        {CATEGORY_LABELS[category]?.emoji}{" "}
+                      <SectionTitle
+                        icon={<span>{CATEGORY_LABELS[category]?.emoji}</span>}
+                      >
                         {CATEGORY_LABELS[category]?.label ?? category}
-                      </h3>
+                      </SectionTitle>
                       <div className="grid grid-cols-3 gap-2">
                         {acts.map((activity) => (
                           <button
                             key={activity._id}
                             onClick={() => handleActivityClick(activity)}
-                            className="btn btn-ghost h-auto py-3 flex flex-col items-center gap-1 border border-base-300 rounded-xl hover:border-primary/30 hover:bg-primary/5 active:scale-95 transition-all"
+                            className="btn btn-ghost h-auto py-3 flex flex-col items-center gap-1 surface-card hover:border-primary/30 hover:bg-primary/5 active:scale-95 transition-all"
                           >
                             <span className="text-2xl">{activity.emoji}</span>
                             <span className="text-xs font-medium leading-tight text-center">
@@ -291,20 +288,20 @@ export function HouseholdPage() {
 
             {/* Weekly summary */}
             {leaderboard.totalActivities > 0 && (
-              <div className="card bg-base-200/50 p-4">
-                <h3 className="font-semibold text-sm mb-2">Resumen de la semana</h3>
+              <div className="surface-muted p-4">
+                <SectionTitle>Resumen de la semana</SectionTitle>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-primary">
                       {leaderboard.totalActivities}
                     </p>
-                    <p className="text-xs text-base-content/60">Actividades</p>
+                    <p className="text-xs text-muted">Actividades</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-secondary">
                       {leaderboard.totalPoints}
                     </p>
-                    <p className="text-xs text-base-content/60">Puntos totales</p>
+                    <p className="text-xs text-muted">Puntos totales</p>
                   </div>
                 </div>
               </div>

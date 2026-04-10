@@ -26,7 +26,7 @@ export function AnimatedTabs<T extends string = string>({ tabs, activeTab, onTab
                     <button
                         key={tab.id}
                         onClick={() => onTabChange(tab.id)}
-                        className={`relative h-10 px-4 rounded-xl transition-all z-10 flex items-center justify-center gap-2 ${isActive ? 'text-primary-content flex-grow' : 'text-base-content/60 hover:text-base-content flex-none aspect-square'}`}
+                        className={`relative h-10 px-4 rounded-xl transition-all z-10 flex items-center justify-center gap-2 ${isActive ? 'text-primary-content flex-grow' : 'text-muted hover:text-base-content flex-none aspect-square'}`}
                     >
                         {isActive && (
                             <motion.div

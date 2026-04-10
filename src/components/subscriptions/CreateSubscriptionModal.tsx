@@ -99,7 +99,7 @@ export function CreateSubscriptionModal({ isOpen, onClose }: CreateSubscriptionM
 
                 {/* Contract / Reference */}
                 <div className="form-control w-full">
-                    <label className="label py-0 pb-1 text-xs font-medium text-base-content/60">No. Contrato / Referencia (Opcional)</label>
+                    <label className="label py-0 pb-1 text-xs font-medium text-muted">No. Contrato / Referencia (Opcional)</label>
                     <div className="relative">
                         <input
                             type="text"
@@ -108,13 +108,13 @@ export function CreateSubscriptionModal({ isOpen, onClose }: CreateSubscriptionM
                             onChange={(e) => setReferenceNumber(e.target.value)}
                             placeholder="Ej. 1234567890"
                         />
-                        <Hash className="absolute left-2.5 top-3.5 w-4 h-4 text-base-content/40" />
+                        <Hash className="absolute left-2.5 top-3.5 w-4 h-4 text-faint" />
                     </div>
                 </div>
 
                 {/* Notes */}
                 <div className="form-control w-full">
-                    <label className="label py-0 pb-1 text-xs font-medium text-base-content/60">Notas</label>
+                    <label className="label py-0 pb-1 text-xs font-medium text-muted">Notas</label>
                     <textarea
                         className="textarea textarea-bordered w-full rounded-xl"
                         placeholder="Contraseñas, detalles adicionales..."
@@ -125,8 +125,8 @@ export function CreateSubscriptionModal({ isOpen, onClose }: CreateSubscriptionM
                 </div>
 
                 <div className="bg-base-200 p-3 rounded-xl flex gap-3 items-start">
-                    <Info className="w-5 h-5 text-base-content/40 shrink-0 mt-0.5" />
-                    <p className="text-xs text-base-content/60">
+                    <Info className="w-5 h-5 text-faint shrink-0 mt-0.5" />
+                    <p className="text-xs text-muted">
                         Podrás agregar más detalles como <strong>costo</strong>, <strong>día de pago</strong> y <strong>código de barras</strong> editando el servicio después de crearlo.
                     </p>
                 </div>

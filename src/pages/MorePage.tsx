@@ -220,9 +220,9 @@ export function MorePage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm">{label}</h3>
-                    <p className="text-xs text-base-content/60">{description}</p>
+                    <p className="text-xs text-muted">{description}</p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-base-content/40 transition-transform group-hover:translate-x-1" />
+                  <ChevronRight className="w-5 h-5 text-faint transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
             ) : (
@@ -235,7 +235,7 @@ export function MorePage() {
                   <span className="font-semibold text-sm leading-tight truncate w-full">
                     {label}
                   </span>
-                  <p className="text-[10px] leading-tight text-base-content/60 line-clamp-2 mt-1 w-full mx-auto max-w-[90%]">
+                  <p className="text-[10px] leading-tight text-muted line-clamp-2 mt-1 w-full mx-auto max-w-[90%]">
                     {description}
                   </p>
                 </div>

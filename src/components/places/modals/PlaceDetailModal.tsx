@@ -211,7 +211,7 @@ export function PlaceDetailModal({ place, onClose, onDelete }: PlaceDetailModalP
                     ) : place.notes ? (
                         <p className="text-base-content/80 whitespace-pre-wrap">{place.notes}</p>
                     ) : (
-                        <p className="text-base-content/40 italic">Sin notas</p>
+                        <p className="text-faint italic">Sin notas</p>
                     )}
                 </div>
             </div>

@@ -127,7 +127,7 @@ export function TaskFormModal({ isOpen, onClose, defaultType = "general", taskTo
                                     key={t.id}
                                     type="button"
                                     onClick={() => setType(t.id as "general" | "shopping" | "chore")}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${isSelected ? "bg-white shadow-sm text-primary" : "text-base-content/60 hover:text-base-content"
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${isSelected ? "bg-white shadow-sm text-primary" : "text-muted hover:text-base-content"
                                         }`}
                                 >
                                     <Icon className="w-4 h-4" />
@@ -156,7 +156,7 @@ export function TaskFormModal({ isOpen, onClose, defaultType = "general", taskTo
                         </div>
 
                         <div className="flex-1">
-                            <label className="label text-xs font-medium text-base-content/60">Prioridad</label>
+                            <label className="label text-xs font-medium text-muted">Prioridad</label>
                             <div className="flex gap-1 h-12 items-center bg-base-100 border border-base-200 rounded-lg px-2">
                                 {(["low", "medium", "high"] as const).map((p) => (
                                     <button

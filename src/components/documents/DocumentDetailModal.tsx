@@ -40,32 +40,32 @@ export function DocumentDetailModal({ document, onClose, onEdit, personName }: D
                     </div>
                     <div className="text-center">
                         <h2 className="text-lg font-bold">{document.title}</h2>
-                        <p className="text-sm text-base-content/60">{personName || "Sin asignar"}</p>
+                        <p className="text-sm text-muted">{personName || "Sin asignar"}</p>
                     </div>
                 </div>
 
                 {/* Properties Grid */}
                 <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 bg-base-100 border border-base-200 rounded-xl space-y-1">
-                        <span className="text-xs text-base-content/60 block">Número / Folio</span>
+                        <span className="text-xs text-muted block">Número / Folio</span>
                         <span className="font-mono font-medium text-sm break-all">
                             {document.documentNumber || "—"}
                         </span>
                     </div>
                     <div className="p-3 bg-base-100 border border-base-200 rounded-xl space-y-1">
-                        <span className="text-xs text-base-content/60 block">Vencimiento</span>
+                        <span className="text-xs text-muted block">Vencimiento</span>
                         <span className={`font-medium text-sm ${document.expiryDate && document.expiryDate < new Date().getTime() ? "text-red-500" : ""}`}>
                             {formatDate(document.expiryDate)}
                         </span>
                     </div>
                     <div className="p-3 bg-base-100 border border-base-200 rounded-xl space-y-1">
-                        <span className="text-xs text-base-content/60 block">Expedición</span>
+                        <span className="text-xs text-muted block">Expedición</span>
                         <span className="font-medium text-sm">
                             {formatDate(document.issueDate)}
                         </span>
                     </div>
                     <div className="p-3 bg-base-100 border border-base-200 rounded-xl space-y-1">
-                        <span className="text-xs text-base-content/60 block">Tipo</span>
+                        <span className="text-xs text-muted block">Tipo</span>
                         <span className="font-medium text-sm capitalize">
                             {document.type}
                         </span>
@@ -75,7 +75,7 @@ export function DocumentDetailModal({ document, onClose, onEdit, personName }: D
                 {/* Notes */}
                 {document.notes && (
                     <div className="bg-base-100 border border-base-200 rounded-xl p-4">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-base-content/40 mb-2">Notas</h3>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-faint mb-2">Notas</h3>
                         <p className="text-sm whitespace-pre-wrap">{document.notes}</p>
                     </div>
                 )}

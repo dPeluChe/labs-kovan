@@ -29,7 +29,7 @@ export function PageLoader() {
 
       <div className="flex flex-col items-center gap-1">
         <h3 className="font-semibold text-primary/80 tracking-widest uppercase text-xs">Kovan</h3>
-        <p className="text-sm text-base-content/60 animate-pulse">
+        <p className="text-sm text-muted animate-pulse">
           Actualizando tu colmena...
         </p>
       </div>

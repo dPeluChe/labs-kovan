@@ -75,7 +75,7 @@ export function PlaceCard({ place, onClick, onCheckIn }: PlaceCardProps) {
                 {/* Main Info */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
-                        <h3 className={`font-bold text-base leading-tight truncate ${place.visited ? 'text-base-content/60' : 'text-base-content'}`}>
+                        <h3 className={`font-bold text-base leading-tight truncate ${place.visited ? 'text-muted' : 'text-base-content'}`}>
                             {place.name}
                         </h3>
                         {place.visited && (
@@ -88,10 +88,10 @@ export function PlaceCard({ place, onClick, onCheckIn }: PlaceCardProps) {
                     {place.highlight ? (
                         <p className="text-xs text-primary/80 font-medium truncate mb-1">{place.highlight}</p>
                     ) : (
-                        <p className="text-xs text-base-content/50 capitalize mb-1">{place.category}</p>
+                        <p className="text-xs text-subtle capitalize mb-1">{place.category}</p>
                     )}
 
-                    <div className="flex items-center gap-3 text-xs text-base-content/60">
+                    <div className="flex items-center gap-3 text-xs text-muted">
                         {place.rating ? (
                             <span className="flex items-center text-amber-500 font-bold">
                                 <Star className="w-3 h-3 fill-current mr-0.5" /> {place.rating}
@@ -118,7 +118,7 @@ export function PlaceCard({ place, onClick, onCheckIn }: PlaceCardProps) {
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
-                            className="btn btn-circle btn-ghost btn-xs text-base-content/40 hover:text-primary hover:bg-primary/10"
+                            className="btn btn-circle btn-ghost btn-xs text-faint hover:text-primary hover:bg-primary/10"
                         >
                             <Map className="w-4 h-4" />
                         </a>
@@ -129,7 +129,7 @@ export function PlaceCard({ place, onClick, onCheckIn }: PlaceCardProps) {
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
-                            className="btn btn-circle btn-ghost btn-xs text-base-content/40 hover:text-pink-500 hover:bg-pink-500/10"
+                            className="btn btn-circle btn-ghost btn-xs text-faint hover:text-pink-500 hover:bg-pink-500/10"
                         >
                             <ExternalLink className="w-4 h-4" />
                         </a>

@@ -40,7 +40,7 @@ export function StudyDetailModal({
         >
             {/* Header info */}
             <div className="mb-4">
-                <div className="text-sm text-base-content/60 mb-1">
+                <div className="text-sm text-muted mb-1">
                     {new Date(study.date).toLocaleDateString("es-MX", {
                         weekday: "long",
                         year: "numeric",
@@ -49,7 +49,7 @@ export function StudyDetailModal({
                     })}
                 </div>
                 {study.laboratory && (
-                    <p className="text-sm text-base-content/60">{study.laboratory}</p>
+                    <p className="text-sm text-muted">{study.laboratory}</p>
                 )}
             </div>
 
@@ -81,7 +81,7 @@ export function StudyDetailModal({
                                     <tr key={idx}>
                                         <td>{result.parameter}</td>
                                         <td className="text-right font-medium">{result.value}</td>
-                                        <td className="text-right text-base-content/60">{result.unit || "-"}</td>
+                                        <td className="text-right text-muted">{result.unit || "-"}</td>
                                         <td className="text-center">
                                             {result.status === "high" && (
                                                 <span className="badge badge-error badge-xs">Alto ↑</span>

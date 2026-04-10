@@ -134,10 +134,10 @@ export function HealthProfilePage() {
           <div className="flex items-end gap-2">
             <h1 className="text-lg font-bold truncate leading-none">{profile.name}</h1>
             {profile.nickname && (
-              <span className="text-xs text-base-content/60 italic leading-none mb-0.5">"{profile.nickname}"</span>
+              <span className="text-xs text-muted italic leading-none mb-0.5">"{profile.nickname}"</span>
             )}
           </div>
-          <div className="flex items-center text-sm text-base-content/60 gap-2">
+          <div className="flex items-center text-sm text-muted gap-2">
             <span>{profile.relation}</span>
             {profile.birthDate && (
               <>

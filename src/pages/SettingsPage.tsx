@@ -194,12 +194,12 @@ export function SettingsPage() {
         <div className="card bg-base-100 shadow-sm border border-base-300">
           <div className="card-body p-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-base-200 flex items-center justify-center text-base-content/70 font-semibold text-xl">
+              <div className="w-12 h-12 rounded-full bg-base-200 flex items-center justify-center text-body font-semibold text-xl">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold">{user.name}</h3>
-                <p className="text-sm text-base-content/60">{user.email}</p>
+                <p className="text-sm text-muted">{user.email}</p>
               </div>
               <button
                 onClick={() => {
@@ -224,7 +224,7 @@ export function SettingsPage() {
             </button>
           </div>
 
-          <p className="text-sm text-base-content/60 mb-3">
+          <p className="text-sm text-muted mb-3">
             Arrastra para reordenar. Los primeros 4 aparecen en la barra inferior.
           </p>
 
@@ -246,7 +246,7 @@ export function SettingsPage() {
                     : "border-base-300 hover:border-primary/50"
                     }`}
                 >
-                  <GripVertical className="w-4 h-4 text-base-content/40" />
+                  <GripVertical className="w-4 h-4 text-faint" />
                   <div className="bg-primary/10 p-2 rounded-lg">
                     <Icon className="w-4 h-4 text-primary" />
                   </div>
@@ -275,16 +275,16 @@ export function SettingsPage() {
             <div className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-base-300 bg-base-200/50">
               <div className="w-4 h-4" />
               <div className="bg-base-300 p-2 rounded-lg">
-                <MoreHorizontal className="w-4 h-4 text-base-content/50" />
+                <MoreHorizontal className="w-4 h-4 text-subtle" />
               </div>
-              <span className="flex-1 font-medium text-sm text-base-content/50">Más (fijo)</span>
+              <span className="flex-1 font-medium text-sm text-subtle">Más (fijo)</span>
             </div>
           </div>
 
           {/* Overflow items */}
           {moreItems.length > 0 && (
             <div className="space-y-1">
-              <div className="text-xs font-medium text-base-content/60 mb-2">En menú "Más"</div>
+              <div className="text-xs font-medium text-muted mb-2">En menú "Más"</div>
               {moreItems.map((id, index) => {
                 const item = getNavItem(id);
                 const Icon = item.icon;
@@ -300,11 +300,11 @@ export function SettingsPage() {
                       : "border-base-300 hover:border-primary/50"
                       }`}
                   >
-                    <GripVertical className="w-4 h-4 text-base-content/40" />
+                    <GripVertical className="w-4 h-4 text-faint" />
                     <div className="bg-base-200 p-2 rounded-lg">
-                      <Icon className="w-4 h-4 text-base-content/60" />
+                      <Icon className="w-4 h-4 text-muted" />
                     </div>
-                    <span className="flex-1 font-medium text-sm text-base-content/70">{item.label}</span>
+                    <span className="flex-1 font-medium text-sm text-body">{item.label}</span>
                     <div className="flex gap-1">
                       <button
                         onClick={() => moveItem(id, "up")}
@@ -339,7 +339,7 @@ export function SettingsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-error">Cerrar sesión</h3>
-                <p className="text-xs text-base-content/60">{user.email}</p>
+                <p className="text-xs text-muted">{user.email}</p>
               </div>
             </div>
           </div>
@@ -377,7 +377,7 @@ export function SettingsPage() {
                 disabled
               />
               <label className="label">
-                <span className="label-text-alt text-base-content/50">
+                <span className="label-text-alt text-subtle">
                   El email se usa para iniciar sesión y no puede cambiarse
                 </span>
               </label>

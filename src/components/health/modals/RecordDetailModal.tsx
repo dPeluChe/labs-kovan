@@ -43,7 +43,7 @@ export function RecordDetailModal({
                 <span className="badge badge-sm badge-ghost">
                     {record.type === "consultation" ? "Consulta" : "Nota"}
                 </span>
-                <span className="text-sm text-base-content/60">
+                <span className="text-sm text-muted">
                     {new Date(record.date).toLocaleDateString("es-MX", {
                         weekday: "long",
                         year: "numeric",
@@ -59,7 +59,7 @@ export function RecordDetailModal({
                     <Stethoscope className="w-5 h-5 text-primary" />
                     <div>
                         {record.doctorName && <p className="font-medium">{record.doctorName}</p>}
-                        {record.clinicName && <p className="text-sm text-base-content/60">{record.clinicName}</p>}
+                        {record.clinicName && <p className="text-sm text-muted">{record.clinicName}</p>}
                     </div>
                 </div>
             )}

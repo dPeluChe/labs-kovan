@@ -55,7 +55,7 @@ export function PlaceVisitsPage() {
                         <Search className="w-4 h-4 opacity-50" />
                         <input
                             type="text"
-                            className="grow placeholder:text-base-content/40 bg-transparent"
+                            className="grow placeholder:text-faint bg-transparent"
                             placeholder="Buscar en historial..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -91,7 +91,7 @@ export function PlaceVisitsPage() {
                                                 <h3 className="font-bold text-base line-clamp-1">{visit.placeName}</h3>
 
                                                 {visit.notes && (
-                                                    <p className="text-sm text-base-content/70 italic mt-1 line-clamp-2">"{visit.notes}"</p>
+                                                    <p className="text-sm text-body italic mt-1 line-clamp-2">"{visit.notes}"</p>
                                                 )}
 
                                                 <div className="flex gap-2 mt-2 items-center">

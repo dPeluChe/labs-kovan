@@ -14,7 +14,7 @@ export function PageHeader({ title, subtitle, action, startAction }: PageHeaderP
         {startAction}
         <div>
           <h1 className="text-xl font-bold leading-tight">{title}</h1>
-          {subtitle && <p className="text-sm text-base-content/60 leading-tight">{subtitle}</p>}
+          {subtitle && <p className="text-sm text-muted leading-tight">{subtitle}</p>}
         </div>
       </div>
       {action}

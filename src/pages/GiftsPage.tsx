@@ -244,7 +244,7 @@ function GiftEventCard({
                 return (
                   <>
                     <div className="flex items-center justify-between gap-2 min-w-0 w-full">
-                      <h3 className={`font-semibold truncate ${event.isCompleted ? "line-through text-base-content/60" : ""}`}>
+                      <h3 className={`font-semibold truncate ${event.isCompleted ? "line-through text-muted" : ""}`}>
                         {event.name}
                       </h3>
                       {timeText && !event.isCompleted && (
@@ -256,7 +256,7 @@ function GiftEventCard({
 
                     <div className="flex flex-wrap gap-1.5 mt-1 text-xs animate-fade-in items-center">
                       {evtDate && (
-                        <span className="badge badge-sm badge-ghost gap-1 text-base-content/70 pl-0">
+                        <span className="badge badge-sm badge-ghost gap-1 text-body pl-0">
                           <Calendar className="w-3 h-3" />
                           {evtDate.toLocaleDateString("es-MX", { month: "short", day: "numeric" })}
                         </span>
@@ -284,7 +284,7 @@ function GiftEventCard({
                 );
               })()}
             </div>
-            <ChevronRight className="w-5 h-5 text-base-content/40" />
+            <ChevronRight className="w-5 h-5 text-faint" />
           </Link>
         </div>
       </div>

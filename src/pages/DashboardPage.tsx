@@ -159,7 +159,7 @@ export function DashboardPage() {
                 {upcomingEvents.map((event) => (
                   <li key={event._id} className="text-sm flex justify-between">
                     <span className="truncate">{event.title}</span>
-                    <span className="text-base-content/60 text-xs">
+                    <span className="text-muted text-xs">
                       {new Date(event.startDateTime).toLocaleDateString("es-MX", {
                         month: "short",
                         day: "numeric",
@@ -211,7 +211,7 @@ export function DashboardPage() {
             ) : (
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold">{expensesSummary.totalThisMonth.toLocaleString("es-MX", { style: "currency", currency: "MXN" })}</span>
-                <span className="text-sm text-base-content/60">
+                <span className="text-sm text-muted">
                   en {expensesSummary.countThisMonth} {expensesSummary.countThisMonth === 1 ? "gasto" : "gastos"}
                 </span>
               </div>
@@ -233,8 +233,8 @@ export function DashboardPage() {
               <div className="flex items-center gap-3">
                 <span className="text-2xl font-bold">{subTotalMonthly.toLocaleString("es-MX", { style: "currency", currency: "MXN" })}</span>
                 <div className="flex flex-col">
-                  <span className="text-[10px] uppercase font-bold text-base-content/40">Mensual Fijo</span>
-                  <span className="text-xs text-base-content/60">{subActiveCount} activos</span>
+                  <span className="text-[10px] uppercase font-bold text-faint">Mensual Fijo</span>
+                  <span className="text-xs text-muted">{subActiveCount} activos</span>
                 </div>
               </div>
             )}
@@ -287,7 +287,7 @@ export function DashboardPage() {
                     return (
                       <li key={event._id} className="text-sm flex justify-between items-center">
                         <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-                          <span className={`truncate font-medium ${diffDays < 0 ? "text-base-content/70" : ""}`}>{event.name}</span>
+                          <span className={`truncate font-medium ${diffDays < 0 ? "text-body" : ""}`}>{event.name}</span>
                           {timeText && (
                             <span className={`text-[10px] uppercase shrink-0 ${timeClass}`}>
                               {timeText}
@@ -295,7 +295,7 @@ export function DashboardPage() {
                           )}
                         </div>
                         {event.date && (
-                          <span className="text-xs text-base-content/60 ml-2 whitespace-nowrap">
+                          <span className="text-xs text-muted ml-2 whitespace-nowrap">
                             {eventDate.toLocaleDateString("es-MX", { month: "short", day: "numeric" })}
                           </span>
                         )}
@@ -303,7 +303,7 @@ export function DashboardPage() {
                     );
                   })}
                 {giftEvents.filter(e => !e.isCompleted).length > 3 && (
-                  <li className="text-xs text-base-content/50 pt-1">+{giftEvents.filter(e => !e.isCompleted).length - 3} más</li>
+                  <li className="text-xs text-subtle pt-1">+{giftEvents.filter(e => !e.isCompleted).length - 3} más</li>
                 )}
               </ul>
             )}
@@ -324,11 +324,11 @@ export function DashboardPage() {
               <div className="flex gap-4 text-sm">
                 <div>
                   <span className="font-semibold">{placesSummary.pending}</span>
-                  <span className="text-base-content/60 ml-1">por visitar</span>
+                  <span className="text-muted ml-1">por visitar</span>
                 </div>
                 <div>
                   <span className="font-semibold">{placesSummary.visited}</span>
-                  <span className="text-base-content/60 ml-1">visitados</span>
+                  <span className="text-muted ml-1">visitados</span>
                 </div>
               </div>
             )}
@@ -348,7 +348,7 @@ export function DashboardPage() {
             ) : (
               <div className="flex items-center gap-3">
                 <span className="text-2xl font-bold">{recipesSummary.total}</span>
-                <span className="text-sm text-base-content/60">recetas</span>
+                <span className="text-sm text-muted">recetas</span>
                 {recipesSummary.favorites > 0 && (
                   <span className="flex items-center gap-1 text-amber-500 text-sm">
                     <Star className="w-3 h-3 fill-current" />
@@ -387,13 +387,13 @@ export function DashboardPage() {
                     <span className="text-warning font-medium">💊 Medicaciones activas:</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {healthSummary.activeMedications.slice(0, 3).map((med, i) => (
-                        <span key={i} className="text-base-content/70">
+                        <span key={i} className="text-body">
                           {med.medication.name} ({med.personName})
                           {i < Math.min(2, healthSummary.activeMedications.length - 1) && ","}
                         </span>
                       ))}
                       {healthSummary.activeMedications.length > 3 && (
-                        <span className="text-base-content/50">+{healthSummary.activeMedications.length - 3} más</span>
+                        <span className="text-subtle">+{healthSummary.activeMedications.length - 3} más</span>
                       )}
                     </div>
                   </div>
@@ -417,15 +417,15 @@ export function DashboardPage() {
               <div className="flex gap-4 text-sm">
                 <div>
                   <span className="font-semibold">{librarySummary.owned}</span>
-                  <span className="text-base-content/60 ml-1">propios</span>
+                  <span className="text-muted ml-1">propios</span>
                 </div>
                 <div>
                   <span className="font-semibold">{librarySummary.byStatus.reading}</span>
-                  <span className="text-base-content/60 ml-1">leyendo</span>
+                  <span className="text-muted ml-1">leyendo</span>
                 </div>
                 <div>
                   <span className="font-semibold">{librarySummary.wishlist}</span>
-                  <span className="text-base-content/60 ml-1">deseados</span>
+                  <span className="text-muted ml-1">deseados</span>
                 </div>
               </div>
             )}
@@ -447,11 +447,11 @@ export function DashboardPage() {
                 <div className="flex gap-4 text-sm">
                   <div>
                     <span className="font-semibold">{vehiclesSummary.vehicleCount}</span>
-                    <span className="text-base-content/60 ml-1">vehículos</span>
+                    <span className="text-muted ml-1">vehículos</span>
                   </div>
                   <div>
                     <span className="font-semibold">{vehiclesSummary.totalSpentThisMonth.toLocaleString("es-MX", { style: "currency", currency: "MXN" })}</span>
-                    <span className="text-base-content/60 ml-1">este mes</span>
+                    <span className="text-muted ml-1">este mes</span>
                   </div>
                 </div>
                 {vehiclesSummary.upcomingEvents.length > 0 && (
@@ -469,7 +469,7 @@ export function DashboardPage() {
           <div className="card bg-base-100 shadow-sm border border-base-300 p-8 text-center animate-fade-in">
             <div className="text-4xl mb-2">🏠</div>
             <h3 className="font-semibold mb-1">¡Bienvenido a Kovan!</h3>
-            <p className="text-sm text-base-content/60">
+            <p className="text-sm text-muted">
               Comienza agregando datos en cualquier sección
             </p>
           </div>

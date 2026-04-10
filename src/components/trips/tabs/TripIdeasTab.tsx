@@ -108,7 +108,7 @@ export function TripIdeasTab({ tripId, onAddToItinerary }: TripIdeasTabProps) {
             <div className="flex justify-center mt-4">
                 <button
                     onClick={() => handleLinkList(null)}
-                    className="btn btn-ghost btn-xs text-base-content/40"
+                    className="btn btn-ghost btn-xs text-faint"
                 >
                     Cambiar lista vinculada
                 </button>

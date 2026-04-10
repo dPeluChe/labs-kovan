@@ -45,16 +45,16 @@ export function RecordsTab({
                                                 <span className="badge badge-sm badge-ghost">
                                                     {record.type === "consultation" ? "Consulta" : "Nota"}
                                                 </span>
-                                                <span className="text-xs text-base-content/60">
+                                                <span className="text-xs text-muted">
                                                     {new Date(record.date).toLocaleDateString("es-MX")}
                                                 </span>
                                             </div>
                                             <h4 className="font-semibold">{record.title}</h4>
                                             {record.description && (
-                                                <p className="text-sm text-base-content/70 mt-1 line-clamp-2">{record.description}</p>
+                                                <p className="text-sm text-body mt-1 line-clamp-2">{record.description}</p>
                                             )}
                                             {(record.doctorName || record.clinicName) && (
-                                                <p className="text-xs text-base-content/50 mt-1">
+                                                <p className="text-xs text-subtle mt-1">
                                                     {[record.doctorName, record.clinicName].filter(Boolean).join(" - ")}
                                                 </p>
                                             )}

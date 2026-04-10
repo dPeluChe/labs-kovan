@@ -44,7 +44,7 @@ export const AboutKovan: React.FC = () => {
                             Nuestra Inspiración
                         </div>
                         <h2 className="text-4xl font-bold mb-6">Tu Familia, Tu Colmena</h2>
-                        <div className="space-y-6 text-lg text-base-content/70 leading-relaxed">
+                        <div className="space-y-6 text-lg text-body leading-relaxed">
                             <p>
                                 <span className="font-bold text-base-content">"Kovan"</span> significa <span className="italic">colmena</span> en turco. Elegimos este nombre porque representa perfectamente nuestra visión de la familia moderna.
                             </p>

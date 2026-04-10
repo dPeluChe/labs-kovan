@@ -250,7 +250,7 @@ export function HighCardGame({ onComplete }: HighCardGameProps) {
       <div className="pb-4">
         <div className="px-4">
           <h2 className="text-2xl font-black text-center mb-2">Carta Más Alta</h2>
-          <p className="text-center text-base-content/60 mb-6">
+          <p className="text-center text-muted mb-6">
             ¡Compite y descubre quién tiene la carta más alta!
           </p>
 
@@ -311,7 +311,7 @@ export function HighCardGame({ onComplete }: HighCardGameProps) {
             </div>
 
             {anonymousCount > 0 && (
-              <div className="text-xs text-center text-base-content/60">
+              <div className="text-xs text-center text-muted">
                 {anonymousCount} jugador{anonymousCount > 1 ? "es" : ""} añadido{anonymousCount > 1 ? "s" : ""}
               </div>
             )}
@@ -330,7 +330,7 @@ export function HighCardGame({ onComplete }: HighCardGameProps) {
             </button>
           </div>
 
-          <div className="mt-6 text-center text-sm text-base-content/60">
+          <div className="mt-6 text-center text-sm text-muted">
             Ronda {gameState.round}
           </div>
         </div>
@@ -348,7 +348,7 @@ export function HighCardGame({ onComplete }: HighCardGameProps) {
             <Sparkles className="w-6 h-6 text-yellow-500" />
             Ronda {gameState.round}
           </h2>
-          <p className="text-base-content/60">
+          <p className="text-muted">
             {gameState.phase === "dealing" ? "¡Toca las cartas para voltearlas!" : "¡Resultados!"}
           </p>
         </div>
@@ -397,7 +397,7 @@ export function HighCardGame({ onComplete }: HighCardGameProps) {
 
                 {/* Instrucción si no está volteada */}
                 {!player.isFlipped && player.card && gameState.phase !== "revealed" && (
-                  <div className="text-xs text-center mt-2 text-base-content/50 animate-pulse">
+                  <div className="text-xs text-center mt-2 text-subtle animate-pulse">
                     Toca para voltear
                   </div>
                 )}
@@ -416,7 +416,7 @@ export function HighCardGame({ onComplete }: HighCardGameProps) {
         {/* Mensaje de estado */}
         {gameState.phase === "dealing" && (
           <div className="text-center mb-4">
-            <p className="text-sm text-base-content/70">
+            <p className="text-sm text-body">
               {gameState.players.filter((p) => p.isFlipped).length} de {gameState.players.length} cartas volteadas
             </p>
           </div>

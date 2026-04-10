@@ -23,7 +23,7 @@ interface ActivityFeedProps {
 export function ActivityFeed({ logs, onDelete }: ActivityFeedProps) {
   if (logs.length === 0) {
     return (
-      <div className="text-center py-8 text-base-content/50">
+      <div className="text-center py-8 text-subtle">
         <p className="text-4xl mb-2">📋</p>
         <p className="font-medium">Sin registros aún</p>
         <p className="text-sm">Registra una actividad para empezar</p>
@@ -34,10 +34,7 @@ export function ActivityFeed({ logs, onDelete }: ActivityFeedProps) {
   return (
     <div className="space-y-2">
       {logs.map((log) => (
-        <div
-          key={log._id}
-          className="flex items-start gap-3 p-3 rounded-xl bg-base-100 border border-base-300"
-        >
+        <div key={log._id} className="flex items-start gap-3 surface-row">
           <span className="text-2xl">{log.activityEmoji}</span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
@@ -55,16 +52,16 @@ export function ActivityFeed({ logs, onDelete }: ActivityFeedProps) {
               <span className="font-medium text-sm">{log.userName}</span>
               <span className="badge badge-primary badge-xs">+{log.points}</span>
             </div>
-            <p className="text-sm text-base-content/70">{log.activityName}</p>
+            <p className="text-sm text-body">{log.activityName}</p>
             {log.notes && (
-              <p className="text-xs text-base-content/50 mt-0.5">"{log.notes}"</p>
+              <p className="text-xs text-subtle mt-0.5">"{log.notes}"</p>
             )}
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-base-content/40">
+              <span className="text-xs text-faint">
                 {formatDistanceToNow(new Date(log.date), { addSuffix: true, locale: es })}
               </span>
               {log.loggedByName && (
-                <span className="text-xs text-base-content/40">
+                <span className="text-xs text-faint">
                   - registrado por {log.loggedByName}
                 </span>
               )}
@@ -73,7 +70,7 @@ export function ActivityFeed({ logs, onDelete }: ActivityFeedProps) {
           {onDelete && (
             <button
               onClick={() => onDelete(log._id)}
-              className="btn btn-ghost btn-xs btn-square text-base-content/30 hover:text-error"
+              className="btn btn-ghost btn-xs btn-square text-faint hover:text-error"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>

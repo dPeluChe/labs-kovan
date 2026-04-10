@@ -66,7 +66,7 @@ export const FeatureRequestModal: React.FC<FeatureRequestModalProps> = ({ isOpen
         <MobileModal isOpen={isOpen} onClose={handleClose} title="Propuesta de Funcionalidad">
             <div className="space-y-4">
                 {/* Header Subtext */}
-                <div className="-mt-4 mb-4 flex items-center gap-2 text-base-content/60">
+                <div className="-mt-4 mb-4 flex items-center gap-2 text-muted">
                     <p className="text-xs">Ayúdanos a mejorar Kovan con tus ideas.</p>
                 </div>
 
@@ -76,7 +76,7 @@ export const FeatureRequestModal: React.FC<FeatureRequestModalProps> = ({ isOpen
                             <Sparkles className="w-8 h-8" />
                         </div>
                         <h3 className="text-xl font-bold mb-2">¡Gracias por tu idea!</h3>
-                        <p className="text-base-content/70 mb-6 text-sm">
+                        <p className="text-body mb-6 text-sm">
                             Hemos recibido tu sugerencia y la revisaremos pronto.
                         </p>
                         <button onClick={handleClose} className="btn btn-primary rounded-full px-8 w-full">

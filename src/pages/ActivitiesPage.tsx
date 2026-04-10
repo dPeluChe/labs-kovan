@@ -41,7 +41,7 @@ export function ActivitiesPage() {
                     </div>
                     <div>
                       <h3 className="font-bold">{game.name}</h3>
-                      <p className="text-xs text-base-content/60">
+                      <p className="text-xs text-muted">
                         {game.description}
                       </p>
                     </div>
@@ -65,7 +65,7 @@ export function ActivitiesPage() {
                     </div>
                     <div>
                       <h3 className="font-bold">{game.name}</h3>
-                      <p className="text-xs text-base-content/60">Próximamente</p>
+                      <p className="text-xs text-muted">Próximamente</p>
                     </div>
                   </div>
                 </button>

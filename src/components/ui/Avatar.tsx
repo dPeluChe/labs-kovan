@@ -41,7 +41,7 @@ export const Avatar: React.FC<AvatarProps> = ({
           <img src={src} alt={alt} className="w-full h-full object-cover" />
         </div>
       ) : (
-        <div className={`rounded-full bg-base-200 flex items-center justify-center text-base-content/70 font-semibold ${sizeClasses[size]} ${textSizes[size]}`}>
+        <div className={`rounded-full bg-base-200 flex items-center justify-center text-body font-semibold ${sizeClasses[size]} ${textSizes[size]}`}>
           {initial}
         </div>
       )}
