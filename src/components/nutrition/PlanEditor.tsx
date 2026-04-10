@@ -4,6 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { useAuth } from "../../contexts/AuthContext";
 import { MobileModal } from "../ui/MobileModal";
+import { SectionTitle } from "../ui/SectionTitle";
 import { Plus, Minus, X } from "lucide-react";
 import { NUTRIENTS } from "./constants";
 
@@ -117,9 +118,9 @@ export function PlanEditor({ familyId, plan, onClose }: PlanEditorProps) {
           </div>
         )}
 
-        <div className="card bg-base-100 shadow-sm border border-base-200">
+        <div className="surface-card">
           <div className="card-body p-4 gap-4">
-            <h3 className="font-bold text-sm uppercase opacity-50 tracking-wider">Detalles</h3>
+            <SectionTitle className="uppercase tracking-wider text-subtle">Detalles</SectionTitle>
             <div className="form-control">
               <label className="label text-sm font-medium">Nombre</label>
               <input
@@ -153,9 +154,9 @@ export function PlanEditor({ familyId, plan, onClose }: PlanEditorProps) {
           </div>
         </div>
 
-        <div className="card bg-base-100 shadow-sm border border-base-200">
+        <div className="surface-card">
           <div className="card-body p-4">
-            <h3 className="font-bold text-sm uppercase opacity-50 tracking-wider mb-2">Porciones Diarias</h3>
+            <SectionTitle className="uppercase tracking-wider text-subtle mb-2">Porciones Diarias</SectionTitle>
 
             <div className="space-y-3 mb-6">
               {Array.from(activeNutrients).map((key) => {
@@ -182,7 +183,7 @@ export function PlanEditor({ familyId, plan, onClose }: PlanEditorProps) {
                 );
               })}
               {activeNutrients.size === 0 && (
-                <div className="text-center py-6 opacity-40 text-sm border-2 border-dashed border-base-200 rounded-xl">
+                <div className="text-center py-6 text-faint text-sm border-2 border-dashed border-base-200 rounded-xl">
                   Agrega los elementos que quieres controlar
                 </div>
               )}
@@ -190,7 +191,7 @@ export function PlanEditor({ familyId, plan, onClose }: PlanEditorProps) {
 
             {availableNutrients.length > 0 && (
               <div>
-                <p className="text-xs font-bold opacity-40 mb-3 uppercase tracking-wider">Agregar Elemento:</p>
+                <p className="text-xs font-bold text-faint mb-3 uppercase tracking-wider">Agregar Elemento:</p>
                 <div className="flex flex-wrap gap-2">
                   {availableNutrients.map((n) => (
                     <button

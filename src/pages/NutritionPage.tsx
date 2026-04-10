@@ -4,8 +4,10 @@ import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/ui/PageHeader";
+import { EmptyState } from "../components/ui/EmptyState";
+import { Avatar } from "../components/ui/Avatar";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
-import { Activity, ClipboardList, FileText, User, Utensils } from "lucide-react";
+import { Activity, ClipboardList, FileText, Utensils } from "lucide-react";
 import { DailyTracker } from "../components/nutrition/DailyTracker";
 import { PlansManager } from "../components/nutrition/PlansManager";
 import { PlanEditor } from "../components/nutrition/PlanEditor";
@@ -153,13 +155,7 @@ export function NutritionPage() {
                   }
                 `}
               >
-                <div className="w-6 h-6 rounded-full bg-base-300 flex items-center justify-center overflow-hidden">
-                  {p.imageUrl ? (
-                    <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-3 h-3 opacity-50" />
-                  )}
-                </div>
+                <Avatar src={p.imageUrl} name={p.name} size="xs" />
                 {p.name}
               </button>
             ))}
@@ -177,16 +173,19 @@ export function NutritionPage() {
                 personId={activeParticipant.personId}
               />
             ) : (
-              <div className="p-8 text-center opacity-60">
-                <ClipboardList className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p className="text-sm">No hay plan asignado.</p>
-                <button
-                  onClick={() => setView("plans")}
-                  className="btn btn-sm btn-link text-primary no-underline mt-2"
-                >
-                  Ir a Planes
-                </button>
-              </div>
+              <EmptyState
+                icon={ClipboardList}
+                title="Sin plan asignado"
+                description="Asigna un plan de nutrición a este participante."
+                action={
+                  <button
+                    onClick={() => setView("plans")}
+                    className="btn btn-sm btn-primary"
+                  >
+                    Ir a Planes
+                  </button>
+                }
+              />
             )
           ) : (
             <PlansManager
@@ -199,10 +198,11 @@ export function NutritionPage() {
           )}
         </>
       ) : (
-        <div className="p-8 text-center text-base-content/50">
-          <Utensils className="w-12 h-12 mx-auto mb-4 opacity-20" />
-          <p>Selecciona un miembro de la familia</p>
-        </div>
+        <EmptyState
+          icon={Utensils}
+          title="Selecciona un miembro"
+          description="Elige un miembro de la familia para ver su nutrición."
+        />
       )}
     </div>
   );
