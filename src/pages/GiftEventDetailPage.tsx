@@ -4,22 +4,14 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
-import { EmptyState } from "../components/ui/EmptyState";
 import { useConfirmModal } from "../hooks/useConfirmModal";
-import { User, Package, Gift, UserPlus } from "lucide-react";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 
 // Components
 import { GiftEventHeader } from "../components/gifts/GiftEventHeader";
-import { RecipientCard } from "../components/gifts/RecipientCard";
-import { GiftItemForm } from "../components/gifts/GiftItemForm";
-import { AddRecipientForm } from "../components/gifts/AddRecipientForm";
-import { EditEventForm } from "../components/gifts/EditEventForm";
-import { UnassignedGiftItem } from "../components/gifts/UnassignedGiftItem";
-import { STATUS_CONFIG, type GiftStatus, sortGifts } from "../components/gifts/GiftConstants";
-import { MobileModal } from "../components/ui/MobileModal";
-
-const STATUS_ICONS = STATUS_CONFIG; // Alias for compatibility if needed
+import { sortGifts } from "../components/gifts/GiftConstants";
+import { GiftEventModals } from "../components/gifts/GiftEventModals";
+import { GiftEventContent } from "../components/gifts/GiftEventContent";
 
 type FilterType = "all" | "pending" | "bought" | "gifts";
 
@@ -205,165 +197,35 @@ export function GiftEventDetailPage() {
         pendingCount={stats.pending}
       />
 
-      <div className="px-4 py-4 space-y-4">
-        {/* GIFTS VIEW (Flat List) */}
-        {filter === "gifts" ? (
-          allGifts.length === 0 ? (
-            <EmptyState
-              icon={Gift}
-              title="Sin regalos"
-              description="Agrega regalos a tus receptores"
-            />
-          ) : (
-            <div className="space-y-4">
-              {/* Gifts List */}
-              <div className="space-y-1.5">
-                {allGifts.map(({ item, recipientName, recipientId }) => {
-                  const isBought = ["bought", "wrapped", "delivered"].includes(item.status);
-                  const statusConfig = STATUS_ICONS[item.status as GiftStatus];
+      <GiftEventContent
+        filter={filter}
+        eventCompleted={!!event.isCompleted}
+        allGifts={allGifts}
+        recipientsWithItems={recipientsWithItems}
+        unassignedGifts={unassignedGifts}
+        filteredData={filteredData}
+        confirmDialog={confirmDialog}
+        onEditItem={(item) => setEditingItem(item)}
+        onAddRecipient={() => setShowAddRecipient(true)}
+        onAddToPool={() => setAddingToPool(true)}
+        onAddItemToRecipient={(recipientId) => setAddingToRecipient(recipientId)}
+      />
 
-                  return (
-                    <div
-                      key={item._id}
-                      onClick={() => !event.isCompleted && setEditingItem(item)}
-                      className={`flex items-center gap-2 p-2 rounded-lg border transition-all animate-fade-in ${recipientId === "" ? "bg-warning/5 border-warning/20 hover:bg-warning/10" : "bg-base-100 border-base-200 hover:shadow-sm"
-                        } ${event.isCompleted ? "opacity-75 cursor-default" : "cursor-pointer"}`}
-                    >
-                      <span>{statusConfig.icon}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm truncate ${isBought ? "line-through opacity-60" : ""}`}>
-                          {item.title}
-                        </p>
-                        <p className="text-xs text-base-content/50">
-                          {recipientName === "Sin asignar" ? <span className="text-warning">Sin asignar</span> : `→ ${recipientName}`}
-                        </p>
-                      </div>
-                      {item.priceEstimate && <span className="text-xs text-base-content/50">${item.priceEstimate}</span>}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )
-        ) : recipientsWithItems.length === 0 ? (
-          <EmptyState
-            icon={User}
-            title="Sin receptores"
-            description="Agrega personas a tu lista para empezar"
-            action={
-              !event.isCompleted ? (
-                <button onClick={() => setShowAddRecipient(true)} className="btn btn-primary btn-sm">
-                  Agregar persona
-                </button>
-              ) : undefined
-            }
-          />
-        ) : (
-          /* RECIPIENTS VIEW */
-          <>
-            {/* Unassigned Pool */}
-            {filter === "all" && unassignedGifts && unassignedGifts.length > 0 && (
-              <div className="card card-compact bg-base-200/50 border border-dashed border-base-300">
-                <div className="card-body p-3">
-                  <div className="flex items-center gap-2">
-                    <Package className="w-4 h-4 text-primary" />
-                    <span className="font-medium text-sm">Sin asignar</span>
-                    <span className="badge badge-xs badge-primary">{unassignedGifts.length}</span>
-                    <div className="flex-1" />
-                    {!event.isCompleted && (
-                      <button onClick={() => setAddingToPool(true)} className="btn btn-ghost btn-xs">
-                        <UserPlus className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {unassignedGifts.map((item: Doc<"giftItems">) => (
-                      <UnassignedGiftItem
-                        key={item._id}
-                        item={item}
-                        recipients={recipientsWithItems?.map((r: { recipient: Doc<"giftRecipients"> }) => r.recipient) || []}
-                        onEdit={() => setEditingItem(item)}
-                        confirmDialog={confirmDialog}
-                        isEventArchived={!!event.isCompleted}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Recipients List */}
-            {filteredData.length === 0 ? (
-              <div className="text-center py-8 text-base-content/50 animate-fade-in">
-                <p>No hay receptores con regalos {filter === "bought" ? "listos" : "pendientes"}</p>
-              </div>
-            ) : (
-              <div className="space-y-3 stagger-children">
-                {filteredData.map(({ recipient, items }: { recipient: Doc<"giftRecipients">, items: Doc<"giftItems">[] }) => (
-                  <RecipientCard
-                    key={recipient._id}
-                    recipient={recipient}
-                    items={items}
-                    onAddItem={() => setAddingToRecipient(recipient._id)}
-                    onEditItem={(item) => setEditingItem(item)}
-                    confirmDialog={confirmDialog}
-                    isEventArchived={!!event.isCompleted}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Add Recipient Button */}
-            {filter === "all" && !event.isCompleted && (
-              <button
-                onClick={() => setShowAddRecipient(true)}
-                className="btn btn-ghost btn-sm btn-block border-dashed border mt-2 text-base-content/50"
-              >
-                <UserPlus className="w-4 h-4" /> Agregar persona
-              </button>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* MODALS */}
-      <MobileModal
-        isOpen={showAddRecipient}
-        onClose={() => setShowAddRecipient(false)}
-        title="Agregar receptor"
-      >
-        <AddRecipientForm
-          eventId={eventId as Id<"giftEvents">}
-          onClose={() => setShowAddRecipient(false)}
-        />
-      </MobileModal>
-
-      <MobileModal
-        isOpen={addingToRecipient !== null || editingItem !== null || addingToPool}
-        onClose={() => { setAddingToRecipient(null); setEditingItem(null); setAddingToPool(false); }}
-        title={editingItem ? "Editar regalo" : addingToPool ? "Agregar regalo al pool" : "Nuevo regalo"}
-      >
-        <GiftItemForm
-          eventId={eventId as Id<"giftEvents">}
-          recipientId={addingToPool ? undefined : (addingToRecipient || editingItem?.giftRecipientId)}
-          initialData={editingItem || undefined}
-          onClose={() => { setAddingToRecipient(null); setEditingItem(null); setAddingToPool(false); }}
-          confirmDialog={confirmDialog}
-        />
-      </MobileModal>
-
-      {event && (
-        <MobileModal
-          isOpen={showEditEvent}
-          onClose={() => setShowEditEvent(false)}
-          title="Editar evento"
-        >
-          <EditEventForm
-            event={event}
-            onClose={() => setShowEditEvent(false)}
-          />
-        </MobileModal>
-      )}
+      <GiftEventModals
+        eventId={eventId as Id<"giftEvents">}
+        event={event}
+        showAddRecipient={showAddRecipient}
+        setShowAddRecipient={setShowAddRecipient}
+        addingToRecipient={addingToRecipient}
+        setAddingToRecipient={setAddingToRecipient}
+        addingToPool={addingToPool}
+        setAddingToPool={setAddingToPool}
+        editingItem={editingItem}
+        setEditingItem={setEditingItem}
+        showEditEvent={showEditEvent}
+        setShowEditEvent={setShowEditEvent}
+        confirmDialog={confirmDialog}
+      />
 
       {/* Confirm Modal */}
       <ConfirmModal />
