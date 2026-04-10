@@ -18,7 +18,7 @@ export function HighCardBoard({ gameState, onFlipCard, onResetGame, onPlayAgain 
             <Sparkles className="w-6 h-6 text-yellow-500" />
             Ronda {gameState.round}
           </h2>
-          <p className="text-base-content/60">
+          <p className="text-muted">
             {gameState.phase === "dealing" ? "¡Toca las cartas para voltearlas!" : "¡Resultados!"}
           </p>
         </div>
@@ -58,7 +58,7 @@ export function HighCardBoard({ gameState, onFlipCard, onResetGame, onPlayAgain 
                 </button>
 
                 {!player.isFlipped && player.card && gameState.phase !== "revealed" && (
-                  <div className="text-xs text-center mt-2 text-base-content/50 animate-pulse">Toca para voltear</div>
+                  <div className="text-xs text-center mt-2 text-subtle animate-pulse">Toca para voltear</div>
                 )}
 
                 {player.isWinner && gameState.phase === "revealed" && (
@@ -74,7 +74,7 @@ export function HighCardBoard({ gameState, onFlipCard, onResetGame, onPlayAgain 
 
         {gameState.phase === "dealing" && (
           <div className="text-center mb-4">
-            <p className="text-sm text-base-content/70">
+            <p className="text-sm text-body">
               {gameState.players.filter((player) => player.isFlipped).length} de {gameState.players.length} cartas volteadas
             </p>
           </div>
