@@ -6,9 +6,9 @@ import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
+import { DetailHeader } from "../components/ui/DetailHeader";
 import { useConfirmModal } from "../hooks/useConfirmModal";
 import {
-  ArrowLeft,
   Users,
   Plus,
   Trash2,
@@ -74,27 +74,22 @@ export function FamilyPage() {
 
   return (
     <div className="pb-4">
-      {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-base-100 border-b border-base-300">
-        <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm btn-circle">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-lg font-bold">
-            {currentFamily.emoji} {currentFamily.name}
-          </h1>
-          <p className="text-xs text-muted">Gestionar miembros</p>
-        </div>
-        {isAdmin && (
-          <button
-            onClick={() => setShowInvite(true)}
-            className="btn btn-primary btn-sm gap-1"
-          >
-            <Plus className="w-4 h-4" />
-            Invitar
-          </button>
-        )}
-      </div>
+      <DetailHeader
+        title={`${currentFamily.emoji ?? ""} ${currentFamily.name}`.trim()}
+        subtitle="Gestionar miembros"
+        onBack={() => navigate(-1)}
+        action={
+          isAdmin && (
+            <button
+              onClick={() => setShowInvite(true)}
+              className="btn btn-primary btn-sm gap-1"
+            >
+              <Plus className="w-4 h-4" />
+              Invitar
+            </button>
+          )
+        }
+      />
 
       <div className="px-4 py-4 space-y-6">
         {/* Members */}

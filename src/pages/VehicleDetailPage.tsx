@@ -7,10 +7,10 @@ import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ContextMenu } from "../components/ui/ContextMenu";
+import { DetailHeader } from "../components/ui/DetailHeader";
 import { useConfirmModal } from "../hooks/useConfirmModal";
 import { DateInput } from "../components/ui/DateInput";
 import {
-  ArrowLeft,
   Plus,
   Car,
   Fuel,
@@ -113,27 +113,24 @@ export function VehicleDetailPage() {
 
   return (
     <div className="pb-4">
-      {/* Header */}
-      <div className="bg-base-100 border-b border-base-300 sticky top-0 z-10">
-        <div className="flex items-center gap-3 p-4">
-          <button onClick={() => navigate("/vehicles")} className="btn btn-ghost btn-sm btn-circle">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold truncate">{vehicle.name}</h1>
-            <p className="text-sm text-muted">
-              {[vehicle.brand, vehicle.model, vehicle.year].filter(Boolean).join(" ")}
-              {vehicle.plate && ` • ${vehicle.plate}`}
-            </p>
-          </div>
+      <DetailHeader
+        title={vehicle.name}
+        onBack={() => navigate("/vehicles")}
+        subtitle={
+          <>
+            {[vehicle.brand, vehicle.model, vehicle.year].filter(Boolean).join(" ")}
+            {vehicle.plate && ` • ${vehicle.plate}`}
+          </>
+        }
+        action={
           <ContextMenu
             items={[
               { icon: Edit2, label: "Editar", onClick: () => setEditingVehicle(true) },
               { icon: Trash2, label: "Eliminar", onClick: handleDeleteVehicle, variant: "danger" },
             ]}
           />
-        </div>
-      </div>
+        }
+      />
 
       {/* Summary Card */}
       <div className="px-4 py-4">

@@ -7,7 +7,6 @@ import { PageLoader } from "../components/ui/LoadingSpinner";
 import { useToast } from "../components/ui/Toast";
 import { Input } from "../components/ui/Input";
 import {
-  ArrowLeft,
   LogOut,
   GripVertical,
   Home,
@@ -29,6 +28,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { MobileModal } from "../components/ui/MobileModal";
+import { DetailHeader } from "../components/ui/DetailHeader";
 
 // All available nav items
 const ALL_NAV_ITEMS: { id: string; icon: LucideIcon; label: string }[] = [
@@ -173,21 +173,18 @@ export function SettingsPage() {
 
   return (
     <div className="pb-4">
-      {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-base-100 border-b border-base-300">
-        <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm btn-circle">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-lg font-bold">Configuración</h1>
-        </div>
-        {hasChanges && (
-          <button onClick={handleSave} className="btn btn-primary btn-sm gap-1">
-            <Check className="w-4 h-4" />
-            Guardar
-          </button>
-        )}
-      </div>
+      <DetailHeader
+        title="Configuración"
+        onBack={() => navigate(-1)}
+        action={
+          hasChanges && (
+            <button onClick={handleSave} className="btn btn-primary btn-sm gap-1">
+              <Check className="w-4 h-4" />
+              Guardar
+            </button>
+          )
+        }
+      />
 
       <div className="px-4 py-4 space-y-6">
         {/* User info */}

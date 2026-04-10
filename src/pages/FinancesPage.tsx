@@ -11,6 +11,7 @@ import { DateInput } from "../components/ui/DateInput";
 import { Input } from "../components/ui/Input";
 import { Select } from "../components/ui/Select";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
+import { StickyHeader } from "../components/ui/StickyHeader";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 import { MobileModal } from "../components/ui/MobileModal";
 import { ExpenseCard } from "../components/finances/ExpenseCard";
@@ -36,12 +37,9 @@ export function FinancesPage() {
 
   return (
     <div className="pb-4">
-      {/* Top Navigation */}
-      <div className="navbar bg-base-100 sticky top-0 z-10 px-4 min-h-[4rem]">
-        <div className="flex-1">
-          <h1 className="text-xl font-bold">Finanzas</h1>
-        </div>
-        <div className="flex-none">
+      <StickyHeader
+        title="Finanzas"
+        action={
           <div className="join bg-base-200 p-1 rounded-lg">
             <button
               className={`join-item btn btn-sm border-0 ${activeSection === "expenses" ? "btn-active btn-primary" : "btn-ghost"}`}
@@ -56,8 +54,8 @@ export function FinancesPage() {
               <HandCoins className="w-4 h-4" /> Préstamos
             </button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="mt-2">
         {activeSection === "expenses" ? <ExpensesView /> : <LoansView />}
