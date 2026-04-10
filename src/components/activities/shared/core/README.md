@@ -126,16 +126,13 @@ export function BattleshipGame() {
 }
 ```
 
-## ✅ Checklist de Implementación
+## Estado del módulo
 
-- [x] TurnManager genérico
-- [x] PlayerManager genérico
-- [x] Tipos base extensibles
-- [ ] GameStateManager
-- [ ] HistoryManager
-- [ ] PhysicsEngine (Matter.js wrapper)
-- [ ] ParticleSystem
-- [ ] Componentes UI genéricos
+Listo y en uso: `TurnManager`, `PlayerManager` y los tipos base (ver las secciones de Uso y APIs arriba).
+
+Pendientes: `GameStateManager`, `HistoryManager`, `PhysicsEngine` (wrapper de Matter.js), `ParticleSystem` y componentes UI genéricos. Las carpetas `physics/`, `state/` y `ui/` existen como placeholders vacíos.
+
+> Tracking: el backlog con el detalle de estos pendientes vive en [`docs/TASK_TODO.md`](../../../../../docs/TASK_TODO.md) bajo la task `ACTIVITIES-CORE`. No agregues checklists `- [ ]` a este README — las tareas nuevas van directo a `TASK_TODO.md`.
 
 ## 🧪 Testing
 
