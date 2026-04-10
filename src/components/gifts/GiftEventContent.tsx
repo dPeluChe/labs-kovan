@@ -62,11 +62,11 @@ export function GiftEventContent({
                       <p className={`text-sm truncate ${isBought ? "line-through opacity-60" : ""}`}>
                         {item.title}
                       </p>
-                      <p className="text-xs text-base-content/50">
+                      <p className="text-xs text-subtle">
                         {recipientName === "Sin asignar" ? <span className="text-warning">Sin asignar</span> : `→ ${recipientName}`}
                       </p>
                     </div>
-                    {item.priceEstimate && <span className="text-xs text-base-content/50">${item.priceEstimate}</span>}
+                    {item.priceEstimate && <span className="text-xs text-subtle">${item.priceEstimate}</span>}
                   </div>
                 );
               })}
@@ -119,9 +119,11 @@ export function GiftEventContent({
           )}
 
           {filteredData.length === 0 ? (
-            <div className="text-center py-8 text-base-content/50 animate-fade-in">
-              <p>No hay receptores con regalos {filter === "bought" ? "listos" : "pendientes"}</p>
-            </div>
+            <EmptyState
+              icon={Package}
+              title="Sin regalos en esta vista"
+              description={`No hay receptores con regalos ${filter === "bought" ? "listos" : "pendientes"}`}
+            />
           ) : (
             <div className="space-y-3 stagger-children">
               {filteredData.map(({ recipient, items }) => (
@@ -141,7 +143,7 @@ export function GiftEventContent({
           {filter === "all" && !eventCompleted && (
             <button
               onClick={onAddRecipient}
-              className="btn btn-ghost btn-sm btn-block border-dashed border mt-2 text-base-content/50"
+              className="btn btn-ghost btn-sm btn-block border-dashed border mt-2 text-subtle"
             >
               <UserPlus className="w-4 h-4" /> Agregar persona
             </button>
