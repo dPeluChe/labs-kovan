@@ -12,7 +12,8 @@ import {
   Pen,
 } from "lucide-react";
 import { EditProfileModal } from "../components/settings/EditProfileModal";
-import { NavOrderEditor, ALL_NAV_ITEMS, DEFAULT_NAV_ORDER } from "../components/settings/NavOrderEditor";
+import { NavOrderEditor } from "../components/settings/NavOrderEditor";
+import { ALL_NAV_ITEMS, DEFAULT_NAV_ORDER } from "../components/settings/navOrderConstants";
 
 export function SettingsPage() {
   const navigate = useNavigate();
