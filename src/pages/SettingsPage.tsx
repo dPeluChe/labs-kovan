@@ -5,12 +5,8 @@ import { api } from "../../convex/_generated/api";
 import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { useToast } from "../components/ui/Toast";
-import {
-  ArrowLeft,
-  LogOut,
-  Check,
-  Pen,
-} from "lucide-react";
+import { DetailHeader } from "../components/ui/DetailHeader";
+import { LogOut, Check, Pen } from "lucide-react";
 import { EditProfileModal } from "../components/settings/EditProfileModal";
 import { NavOrderEditor } from "../components/settings/NavOrderEditor";
 import { ALL_NAV_ITEMS, DEFAULT_NAV_ORDER } from "../components/settings/navOrderConstants";
@@ -129,33 +125,30 @@ export function SettingsPage() {
 
   return (
     <div className="pb-4">
-      {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-base-100 border-b border-base-300">
-        <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm btn-circle">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-lg font-bold">Configuración</h1>
-        </div>
-        {hasChanges && (
-          <button onClick={handleSave} className="btn btn-primary btn-sm gap-1">
-            <Check className="w-4 h-4" />
-            Guardar
-          </button>
-        )}
-      </div>
+      <DetailHeader
+        title="Configuración"
+        onBack={() => navigate(-1)}
+        action={
+          hasChanges && (
+            <button onClick={handleSave} className="btn btn-primary btn-sm gap-1">
+              <Check className="w-4 h-4" />
+              Guardar
+            </button>
+          )
+        }
+      />
 
       <div className="px-4 py-4 space-y-6">
         {/* User info */}
         <div className="card bg-base-100 shadow-sm border border-base-300">
           <div className="card-body p-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-base-200 flex items-center justify-center text-base-content/70 font-semibold text-xl">
+              <div className="w-12 h-12 rounded-full bg-base-200 flex items-center justify-center text-body font-semibold text-xl">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold">{user.name}</h3>
-                <p className="text-sm text-base-content/60">{user.email}</p>
+                <p className="text-sm text-muted">{user.email}</p>
               </div>
               <button
                 onClick={() => {
@@ -192,7 +185,7 @@ export function SettingsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-error">Cerrar sesión</h3>
-                <p className="text-xs text-base-content/60">{user.email}</p>
+                <p className="text-xs text-muted">{user.email}</p>
               </div>
             </div>
           </div>

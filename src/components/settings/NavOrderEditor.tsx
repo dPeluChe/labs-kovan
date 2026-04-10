@@ -38,7 +38,7 @@ export function NavOrderEditor({
         </button>
       </div>
 
-      <p className="text-sm text-base-content/60 mb-3">
+      <p className="text-sm text-muted mb-3">
         Arrastra para reordenar. Los primeros 4 aparecen en la barra inferior.
       </p>
 
@@ -59,7 +59,7 @@ export function NavOrderEditor({
                 : "border-base-300 hover:border-primary/50"
               }`}
             >
-              <GripVertical className="w-4 h-4 text-base-content/40" />
+              <GripVertical className="w-4 h-4 text-faint" />
               <div className="bg-primary/10 p-2 rounded-lg">
                 <Icon className="w-4 h-4 text-primary" />
               </div>
@@ -87,15 +87,15 @@ export function NavOrderEditor({
         <div className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-base-300 bg-base-200/50">
           <div className="w-4 h-4" />
           <div className="bg-base-300 p-2 rounded-lg">
-            <MoreHorizontal className="w-4 h-4 text-base-content/50" />
+            <MoreHorizontal className="w-4 h-4 text-subtle" />
           </div>
-          <span className="flex-1 font-medium text-sm text-base-content/50">Más (fijo)</span>
+          <span className="flex-1 font-medium text-sm text-subtle">Más (fijo)</span>
         </div>
       </div>
 
       {moreItems.length > 0 && (
         <div className="space-y-1">
-          <div className="text-xs font-medium text-base-content/60 mb-2">En menú "Más"</div>
+          <div className="text-xs font-medium text-muted mb-2">En menú "Más"</div>
           {moreItems.map((id, index) => {
             const item = getNavItem(id);
             const Icon = item.icon;
@@ -111,11 +111,11 @@ export function NavOrderEditor({
                   : "border-base-300 hover:border-primary/50"
                 }`}
               >
-                <GripVertical className="w-4 h-4 text-base-content/40" />
+                <GripVertical className="w-4 h-4 text-faint" />
                 <div className="bg-base-200 p-2 rounded-lg">
-                  <Icon className="w-4 h-4 text-base-content/60" />
+                  <Icon className="w-4 h-4 text-muted" />
                 </div>
-                <span className="flex-1 font-medium text-sm text-base-content/70">{item.label}</span>
+                <span className="flex-1 font-medium text-sm text-body">{item.label}</span>
                 <div className="flex gap-1">
                   <button
                     onClick={() => onMoveItem(id, "up")}
