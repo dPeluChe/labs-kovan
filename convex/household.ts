@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 
 // ==================== DEFAULT ACTIVITIES ====================
 
@@ -101,7 +102,10 @@ export const getWeeklyLeaderboard = query({
       .collect();
 
     // Aggregate points per user
-    const userPoints: Record<string, { userId: string; points: number; activities: number }> = {};
+    const userPoints: Record<
+      Id<"users">,
+      { userId: Id<"users">; points: number; activities: number }
+    > = {};
     for (const log of logs) {
       const key = log.userId;
       if (!userPoints[key]) {
@@ -117,7 +121,7 @@ export const getWeeklyLeaderboard = query({
     // Enrich with user data
     const enriched = await Promise.all(
       sorted.map(async (entry, index) => {
-        const user = await ctx.db.get(entry.userId as any);
+        const user = await ctx.db.get(entry.userId);
         return {
           ...entry,
           rank: index + 1,
@@ -160,7 +164,7 @@ export const getUserWeeklyStats = query({
     const weeklyLogs = logs.filter((l) => l.date >= weekStart);
 
     // Activity breakdown
-    const activityCounts: Record<string, number> = {};
+    const activityCounts: Record<Id<"householdActivities">, number> = {};
     for (const log of weeklyLogs) {
       const key = log.activityId;
       activityCounts[key] = (activityCounts[key] || 0) + 1;
@@ -168,14 +172,16 @@ export const getUserWeeklyStats = query({
 
     // Get activity names for breakdown
     const breakdown = await Promise.all(
-      Object.entries(activityCounts).map(async ([actId, count]) => {
-        const activity = await ctx.db.get(actId as any);
-        return {
-          name: activity?.name ?? "?",
-          emoji: activity?.emoji ?? "❓",
-          count,
-        };
-      })
+      (Object.entries(activityCounts) as [Id<"householdActivities">, number][]).map(
+        async ([actId, count]) => {
+          const activity = await ctx.db.get(actId);
+          return {
+            name: activity?.name ?? "?",
+            emoji: activity?.emoji ?? "❓",
+            count,
+          };
+        }
+      )
     );
 
     return {
@@ -273,7 +279,7 @@ export const updateActivity = mutation({
     if (!activity) throw new Error("Activity not found");
     if (activity.familyId !== args.familyId) throw new Error("Unauthorized");
 
-    const { activityId, familyId, ...updates } = args;
+    const { activityId, familyId: _familyId, ...updates } = args;
     await ctx.db.patch(activityId, updates);
   },
 });

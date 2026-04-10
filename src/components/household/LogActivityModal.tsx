@@ -18,9 +18,12 @@ export function LogActivityModal({ isOpen, onClose, activity }: LogActivityModal
   const [selectedUser, setSelectedUser] = useState<Id<"users"> | "">("");
   const [notes, setNotes] = useState("");
 
-  const members = useQuery(
+  const membersRaw = useQuery(
     api.families.getFamilyMembers,
     currentFamily ? { familyId: currentFamily._id } : "skip"
+  );
+  const members = membersRaw?.filter(
+    (m): m is NonNullable<typeof m> => m !== null
   );
 
   const logActivity = useMutation(api.household.logActivity);
