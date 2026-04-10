@@ -189,6 +189,7 @@ Definidos en `src/index.css`. Reemplazan `text-base-content/XX`:
 | `IconBadge`       | Container coloreado con icono (feature badges)          |
 | `ContextMenu`     | Dropdown "⋮" de acciones para cards/rows                |
 | `Avatar`          | Foto de usuario con fallback a iniciales                |
+| `Timeline` + `TimelineItem` | Timeline vertical con dot y línea conectora  |
 | `EmptyState`      | Estados vacíos (prohibido hacer divs inline)            |
 | `MobileModal`     | Modales (bottom-sheet mobile / centrado desktop)        |
 | `AnimatedTabs`    | Tabs animados con indicador deslizante                  |
@@ -239,6 +240,27 @@ Cambiar el color de un módulo en `moduleColors.ts` lo actualiza en todas partes
   { icon: Edit2, label: "Editar", onClick: onEdit },
   { icon: Trash2, label: "Eliminar", onClick: onDelete, variant: "danger" },
 ]} />
+```
+
+### Ejemplo: timeline vertical
+
+```tsx
+<Timeline>
+  {visits.map(visit => (
+    <TimelineItem key={visit._id} variant="primary">
+      <VisitCard visit={visit} />
+    </TimelineItem>
+  ))}
+</Timeline>
+
+{/* Con dot personalizado (emoji, icono) */}
+<Timeline>
+  {entries.map(entry => (
+    <TimelineItem key={entry._id} dot={<span>{entry.moodEmoji}</span>}>
+      <EntryContent entry={entry} />
+    </TimelineItem>
+  ))}
+</Timeline>
 ```
 
 ### Reglas

@@ -4,6 +4,10 @@ import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageHeader } from "../components/ui/PageHeader";
+import { SectionTitle } from "../components/ui/SectionTitle";
+import { EmptyState } from "../components/ui/EmptyState";
+import { Avatar } from "../components/ui/Avatar";
+import { IconBadge } from "../components/ui/IconBadge";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 import { MobileModal } from "../components/ui/MobileModal";
 import {
@@ -21,7 +25,6 @@ import {
     Droplet,
     PlusCircle,
     FileText,
-    User,
     ChevronLeft,
     ChevronRight,
     Sparkles,
@@ -186,28 +189,25 @@ export function NutritionPage() {
             {participants.length > 0 && (
                 <div className="px-4 mb-4">
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-                        {participants.map((p) => (
-                            <button
-                                key={p.id}
-                                onClick={() => setSelectedParticipantId(p.id)}
-                                className={`
-                  flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium whitespace-nowrap transition-all
-                  ${selectedParticipantId === p.id
-                                        ? "bg-primary text-primary-content border-primary shadow-md"
-                                        : "bg-base-100 border-base-300 hover:bg-base-200"
-                                    }
-                `}
-                            >
-                                <div className="w-6 h-6 rounded-full bg-base-300 flex items-center justify-center overflow-hidden">
-                                    {p.imageUrl ? (
-                                        <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <User className="w-3 h-3 opacity-50" />
-                                    )}
-                                </div>
-                                {p.name}
-                            </button>
-                        ))}
+                        {participants.map((p) => {
+                            const isSelected = selectedParticipantId === p.id;
+                            return (
+                                <button
+                                    key={p.id}
+                                    onClick={() => setSelectedParticipantId(p.id)}
+                                    className={`
+                                        flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium whitespace-nowrap transition-all
+                                        ${isSelected
+                                            ? "bg-primary text-primary-content border-primary shadow-md"
+                                            : "bg-base-100 border-base-300 hover:bg-base-200"
+                                        }
+                                    `}
+                                >
+                                    <Avatar src={p.imageUrl} name={p.name} size="xs" />
+                                    {p.name}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -221,15 +221,17 @@ export function NutritionPage() {
                                 personId={activeParticipant.personId}
                             />
                         ) : (
-                            <div className="p-8 text-center opacity-60">
-                                <ClipboardList className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                                <p className="text-sm">No hay plan asignado.</p>
-                                <button
-                                    onClick={() => setView("plans")}
-                                    className="btn btn-sm btn-link text-primary no-underline mt-2"
-                                >
-                                    Ir a Planes
-                                </button>
+                            <div className="px-4">
+                                <EmptyState
+                                    icon={ClipboardList}
+                                    title="Sin plan asignado"
+                                    description="Crea o asigna un plan nutricional para empezar a trackear."
+                                    action={
+                                        <button onClick={() => setView("plans")} className="btn btn-sm btn-primary">
+                                            Ir a Planes
+                                        </button>
+                                    }
+                                />
                             </div>
                         )
                     ) : (
@@ -242,9 +244,12 @@ export function NutritionPage() {
                     )}
                 </>
             ) : (
-                <div className="p-8 text-center text-subtle">
-                    <Utensils className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                    <p>Selecciona un miembro de la familia</p>
+                <div className="px-4">
+                    <EmptyState
+                        icon={Utensils}
+                        title="Selecciona un miembro"
+                        description="Elige un miembro de la familia para ver o editar su plan nutricional."
+                    />
                 </div>
             )}
         </div>
@@ -327,7 +332,7 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
             )}
 
             {/* Date Navigator */}
-            <div className="flex items-center justify-between bg-base-100 p-2 rounded-xl border border-base-200 shadow-sm">
+            <div className="flex items-center justify-between surface-card shadow-sm p-2">
                 <button onClick={() => shiftDate(-1)} className="btn btn-sm btn-ghost btn-circle">
                     <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -335,7 +340,7 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
                     <span className="font-bold block capitalize">
                         {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
                     </span>
-                    <span className="text-xs opacity-50 block">Hoy: {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</span>
+                    <span className="text-xs text-subtle block">Hoy: {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</span>
                 </div>
                 <button onClick={() => shiftDate(1)} className="btn btn-sm btn-ghost btn-circle">
                     <ChevronRight className="w-5 h-5" />
@@ -344,15 +349,15 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
 
             {/* Plan Header */}
             {activeAssignment ? (
-                <div className="bg-base-100 rounded-2xl p-4 border border-base-200 shadow-sm relative overflow-hidden">
+                <div className="surface-card shadow-sm p-4 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-3 opacity-10">
                         <CalendarIcon className="w-16 h-16" />
                     </div>
                     <div className="relative z-10">
-                        <p className="text-xs font-bold uppercase tracking-wider opacity-50 mb-1">Plan Asignado</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-subtle mb-1">Plan Asignado</p>
                         <h2 className="text-2xl font-black">{plan?.name}</h2>
-                        <p className="text-sm opacity-60 line-clamp-2">{plan?.description}</p>
-                        <div className="mt-4 flex items-center gap-2 text-xs font-mono opacity-50">
+                        <p className="text-sm text-muted line-clamp-2">{plan?.description}</p>
+                        <div className="mt-4 flex items-center gap-2 text-xs font-mono text-subtle">
                             <span>{plan?.targets?.calories ? `${plan.targets.calories} kcal` : "Sin meta calórica"}</span>
                         </div>
                     </div>
@@ -361,7 +366,7 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
                 <div className="text-center p-8 bg-base-100 rounded-xl border border-dashed border-base-300">
                     <Sparkles className="w-8 h-8 mx-auto mb-2 text-primary opacity-50" />
                     <p className="font-bold">Sin Plan Activo</p>
-                    <p className="text-xs opacity-60 mb-4">No hay un plan asignado para esta fecha.</p>
+                    <p className="text-xs text-muted mb-4">No hay un plan asignado para esta fecha.</p>
                 </div>
             )}
 
@@ -386,18 +391,18 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
                         const remaining = Math.max(0, target - current);
 
                         return (
-                            <div key={t.key} className="card bg-base-100 border border-base-200 shadow-sm">
+                            <div key={t.key} className="card surface-card shadow-sm">
                                 <div className="card-body p-4 flex-row items-center gap-4">
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${t.bg} ${t.color}`}>
+                                    <IconBadge color={`${t.bg} ${t.color}`} size="md" rounded="lg">
                                         <t.icon className="w-6 h-6" />
-                                    </div>
+                                    </IconBadge>
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-baseline mb-1">
                                             <h3 className="font-bold text-sm">{t.label}</h3>
                                             <span className="text-xs font-mono">
                                                 <span className="font-bold text-base">{current}</span>
-                                                <span className="opacity-40"> / {target}</span>
+                                                <span className="text-faint"> / {target}</span>
                                             </span>
                                         </div>
                                         <div className="w-full bg-base-200 rounded-full h-2 overflow-hidden">
@@ -408,7 +413,7 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
                                         </div>
                                         <div className="flex justify-between items-center mt-1">
                                             {remaining > 0 ? (
-                                                <p className="text-[10px] opacity-50">Faltan {remaining}</p>
+                                                <p className="text-[10px] text-subtle">Faltan {remaining}</p>
                                             ) : (
                                                 <p className="text-[10px] text-success font-bold">¡Completado!</p>
                                             )}
@@ -436,7 +441,7 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
                     })}
                 </div>
             ) : activeAssignment ? (
-                <div className="text-center p-8 opacity-40 text-sm">
+                <div className="text-center p-8 text-faint text-sm">
                     No hay objetivos definidos ni registros para este día.
                 </div>
             ) : null}
@@ -444,21 +449,21 @@ function DailyTracker({ familyId, personId }: { familyId: Id<"families">, person
             {/* Today's Meals List */}
             {todayMeals && todayMeals.length > 0 && (
                 <div className="mt-8">
-                    <h3 className="font-bold text-sm opacity-50 uppercase tracking-wider mb-3">Historial de hoy</h3>
+                    <SectionTitle className="uppercase tracking-wider">Historial de hoy</SectionTitle>
                     <div className="space-y-2">
                         {todayMeals.map((meal: Doc<"nutritionMeals">) => (
-                            <div key={meal._id} className="card bg-base-100 border border-base-200 p-3 flex-row justify-between items-center">
+                            <div key={meal._id} className="card surface-card p-3 flex-row justify-between items-center">
                                 <div>
                                     <p className="font-bold text-sm">{meal.name}</p>
-                                    <p className="text-xs opacity-50 flex gap-2">
+                                    <p className="text-xs text-subtle flex gap-2">
                                         {Object.entries(meal.content || {}).map(([k, v]) => {
                                             if (!v) return null;
                                             const label = NUTRIENTS.find(n => n.key === k)?.label || (k === 'other' ? 'Cheat Meal' : k);
-                                            return <span key={k} className={k === 'other' ? 'text-red-500 font-bold' : ''}>{label}: {String(v)}</span>
+                                            return <span key={k} className={k === 'other' ? 'text-error font-bold' : ''}>{label}: {String(v)}</span>
                                         })}
                                     </p>
                                 </div>
-                                <span className="text-xs opacity-30 font-mono">
+                                <span className="text-xs text-faint font-mono">
                                     {new Date(meal.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                             </div>
@@ -495,7 +500,7 @@ function PlansManager({ familyId, onCreate, onAssign, onEdit }: PlansManagerProp
 
             <div className="grid gap-3">
                 {plans?.map((plan: Doc<"nutritionPlans">) => (
-                    <div key={plan._id} className="card bg-base-100 border border-base-200 shadow-sm relative group">
+                    <div key={plan._id} className="card surface-card shadow-sm relative group">
                         {/* Edit Button (Absolute) */}
                         <button
                             onClick={(e) => { e.stopPropagation(); onEdit(plan); }}
@@ -508,7 +513,7 @@ function PlansManager({ familyId, onCreate, onAssign, onEdit }: PlansManagerProp
                             <div className="flex justify-between items-start">
                                 <div className="cursor-pointer flex-1" onClick={() => onEdit(plan)}>
                                     <h3 className="font-bold">{plan.name}</h3>
-                                    <p className="text-xs opacity-60 mb-2 line-clamp-2">{plan.description || "Sin descripción"}</p>
+                                    <p className="text-xs text-muted mb-2 line-clamp-2">{plan.description || "Sin descripción"}</p>
                                     <div className="flex flex-wrap gap-2">
                                         {plan.targets?.calories ? (
                                             <span className="badge badge-xs badge-neutral text-neutral-content">
@@ -529,9 +534,17 @@ function PlansManager({ familyId, onCreate, onAssign, onEdit }: PlansManagerProp
                     </div>
                 ))}
                 {plans?.length === 0 && (
-                    <div className="text-center p-8 opacity-50 text-sm bg-base-100 rounded-xl border border-dashed border-base-300">
-                        No hay planes creados aún.
-                    </div>
+                    <EmptyState
+                        icon={ClipboardList}
+                        title="Sin planes guardados"
+                        description="Crea tu primer plan nutricional para asignarlo a los miembros de la familia."
+                        action={
+                            <button onClick={onCreate} className="btn btn-sm btn-primary">
+                                <PlusCircle className="w-4 h-4" />
+                                Nuevo Plan
+                            </button>
+                        }
+                    />
                 )}
             </div>
         </div>
@@ -811,9 +824,9 @@ function PlanEditor({ familyId, plan, onClose }: { familyId: Id<"families">, pla
                 )}
 
                 {/* Basic Info */}
-                <div className="card bg-base-100 shadow-sm border border-base-200">
+                <div className="card surface-card shadow-sm">
                     <div className="card-body p-4 gap-4">
-                        <h3 className="font-bold text-sm uppercase opacity-50 tracking-wider">Detalles</h3>
+                        <SectionTitle className="uppercase tracking-wider !mb-0">Detalles</SectionTitle>
                         <div className="form-control">
                             <label className="label text-sm font-medium">Nombre</label>
                             <input
@@ -848,9 +861,9 @@ function PlanEditor({ familyId, plan, onClose }: { familyId: Id<"families">, pla
                 </div>
 
                 {/* Dynamic Portions */}
-                <div className="card bg-base-100 shadow-sm border border-base-200">
+                <div className="card surface-card shadow-sm">
                     <div className="card-body p-4">
-                        <h3 className="font-bold text-sm uppercase opacity-50 tracking-wider mb-2">Porciones Diarias</h3>
+                        <SectionTitle className="uppercase tracking-wider">Porciones Diarias</SectionTitle>
 
                         {/* Active List */}
                         <div className="space-y-3 mb-6">
@@ -878,7 +891,7 @@ function PlanEditor({ familyId, plan, onClose }: { familyId: Id<"families">, pla
                                 );
                             })}
                             {activeNutrients.size === 0 && (
-                                <div className="text-center py-6 opacity-40 text-sm border-2 border-dashed border-base-200 rounded-xl">
+                                <div className="text-center py-6 text-faint text-sm border-2 border-dashed border-base-200 rounded-xl">
                                     Agrega los elementos que quieres controlar
                                 </div>
                             )}
@@ -887,7 +900,7 @@ function PlanEditor({ familyId, plan, onClose }: { familyId: Id<"families">, pla
                         {/* Available Badges */}
                         {availableNutrients.length > 0 && (
                             <div>
-                                <p className="text-xs font-bold opacity-40 mb-3 uppercase tracking-wider">Agregar Elemento:</p>
+                                <p className="text-xs font-bold text-faint mb-3 uppercase tracking-wider">Agregar Elemento:</p>
                                 <div className="flex flex-wrap gap-2">
                                     {availableNutrients.map((n) => (
                                         <button
@@ -1005,7 +1018,7 @@ function AssignPlanModal({ familyId, personId, plan, onClose }: { familyId: Id<"
     return (
         <MobileModal title={`Asignar ${plan.name}`} onClose={onClose}>
             <div className="space-y-6">
-                <p className="text-sm opacity-60">Selecciona el rango de fechas para aplicar este plan alimenticio.</p>
+                <p className="text-sm text-muted">Selecciona el rango de fechas para aplicar este plan alimenticio.</p>
 
                 {error && <div className="alert alert-error text-xs">{error}</div>}
 

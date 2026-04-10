@@ -10,6 +10,8 @@ import { TextArea } from "../components/ui/TextArea";
 import { DateInput } from "../components/ui/DateInput";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
 import { DetailHeader } from "../components/ui/DetailHeader";
+import { Timeline, TimelineItem } from "../components/ui/Timeline";
+import { IconBadge } from "../components/ui/IconBadge";
 import { TripOverviewTab } from "../components/trips/tabs/TripOverviewTab";
 import { TripBookingsTab } from "../components/trips/tabs/TripBookingsTab";
 import { TripFinancesTab } from "../components/trips/tabs/TripFinancesTab";
@@ -131,15 +133,14 @@ export function TripDetailPage() {
 
                 {activeTab === "itinerary" && (
                     trip.startDate && trip.endDate ? (
-                        <div className="space-y-8">
+                        <Timeline className="ml-0 pl-0">
                             {sortedDates.map((dateKey) => {
                                 const dayItems = groupedItems[dateKey] || [];
                                 const isUnscheduled = dateKey === "unscheduled";
                                 const displayDate = isUnscheduled ? "Sin fecha" : new Date(dateKey).toLocaleDateString("es-ES", { weekday: 'long', day: 'numeric', month: 'long' });
 
                                 return (
-                                    <div key={dateKey} className="relative pl-4 border-l-2 border-primary/20 pb-4">
-                                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-primary border-4 border-base-100" />
+                                    <TimelineItem key={dateKey} className="pb-4">
                                         <h3 className="font-bold text-lg mb-3 capitalize text-primary">{displayDate}</h3>
                                         <div className="space-y-3">
                                             {dayItems.length === 0 ? (
@@ -151,10 +152,10 @@ export function TripDetailPage() {
                                                     if (item.kind === "booking") {
                                                         const Icon = BOOKING_ICONS[item.type as keyof typeof BOOKING_ICONS] || Plane;
                                                         return (
-                                                            <div key={item._id} className="card bg-base-200/50 border border-base-200 p-3 flex flex-row gap-3 items-center">
-                                                                <div className="p-2 bg-base-100 rounded-lg shrink-0">
+                                                            <div key={item._id} className="card surface-muted p-3 flex flex-row gap-3 items-center">
+                                                                <IconBadge size="sm" className="shrink-0">
                                                                     <Icon className="w-4 h-4 text-body" />
-                                                                </div>
+                                                                </IconBadge>
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="font-bold text-sm truncate">{item.provider}</div>
                                                                     <div className="text-xs text-muted flex gap-2">
@@ -185,10 +186,10 @@ export function TripDetailPage() {
                                         >
                                             <Plus className="w-3 h-3" /> Agregar actividad
                                         </button>
-                                    </div>
+                                    </TimelineItem>
                                 );
                             })}
-                        </div>
+                        </Timeline>
                     ) : (
                         <div className="text-center py-10 space-y-4">
                             <Calendar className="w-12 h-12 mx-auto text-base-content/20" />
