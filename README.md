@@ -39,21 +39,37 @@ sistema de gamificación de tareas del hogar.
 
 ```
 labs-kovan/
-├── convex/              # Backend Convex (queries, mutations, actions)
-│   ├── schema.ts        # Schema completo de la base de datos
-│   ├── household.ts     # Gamificación del hogar
-│   ├── lib/agent/       # Tools del agente IA
+├── convex/                  # Backend Convex (queries, mutations, actions)
+│   ├── schema.ts            # Schema completo de la base de datos
+│   ├── household.ts         # Gamificación del hogar
+│   ├── lib/agent/           # Tools del agente IA
 │   └── ...
 ├── src/
-│   ├── app/             # Composición top-level (AppProviders)
-│   ├── components/      # Componentes organizados por dominio
-│   │   ├── household/   # UI de gamificación
-│   │   ├── ui/          # Componentes reutilizables
-│   │   └── layout/      # Header, BottomNav, AppLayout
-│   ├── contexts/        # Auth, Family, Theme
-│   ├── hooks/           # Custom hooks
-│   ├── lib/             # Convex client, Cloudinary
-│   └── pages/           # Una página por ruta (lazy-loaded)
+│   ├── app/                 # Composición top-level (AppProviders)
+│   ├── components/          # Componentes organizados por dominio
+│   │   ├── household/       # UI de gamificación
+│   │   ├── ui/              # Primitivos del design system
+│   │   │   ├── PageHeader.tsx
+│   │   │   ├── StickyHeader.tsx
+│   │   │   ├── DetailHeader.tsx
+│   │   │   ├── SectionTitle.tsx
+│   │   │   ├── CircleAddButton.tsx
+│   │   │   ├── IconBadge.tsx
+│   │   │   ├── ContextMenu.tsx
+│   │   │   ├── Timeline.tsx
+│   │   │   ├── Avatar.tsx
+│   │   │   ├── EmptyState.tsx
+│   │   │   ├── MobileModal.tsx
+│   │   │   └── ...
+│   │   └── layout/          # Header, BottomNav, AppLayout
+│   ├── contexts/            # Auth, Family, Theme
+│   ├── hooks/               # Custom hooks
+│   ├── lib/                 # Convex client, Cloudinary, moduleColors
+│   │   ├── convex.ts
+│   │   ├── cloudinary.ts
+│   │   └── moduleColors.ts  # Registry centralizado de colores por feature
+│   ├── pages/               # Una página por ruta (lazy-loaded)
+│   └── index.css            # Tailwind + design tokens (text-*, surface-*)
 └── public/
 ```
 
@@ -277,6 +293,20 @@ Cambiar el color de un módulo en `moduleColors.ts` lo actualiza en todas partes
    Usar `moduleColor("finances")` de `lib/moduleColors.ts`.
 6. **No construir** dropdowns "⋮" inline. Usar `ContextMenu` con items.
 7. **No construir** avatars inline con `<img>` + fallback. Usar `<Avatar src={url} name={name} size="sm" />`.
+
+### Cobertura del design system
+
+Tras las rondas de homologación, **el 100% de las páginas de app** usa uno de
+los tres headers unificados:
+
+| Header          | Páginas                                                       |
+| --------------- | ------------------------------------------------------------- |
+| `PageHeader`    | Dashboard, Health, Pets, Vehicles, Trips, Recipes, Documents, Subscriptions, Contacts, Calendar, CalendarSettings, Activities, Diary, Collections, Gifts, More, Nutrition |
+| `StickyHeader`  | Tasks, Household, Finances, Places (via PlacesLayout) |
+| `DetailHeader`  | TripDetail, GiftEventDetail (via GiftEventHeader), PlaceVisits, HealthProfile, PetProfile, VehicleDetail, Family, Settings |
+
+Las únicas excepciones son los flujos pre-app (Login, Landing, FamilySetup) y
+el chat full-screen del Agente, que tienen layouts intencionalmente diferentes.
 
 ## Feature destacada: Gamificación del hogar
 
