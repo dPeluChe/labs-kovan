@@ -1,5 +1,26 @@
 # Design System follow-up — deferred migrations on 12 files
 
+> ## ✅ Status: APPLIED — historical reference only
+>
+> All 12 deferred migrations documented here were re-applied to `main` in **PR #2** (merge commit `5b16e9b`, 2026-04-10). This directory is preserved as a post-mortem of the per-file conflict resolution process, **not** as pending work. No action is required on any of the patches below.
+>
+> Relevant commits on `main`:
+>
+> - `5fe89d8` — NavOrderEditor react-refresh fix
+> - `91df3b2` — Low-priority token swaps (5 files)
+> - `2f08e48` — Medium-priority: GiftEventContent EmptyState + tokens
+> - `9d066ed` — FamilyPage DetailHeader
+> - `eac6165` — SettingsPage DetailHeader
+> - `86c55f3` — VehicleDetailPage DetailHeader + ContextMenu
+> - `aa345d7` — FinancesPage StickyHeader
+> - `e9db716` — TripDetailPage DetailHeader + Timeline + IconBadge
+> - `40acd01` — NutritionPage design system (biggest, distributed across 5 components)
+> - `f0c6b96` — InviteModal tokens cleanup
+>
+> This directory was moved from `docs/ds-followup/` to `docs/archived/2604-ds-followup/` on 2026-04-10 during the docs reorganization (see `docs/TASK_COMPLETED/2604.md`).
+
+---
+
 Context: during the merge of PR #1 (`claude/gamification-household-activities-GmVmf`)
 into local `main`, we decided **per-file** to keep the local structural refactor
 (component extraction, file splitting) over the PR's design system migration
