@@ -668,6 +668,40 @@ export default defineSchema({
   })
     .index("by_person_date", ["personId", "date"]),
 
+  // ==================== HOUSEHOLD GAMIFICATION ====================
+  householdActivities: defineTable({
+    familyId: v.id("families"),
+    name: v.string(), // "Lavar platos", "Cocinar", "Barrer"
+    emoji: v.string(), // "🍽️"
+    points: v.number(), // Puntos que vale
+    category: v.union(
+      v.literal("cleaning"), // Limpieza
+      v.literal("cooking"), // Cocina
+      v.literal("laundry"), // Ropa
+      v.literal("organization"), // Orden
+      v.literal("maintenance"), // Mantenimiento
+      v.literal("pets"), // Mascotas
+      v.literal("errands"), // Mandados
+      v.literal("other")
+    ),
+    isActive: v.optional(v.boolean()),
+    createdBy: v.id("users"),
+  }).index("by_family", ["familyId"]),
+
+  householdActivityLogs: defineTable({
+    familyId: v.id("families"),
+    activityId: v.id("householdActivities"),
+    userId: v.id("users"), // Quién hizo la actividad
+    loggedBy: v.id("users"), // Quién la registró (puede ser otro miembro)
+    points: v.number(), // Puntos al momento del registro
+    date: v.number(), // Timestamp
+    notes: v.optional(v.string()),
+  })
+    .index("by_family", ["familyId"])
+    .index("by_family_date", ["familyId", "date"])
+    .index("by_user", ["userId"])
+    .index("by_family_user", ["familyId", "userId"]),
+
   // ==================== DIARY ====================
   diaryEntries: defineTable({
     familyId: v.id("families"),

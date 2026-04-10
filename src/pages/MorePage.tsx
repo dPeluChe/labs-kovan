@@ -26,6 +26,7 @@ import {
   CreditCard,
   Utensils,
   BookHeart,
+  Medal,
 } from "lucide-react";
 
 const menuItems = [
@@ -119,6 +120,13 @@ const menuItems = [
     label: "Colecciones",
     description: "Libros, juegos y más",
     color: "bg-blue-500/10 text-blue-600",
+  },
+  {
+    to: "/household",
+    icon: Medal,
+    label: "Hogar",
+    description: "Actividades y puntos",
+    color: "bg-yellow-500/10 text-yellow-600",
   },
   {
     to: "/activities",

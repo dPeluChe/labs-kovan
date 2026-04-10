@@ -14,6 +14,7 @@ import {
   Book,
   Car,
   Bot,
+  Medal,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -40,6 +41,7 @@ const NAV_CONFIG: Record<string, { to: string; icon: LucideIcon; label: string; 
     color: "bg-blue-500/10 text-blue-600",
   },
   vehicles: { to: "/vehicles", icon: Car, label: "Autos" },
+  household: { to: "/household", icon: Medal, label: "Hogar", description: "Actividades y puntos familiares", color: "bg-yellow-500/10 text-yellow-600" },
   more: { to: "/more", icon: MoreHorizontal, label: "Más" },
 };
 

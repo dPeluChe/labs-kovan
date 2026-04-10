@@ -42,6 +42,7 @@ import { LandingPage } from "./pages/LandingPage";
 import { TripsPage } from "./pages/TripsPage";
 import { TripDetailPage } from "./pages/TripDetailPage";
 import { DiaryPage } from "./pages/DiaryPage";
+import { HouseholdPage } from "./pages/HouseholdPage";
 
 function AppRoutes() {
   const { user, isLoading: authLoading } = useAuth();
@@ -101,6 +102,7 @@ function AppRoutes() {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/contacts" element={<ContactsPage />} />
         <Route path="/diary" element={<DiaryPage />} />
+        <Route path="/household" element={<HouseholdPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
