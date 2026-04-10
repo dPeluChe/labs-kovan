@@ -67,7 +67,7 @@ export function AddVehicleEventModal({
       onClose={onClose}
       title="Nuevo evento"
     >
-      <p className="text-sm text-base-content/60 mb-4">{vehicleName}</p>
+      <p className="text-sm text-muted mb-4">{vehicleName}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="form-control">

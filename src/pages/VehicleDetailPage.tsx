@@ -6,12 +6,12 @@ import { useFamily } from "../contexts/FamilyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { EmptyState } from "../components/ui/EmptyState";
+import { DetailHeader } from "../components/ui/DetailHeader";
+import { ContextMenu } from "../components/ui/ContextMenu";
 import { useConfirmModal } from "../hooks/useConfirmModal";
 import {
-  ArrowLeft,
   Plus,
   Car,
-  MoreVertical,
   Edit2,
   Trash2,
   Calendar,
@@ -98,29 +98,24 @@ export function VehicleDetailPage() {
 
   return (
     <div className="pb-4">
-      <div className="bg-base-100 border-b border-base-300 sticky top-0 z-10">
-        <div className="flex items-center gap-3 p-4">
-          <button onClick={() => navigate("/vehicles")} className="btn btn-ghost btn-sm btn-circle">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold truncate">{vehicle.name}</h1>
-            <p className="text-sm text-base-content/60">
-              {[vehicle.brand, vehicle.model, vehicle.year].filter(Boolean).join(" ")}
-              {vehicle.plate && ` • ${vehicle.plate}`}
-            </p>
-          </div>
-          <div className="dropdown dropdown-end">
-            <button tabIndex={0} className="btn btn-ghost btn-sm btn-circle">
-              <MoreVertical className="w-5 h-5" />
-            </button>
-            <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-48">
-              <li><a onClick={() => setEditingVehicle(true)}><Edit2 className="w-4 h-4" /> Editar</a></li>
-              <li><a onClick={handleDeleteVehicle} className="text-error"><Trash2 className="w-4 h-4" /> Eliminar</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      <DetailHeader
+        title={vehicle.name}
+        onBack={() => navigate("/vehicles")}
+        subtitle={
+          <>
+            {[vehicle.brand, vehicle.model, vehicle.year].filter(Boolean).join(" ")}
+            {vehicle.plate && ` • ${vehicle.plate}`}
+          </>
+        }
+        action={
+          <ContextMenu
+            items={[
+              { icon: Edit2, label: "Editar", onClick: () => setEditingVehicle(true) },
+              { icon: Trash2, label: "Eliminar", onClick: handleDeleteVehicle, variant: "danger" },
+            ]}
+          />
+        }
+      />
 
       <div className="px-4 py-4">
         <div className="card bg-gradient-to-r from-green-500/20 to-emerald-500/10 border border-green-500/30">
@@ -132,13 +127,13 @@ export function VehicleDetailPage() {
               <div className="flex-1">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <div className="text-xs text-base-content/60">Total gastado</div>
+                    <div className="text-xs text-muted">Total gastado</div>
                     <div className="text-xl font-bold text-green-600">
                       ${totalSpent.toLocaleString()}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-base-content/60">Eventos</div>
+                    <div className="text-xs text-muted">Eventos</div>
                     <div className="text-xl font-bold">{events.length}</div>
                   </div>
                 </div>
@@ -186,7 +181,7 @@ export function VehicleDetailPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold">{event.title}</div>
-                        <div className="flex items-center gap-2 text-xs text-base-content/60">
+                        <div className="flex items-center gap-2 text-xs text-muted">
                           <span className="badge badge-sm badge-ghost">{config.label}</span>
                           <span>{new Date(event.date).toLocaleDateString("es-MX")}</span>
                           {event.odometer && (
@@ -209,7 +204,7 @@ export function VehicleDetailPage() {
                       </button>
                     </div>
                     {event.notes && (
-                      <p className="text-xs text-base-content/60 mt-1 pl-12">{event.notes}</p>
+                      <p className="text-xs text-muted mt-1 pl-12">{event.notes}</p>
                     )}
                   </div>
                 </div>
