@@ -1,5 +1,3 @@
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
 import { PageHeader } from "../components/ui/PageHeader";
 import { PageLoader } from "../components/ui/LoadingSpinner";
@@ -11,6 +9,7 @@ import {
 } from "lucide-react";
 import { DashboardCard } from "../components/dashboard/DashboardCard";
 import { QuickAddSection } from "../components/dashboard/QuickAddSection";
+import { useDashboardData } from "../hooks/useDashboardData";
 
 export function DashboardPage() {
   const { currentFamily, inviteError, clearInviteError } = useFamily();
@@ -22,104 +21,37 @@ export function DashboardPage() {
   else if (hour >= 12 && hour < 19) greeting = "Buenas tardes";
   else greeting = "Buenas noches";
 
-  // Existing queries
-  const giftEvents = useQuery(
-    api.gifts.getGiftEvents,
-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
-  );
-
-  const healthSummary = useQuery(
-    api.health.getHealthSummary,
-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
-  );
-
-  const librarySummary = useQuery(
-    api.collections.getCollectionSummary,
-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
-  );
-
-  const vehiclesSummary = useQuery(
-    api.vehicles.getVehiclesSummary,
-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
-  );
-
-  const upcomingEvents = useQuery(
-    api.calendar.getUpcomingEvents,
-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id, limit: 3 } : "skip"
-  );
-
-  // New queries
-  const expensesSummary = useQuery(
-    api.expenses.getExpenseSummary,
-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
-  );
-
-  const recipesSummary = useQuery(
-    api.recipes.getRecipeSummary,
-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
-  );
-
-  const placesSummary = useQuery(
-    api.places.getPlaceSummary,
-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
-  );
-
-  const subscriptions = useQuery(
-    api.subscriptions.list,
-    currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
-  );
-
-  const documents = useQuery(
-    api.documents.list,
-    currentFamily && sessionToken ? { familyId: currentFamily._id, sessionToken } : "skip"
-  );
+  const {
+    now,
+    giftEvents,
+    healthSummary,
+    librarySummary,
+    vehiclesSummary,
+    upcomingEvents,
+    expensesSummary,
+    recipesSummary,
+    placesSummary,
+    subscriptions,
+    subTotalMonthly,
+    subActiveCount,
+    expiringDocuments,
+    hasGifts,
+    hasHealth,
+    hasLibrary,
+    hasVehicles,
+    hasCalendar,
+    hasExpenses,
+    hasRecipes,
+    hasPlaces,
+    hasSubscriptions,
+    hasDocuments,
+    isLoading,
+    hasAnyData,
+  } = useDashboardData({ familyId: currentFamily?._id, sessionToken });
 
   if (!currentFamily) {
     return <PageLoader />;
   }
-
-  // Calculate Subscriptions totals (Monthly approx)
-  const subTotalMonthly = subscriptions?.reduce((acc, sub) => {
-    if (!sub.isActive || !sub.amount) return acc;
-    let monthlyAmount = sub.amount;
-    if (sub.billingCycle === "bimonthly") monthlyAmount /= 2;
-    if (sub.billingCycle === "quarterly") monthlyAmount /= 3;
-    if (sub.billingCycle === "annual") monthlyAmount /= 12;
-    if (sub.billingCycle === "variable") return acc;
-    return acc + monthlyAmount;
-  }, 0) || 0;
-  const subActiveCount = subscriptions?.filter(s => s.isActive).length || 0;
-
-  // Calculate Expiring Documents (Next 30 days)
-  const now = new Date().getTime();
-  const thirtyDaysFromNow = now + 30 * 24 * 60 * 60 * 1000;
-  const expiringDocuments = documents?.filter(d =>
-    !d.isArchived && d.expiryDate && d.expiryDate <= thirtyDaysFromNow
-  ).sort((a, b) => (a.expiryDate || 0) - (b.expiryDate || 0)) || [];
-
-
-  // Helper to check if section has data
-  const hasGifts = giftEvents && giftEvents.length > 0;
-  const hasHealth = healthSummary && healthSummary.profileCount > 0;
-  const hasLibrary = librarySummary && (librarySummary.owned > 0 || librarySummary.wishlist > 0);
-  const hasVehicles = vehiclesSummary && vehiclesSummary.vehicleCount > 0;
-  const hasCalendar = upcomingEvents && upcomingEvents.length > 0;
-  const hasExpenses = expensesSummary && expensesSummary.countThisMonth > 0;
-  const hasRecipes = recipesSummary && recipesSummary.total > 0;
-  const hasPlaces = placesSummary && placesSummary.total > 0;
-  const hasSubscriptions = subscriptions && subscriptions.length > 0;
-  const hasDocuments = documents && documents.length > 0;
-
-  const isLoading =
-    giftEvents === undefined ||
-    healthSummary === undefined ||
-    expensesSummary === undefined ||
-    recipesSummary === undefined ||
-    placesSummary === undefined ||
-    subscriptions === undefined ||
-    documents === undefined;
-
-  const hasAnyData = hasGifts || hasHealth || hasLibrary || hasVehicles || hasCalendar || hasExpenses || hasRecipes || hasPlaces || hasSubscriptions || hasDocuments;
 
   return (
     <div className="pb-4">
