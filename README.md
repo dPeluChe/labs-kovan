@@ -117,10 +117,34 @@ npm run dev
 - `npm run dev` - Servidor de desarrollo (Vite)
 - `npm run build` - Build de producción (`tsc -b && vite build`)
 - `npm run lint` - ESLint
+- `npm run test` - Corre el suite de tests con Vitest (una pasada, CI-friendly)
+- `npm run test:watch` - Vitest en modo watch para desarrollo
 - `npm run preview` - Preview del build de producción
 
 Nota: puede aparecer un warning conocido de DaisyUI (`@property`) durante
 `build`; actualmente no bloquea compilación.
+
+### Testing
+
+El proyecto usa [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com/docs/react-testing-library/intro)
+para tests unitarios del frontend. El setup vive en:
+
+- `vitest.config.ts` — configuración (jsdom, setup file, match pattern)
+- `src/test/setup.ts` — extiende `expect` con los matchers de `@testing-library/jest-dom`
+- `src/**/*.test.tsx` — los tests, colocated con el código que testean
+
+Convención:
+
+- Los tests importan `describe`, `it`, `expect`, `vi` explícitamente desde
+  `vitest` (no globals) para que TypeScript y ESLint vean las referencias.
+- Los tests que usan React Router deben envolver el componente en
+  `<MemoryRouter>` (ver `DetailHeader.test.tsx`).
+- Prioridad actual: primitivos compartidos del design system. Cuando
+  agregues un componente nuevo a `src/components/ui/`, acompáñalo con un
+  smoke test mínimo (render + props básicos).
+
+El workflow de CI (`.github/workflows/ci.yml`) corre `lint → test → build`
+en cada push a `main` y en cada PR contra `main`.
 
 ## Estado del proyecto (auth y seguridad)
 
