@@ -16,21 +16,6 @@ _(vacío — agregar aquí lo que está activamente en trabajo)_
 
 ## Priority 2 — Siguiente
 
-### MCP-TOOLS-A: Lecturas faltantes para simetría del catálogo MCP `added: 2026-06-10`
-
-El catálogo actual (27 tools) nació orientado a captura; varios módulos son
-write-only o no están expuestos. Este lote son envolturas delgadas sobre
-queries existentes (esfuerzo bajo, valor alto). Convenciones en
-[`docs/MCP.md`](./MCP.md): fuzzy match con `findBestMatch`, errores
-accionables que listan candidatos, nunca crear entidades sin confirmación.
-
-- [ ] `searchContacts` + `addContact` — directorio ("dame el teléfono del veterinario")
-- [ ] `getPlaces` (filtro por categoría) + `registerPlaceVisit` — lugares es write-only hoy
-- [ ] `listRecipes` con búsqueda por título/categoría — recetas es write-only hoy
-- [ ] `getExpiringDocuments` — SOLO metadata (título, tipo, fecha de vencimiento); nunca contenido de la bóveda
-- [ ] `getVehicleReminders` — próximos mantenimientos vía `nextDate` de `vehicleEvents`
-- [ ] `listFamilyMembers` — solo lectura, ayuda al agente a desambiguar nombres (regalos, salud, hogar)
-
 ### MCP-TOOLS-B: Escrituras que completan flujos `added: 2026-06-10`
 
 - [ ] `addMedication` / `addMedicalRecord` — con fuzzy match del perfil (persona/mascota) vía `getPersonProfiles`
