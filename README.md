@@ -20,6 +20,7 @@ sistema de gamificación de tareas del hogar.
 | ----------------- | -------------------------------------------------------------------- |
 | **Hogar (NEW)**   | Gamificación: registra tareas del hogar, gana puntos, ranking semanal |
 | **Kovan (Agent)** | Asistente IA con tools para crear/consultar datos en lenguaje natural |
+| **MCP (NEW)**     | Servidor MCP integrado: conecta Claude Code/Desktop con API keys ([docs](docs/MCP.md)) |
 | **Finanzas**      | Gastos, suscripciones, préstamos                                     |
 | **Calendario**    | Sincronización con Google Calendar                                  |
 | **Salud**         | Expedientes médicos, medicamentos, estudios                          |
@@ -41,6 +42,8 @@ sistema de gamificación de tareas del hogar.
 labs-kovan/
 ├── convex/                  # Backend Convex (queries, mutations, actions)
 │   ├── schema.ts            # Schema completo de la base de datos
+│   ├── http.ts              # Endpoint HTTP: servidor MCP (POST /mcp)
+│   ├── apiTokens.ts         # API keys personales para clientes MCP
 │   ├── household.ts         # Gamificación del hogar
 │   ├── calendar/            # Calendario + Google Calendar sync (submódulos)
 │   ├── contacts/            # Directorio de contactos (submódulos)

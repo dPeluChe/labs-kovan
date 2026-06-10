@@ -54,9 +54,12 @@ export const list = query({
 });
 
 export const getTask = query({
-    args: { taskId: v.id("tasks") },
+    args: { sessionToken: v.string(), taskId: v.id("tasks") },
     handler: async (ctx, args) => {
-        return await ctx.db.get(args.taskId);
+        const task = await ctx.db.get(args.taskId);
+        if (!task) return null;
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, task.familyId);
+        return task;
     },
 });
 

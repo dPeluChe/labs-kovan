@@ -1,11 +1,23 @@
 import { api } from "../../../_generated/api";
 import type { ToolDefinition, ToolContext } from "../tools.types";
+import { parseLocalDate } from "../dates";
 import {
   type GiftStatus,
   findGiftEventByName,
   findGiftItemByTitle,
   findOrCreateRecipientId,
+  listGiftEventNames,
 } from "./helpers";
+
+async function eventNotFoundError(context: ToolContext, eventName: string) {
+  const names = await listGiftEventNames(context);
+  const available = names.length > 0
+    ? ` Eventos existentes: ${names.join(", ")}.`
+    : " No hay eventos de regalos creados.";
+  return {
+    error: `No se encontró el evento "${eventName}".${available} Verifica el nombre o crea el evento primero con createGiftEvent.`,
+  };
+}
 
 export const createGiftEventTool: ToolDefinition = {
   name: "createGiftEvent",
@@ -34,11 +46,20 @@ export const createGiftEventTool: ToolDefinition = {
 export async function handleCreateGiftEvent(context: ToolContext, args: Record<string, unknown>) {
   const { name, date, description } = args as { name: string; date?: string; description?: string };
 
+  let eventDate: number | undefined;
+  if (date) {
+    const parsed = parseLocalDate(date);
+    if (parsed === null) {
+      return { success: false, message: `La fecha "${date}" no es válida. Usa el formato YYYY-MM-DD.` };
+    }
+    eventDate = parsed;
+  }
+
   await context.ctx.runMutation(api.gifts.createGiftEvent, {
     sessionToken: context.sessionToken,
     familyId: context.familyId,
     name,
-    date: date ? new Date(date).getTime() : undefined,
+    date: eventDate,
     description,
   });
 
@@ -100,9 +121,7 @@ export async function handleAddGiftToEvent(context: ToolContext, args: Record<st
 
   const event = await findGiftEventByName(context, eventName);
   if (!event) {
-    return {
-      error: `No se encontró el evento "${eventName}". Crea el evento primero con createGiftEvent.`,
-    };
+    return await eventNotFoundError(context, eventName);
   }
 
   let recipientId: string | undefined;
@@ -161,11 +180,11 @@ export async function handleUpdateGiftStatus(context: ToolContext, args: Record<
   };
 
   const event = await findGiftEventByName(context, eventName);
-  if (!event) return { error: `No se encontró el evento "${eventName}".` };
+  if (!event) return await eventNotFoundError(context, eventName);
 
   const targetItem = await findGiftItemByTitle(context, event._id, giftTitle);
   if (!targetItem) {
-    return { error: `No se encontró el regalo "${giftTitle}" en el evento "${event.name}".` };
+    return { error: `No se encontró el regalo "${giftTitle}" en el evento "${event.name}". Usa getGiftsForEvent para ver los regalos existentes.` };
   }
 
   await context.ctx.runMutation(api.gifts.updateGiftItem, {
@@ -233,11 +252,11 @@ export async function handleUpdateGiftItem(context: ToolContext, args: Record<st
   };
 
   const event = await findGiftEventByName(context, eventName);
-  if (!event) return { error: `No se encontró el evento "${eventName}".` };
+  if (!event) return await eventNotFoundError(context, eventName);
 
   const targetItem = await findGiftItemByTitle(context, event._id, giftTitle);
   if (!targetItem) {
-    return { error: `No se encontró el regalo "${giftTitle}" en el evento "${event.name}".` };
+    return { error: `No se encontró el regalo "${giftTitle}" en el evento "${event.name}". Usa getGiftsForEvent para ver los regalos existentes.` };
   }
 
   const updates: Record<string, unknown> = {

@@ -1,10 +1,15 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "../_generated/server";
+import { requireFamilyAccessFromSession } from "../lib/auth";
 import { CATEGORY_TYPE, EXPENSE_TYPE } from "./types";
 
+// Aunque son internal*, validan sessionToken igual que el resto del backend:
+// la invariante es que ningún acceso a datos confíe en un familyId suelto.
+
 export const agentGetExpenseSummary = internalQuery({
-  args: { familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
+    await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     const expenses = await ctx.db
@@ -35,6 +40,7 @@ export const agentGetExpenseSummary = internalQuery({
 
 export const agentCreateExpense = internalMutation({
   args: {
+    sessionToken: v.string(),
     familyId: v.id("families"),
     type: EXPENSE_TYPE,
     category: CATEGORY_TYPE,
@@ -51,6 +57,8 @@ export const agentCreateExpense = internalMutation({
     giftEventId: v.optional(v.id("giftEvents")),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("expenses", args);
+    const { sessionToken, ...expense } = args;
+    await requireFamilyAccessFromSession(ctx, sessionToken, args.familyId);
+    return await ctx.db.insert("expenses", expense);
   },
 });

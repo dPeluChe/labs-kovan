@@ -20,9 +20,14 @@ convex/
 │   ├── types.ts                 # Validators y tipos compartidos
 │   └── ...                      # Otros submódulos por feature (events, items...)
 │
+├── http.ts                      # Router HTTP: servidor MCP en POST /mcp
+├── apiTokens.ts                 # API keys personales (auth de clientes MCP)
+│
 ├── lib/
 │   ├── auth.ts                  # Primitivas de sesión, hashing, acceso familiar
 │   ├── utils.ts                 # Helpers genéricos de backend
+│   ├── mcp/
+│   │   └── protocol.ts          # Helpers puros JSON-RPC / MCP (testeables)
 │   └── agent/                   # Definición de tools para el agente IA
 │       ├── tools.<feature>.ts   # Barrel por feature (si aplica)
 │       └── <feature>Tools/      # Tools partidas en read.ts / write.ts / helpers.ts

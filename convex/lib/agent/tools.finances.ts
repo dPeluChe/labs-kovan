@@ -1,5 +1,6 @@
 import { api, internal } from "../../_generated/api";
 import type { ToolDefinition, ToolContext } from "./tools.types";
+import { parseLocalDate } from "./dates";
 
 // ==================== READ TOOLS ====================
 
@@ -15,6 +16,7 @@ export const getExpenseSummaryTool: ToolDefinition = {
 
 export async function handleGetExpenseSummary(context: ToolContext) {
     const summary = await context.ctx.runQuery(internal.expenses.agentGetExpenseSummary, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId
     });
 
@@ -98,13 +100,23 @@ export const registerExpenseTool: ToolDefinition = {
 export async function handleRegisterExpense(context: ToolContext, args: Record<string, unknown>) {
     const { description, amount, category, date } = args as { description: string; amount: number; category: string; date?: string };
 
+    if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) {
+        return { success: false, message: `El monto "${amount}" no es válido. Debe ser un número mayor a 0.` };
+    }
+
+    const expenseDate = date ? parseLocalDate(date) : Date.now();
+    if (expenseDate === null) {
+        return { success: false, message: `La fecha "${date}" no es válida. Usa el formato YYYY-MM-DD.` };
+    }
+
     await context.ctx.runMutation(internal.expenses.agentCreateExpense, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId,
         description,
         amount,
         category: category as "food" | "transport" | "entertainment" | "utilities" | "health" | "shopping" | "home" | "education" | "gifts" | "other",
         type: "general",
-        date: date ? new Date(date).getTime() : Date.now(),
+        date: expenseDate,
         paidBy: context.userId,
     });
 
@@ -137,6 +149,10 @@ export const registerLoanTool: ToolDefinition = {
 
 export async function handleRegisterLoan(context: ToolContext, args: Record<string, unknown>) {
     const { type, personName, amount } = args as { type: string; personName: string; amount: number };
+
+    if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) {
+        return { success: false, message: `El monto "${amount}" no es válido. Debe ser un número mayor a 0.` };
+    }
 
     await context.ctx.runMutation(api.loans.create, {
         sessionToken: context.sessionToken,

@@ -6,6 +6,14 @@ export * from "./tools.places";
 export * from "./tools.recipes";
 export * from "./tools.vehicles";
 export * from "./tools.gifts";
+export * from "./tools.tasks";
+export * from "./tools.calendar";
+export * from "./tools.health";
+export * from "./tools.subscriptions";
+export * from "./tools.household";
+export * from "./tools.trips";
+export * from "./tools.diary";
+export * from "./tools.overview";
 
 import type { ToolDefinition, ToolHandler } from "./tools.types";
 import {
@@ -20,7 +28,10 @@ import {
 } from "./tools.collections";
 import { addPlaceTool, handleAddPlace } from "./tools.places";
 import { addRecipeTool, handleAddRecipe } from "./tools.recipes";
-import { addVehicleEventTool, handleAddVehicleEvent } from "./tools.vehicles";
+import {
+    addVehicleEventTool, handleAddVehicleEvent,
+    listVehiclesTool, handleListVehicles
+} from "./tools.vehicles";
 import {
     createGiftEventTool, handleCreateGiftEvent,
     addGiftToEventTool, handleAddGiftToEvent,
@@ -29,13 +40,38 @@ import {
     getGiftsForPersonTool, handleGetGiftsForPerson,
     updateGiftItemTool, handleUpdateGiftItem
 } from "./tools.gifts";
+import {
+    listTasksTool, handleListTasks,
+    addTaskTool, handleAddTask,
+    completeTaskTool, handleCompleteTask
+} from "./tools.tasks";
+import { getUpcomingEventsTool, handleGetUpcomingEvents } from "./tools.calendar";
+import { getHealthSummaryTool, handleGetHealthSummary } from "./tools.health";
+import { getSubscriptionsTool, handleGetSubscriptions } from "./tools.subscriptions";
+import {
+    getHouseholdRankingTool, handleGetHouseholdRanking,
+    logHouseholdActivityTool, handleLogHouseholdActivity
+} from "./tools.household";
+import { getTripsTool, handleGetTrips } from "./tools.trips";
+import { addDiaryEntryTool, handleAddDiaryEntry } from "./tools.diary";
+import { getFamilyOverviewTool, handleGetFamilyOverview } from "./tools.overview";
 
 // Combined registry of all tools
 export const allToolDefinitions: ToolDefinition[] = [
+    // Overview
+    getFamilyOverviewTool,
+
     // Read tools
     getExpenseSummaryTool,
     getLoansTool,
     getCollectionsTool,
+    listVehiclesTool,
+    listTasksTool,
+    getUpcomingEventsTool,
+    getHealthSummaryTool,
+    getSubscriptionsTool,
+    getHouseholdRankingTool,
+    getTripsTool,
 
     // Write tools
     registerExpenseTool,
@@ -44,6 +80,10 @@ export const allToolDefinitions: ToolDefinition[] = [
     addPlaceTool,
     addRecipeTool,
     addVehicleEventTool,
+    addTaskTool,
+    completeTaskTool,
+    logHouseholdActivityTool,
+    addDiaryEntryTool,
 
     // Gifts tools
     createGiftEventTool,
@@ -56,15 +96,27 @@ export const allToolDefinitions: ToolDefinition[] = [
 
 // Handler registry
 export const toolHandlers: Record<string, ToolHandler> = {
+    getFamilyOverview: handleGetFamilyOverview,
     getExpenseSummary: handleGetExpenseSummary,
     getLoans: handleGetLoans,
     getCollections: handleGetCollections,
+    listVehicles: handleListVehicles,
+    listTasks: handleListTasks,
+    getUpcomingEvents: handleGetUpcomingEvents,
+    getHealthSummary: handleGetHealthSummary,
+    getSubscriptions: handleGetSubscriptions,
+    getHouseholdRanking: handleGetHouseholdRanking,
+    getTrips: handleGetTrips,
     registerExpense: handleRegisterExpense,
     registerLoan: handleRegisterLoan,
     addToCollection: handleAddToCollection,
     addPlace: handleAddPlace,
     addRecipe: handleAddRecipe,
     addVehicleEvent: handleAddVehicleEvent,
+    addTask: handleAddTask,
+    completeTask: handleCompleteTask,
+    logHouseholdActivity: handleLogHouseholdActivity,
+    addDiaryEntry: handleAddDiaryEntry,
     createGiftEvent: handleCreateGiftEvent,
     addGiftToEvent: handleAddGiftToEvent,
     updateGiftStatus: handleUpdateGiftStatus,

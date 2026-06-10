@@ -6,7 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { PageLoader } from "../components/ui/LoadingSpinner";
 import { useToast } from "../components/ui/Toast";
 import { DetailHeader } from "../components/ui/DetailHeader";
-import { LogOut, Check, Pen } from "lucide-react";
+import { LogOut, Check, Pen, Plug, ChevronRight } from "lucide-react";
 import { EditProfileModal } from "../components/settings/EditProfileModal";
 import { NavOrderEditor } from "../components/settings/NavOrderEditor";
 import { ALL_NAV_ITEMS, DEFAULT_NAV_ORDER } from "../components/settings/navOrderConstants";
@@ -172,6 +172,27 @@ export function SettingsPage() {
           onDragEnd={handleDragEnd}
           onMoveItem={moveItem}
         />
+
+        {/* MCP connections */}
+        <button
+          onClick={() => navigate("/mcp")}
+          className="card bg-base-100 shadow-sm border border-base-300 w-full text-left card-interactive"
+        >
+          <div className="card-body p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <Plug className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold">Conexiones MCP</h3>
+                <p className="text-xs text-muted">
+                  Llaves para conectar Claude y otros agentes IA
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-faint" />
+            </div>
+          </div>
+        </button>
 
         {/* Logout */}
         <button

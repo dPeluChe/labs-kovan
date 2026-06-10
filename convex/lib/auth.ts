@@ -89,10 +89,10 @@ export async function createSession(ctx: MutationCtx, userId: Id<"users">) {
   return rawToken;
 }
 
-export async function getUserFromSessionToken(
+async function getSessionByToken(
   ctx: Ctx,
   sessionToken: string
-): Promise<Doc<"users"> | null> {
+): Promise<Doc<"sessions"> | null> {
   const tokenHash = await sha256Hex(sessionToken);
   const session = await ctx.db
     .query("sessions")
@@ -110,6 +110,17 @@ export async function getUserFromSessionToken(
     return null;
   }
 
+  return session;
+}
+
+export async function getUserFromSessionToken(
+  ctx: Ctx,
+  sessionToken: string
+): Promise<Doc<"users"> | null> {
+  const session = await getSessionByToken(ctx, sessionToken);
+  if (!session) {
+    return null;
+  }
   return await ctx.db.get(session.userId);
 }
 
@@ -169,7 +180,22 @@ export async function requireFamilyAccessFromSession(
   sessionToken: string,
   familyId: Id<"families">
 ) {
-  const user = await requireUserFromSessionToken(ctx, sessionToken);
+  const session = await getSessionByToken(ctx, sessionToken);
+  if (!session) {
+    throw new Error("Sesión inválida o expirada");
+  }
+
+  // Las sesiones MCP quedan acotadas a la familia de su API key: aunque el
+  // usuario pertenezca a varias familias, esta sesión solo abre una.
+  if (session.familyId && session.familyId !== familyId) {
+    throw new Error("No tienes acceso a esta familia");
+  }
+
+  const user = await ctx.db.get(session.userId);
+  if (!user) {
+    throw new Error("Sesión inválida o expirada");
+  }
+
   const membership = await requireFamilyMembership(ctx, familyId, user._id);
   return { user, membership };
 }

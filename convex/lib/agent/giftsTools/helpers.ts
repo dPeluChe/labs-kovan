@@ -1,7 +1,14 @@
 import { api } from "../../../_generated/api";
 import type { ToolContext } from "../tools.types";
+import { findBestMatch } from "../fuzzyMatch";
 
 export type GiftStatus = "idea" | "to_buy" | "bought" | "wrapped" | "delivered";
+
+const EVENT_MATCH_THRESHOLD = 0.55;
+const ITEM_MATCH_THRESHOLD = 0.55;
+// Más estricto para personas: asignar un regalo al destinatario equivocado
+// es peor que crear uno nuevo.
+const RECIPIENT_MATCH_THRESHOLD = 0.75;
 
 export async function findGiftEventByName(context: ToolContext, eventName: string) {
   const events = await context.ctx.runQuery(api.gifts.getGiftEvents, {
@@ -9,11 +16,15 @@ export async function findGiftEventByName(context: ToolContext, eventName: strin
     familyId: context.familyId,
   });
 
-  return events.find(
-    (event: { name: string }) =>
-      event.name.toLowerCase().includes(eventName.toLowerCase()) ||
-      eventName.toLowerCase().includes(event.name.toLowerCase())
-  );
+  return findBestMatch(eventName, events, (event: { name: string }) => event.name, EVENT_MATCH_THRESHOLD);
+}
+
+export async function listGiftEventNames(context: ToolContext): Promise<string[]> {
+  const events = await context.ctx.runQuery(api.gifts.getGiftEvents, {
+    sessionToken: context.sessionToken,
+    familyId: context.familyId,
+  });
+  return events.map((event: { name: string }) => event.name);
 }
 
 export async function findOrCreateRecipientId(
@@ -26,10 +37,11 @@ export async function findOrCreateRecipientId(
     eventId: eventId as unknown as never,
   });
 
-  const recipient = recipients.find(
-    (item: { name: string }) =>
-      item.name.toLowerCase().includes(recipientName.toLowerCase()) ||
-      recipientName.toLowerCase().includes(item.name.toLowerCase())
+  const recipient = findBestMatch(
+    recipientName,
+    recipients,
+    (item: { name: string }) => item.name,
+    RECIPIENT_MATCH_THRESHOLD
   );
 
   if (recipient) return recipient._id;
@@ -47,14 +59,6 @@ export async function findGiftItemByTitle(context: ToolContext, eventId: string,
     eventId: eventId as unknown as never,
   });
 
-  for (const { items } of allItems) {
-    const found = items.find(
-      (item: { title: string }) =>
-        item.title.toLowerCase().includes(giftTitle.toLowerCase()) ||
-        giftTitle.toLowerCase().includes(item.title.toLowerCase())
-    );
-    if (found) return found as { _id: string; title: string };
-  }
-
-  return null;
+  const flattened = allItems.flatMap(({ items }: { items: { _id: string; title: string }[] }) => items);
+  return findBestMatch(giftTitle, flattened, (item) => item.title, ITEM_MATCH_THRESHOLD);
 }

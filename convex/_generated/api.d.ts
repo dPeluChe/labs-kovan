@@ -11,6 +11,7 @@
 import type * as admin from "../admin.js";
 import type * as agent from "../agent.js";
 import type * as agentConversations from "../agentConversations.js";
+import type * as apiTokens from "../apiTokens.js";
 import type * as calendar from "../calendar.js";
 import type * as cloudinary from "../cloudinary.js";
 import type * as collections from "../collections.js";
@@ -25,7 +26,9 @@ import type * as games from "../games.js";
 import type * as gifts from "../gifts.js";
 import type * as health from "../health.js";
 import type * as household from "../household.js";
+import type * as http from "../http.js";
 import type * as lib_agent_fuzzyMatch from "../lib/agent/fuzzyMatch.js";
+import type * as lib_mcp_protocol from "../lib/mcp/protocol.js";
 import type * as lib_agent_index from "../lib/agent/index.js";
 import type * as lib_utils from "../lib/utils.js";
 import type * as loans from "../loans.js";
@@ -49,6 +52,7 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   agent: typeof agent;
   agentConversations: typeof agentConversations;
+  apiTokens: typeof apiTokens;
   calendar: typeof calendar;
   cloudinary: typeof cloudinary;
   collections: typeof collections;
@@ -63,7 +67,9 @@ declare const fullApi: ApiFromModules<{
   gifts: typeof gifts;
   health: typeof health;
   household: typeof household;
+  http: typeof http;
   "lib/agent/fuzzyMatch": typeof lib_agent_fuzzyMatch;
+  "lib/mcp/protocol": typeof lib_mcp_protocol;
   "lib/agent/index": typeof lib_agent_index;
   "lib/utils": typeof lib_utils;
   loans: typeof loans;

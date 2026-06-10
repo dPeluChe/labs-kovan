@@ -25,10 +25,29 @@ export default defineSchema({
     tokenHash: v.string(),
     createdAt: v.number(),
     expiresAt: v.number(),
+    // Las sesiones efímeras del endpoint MCP llevan kind="mcp" y quedan
+    // ligadas a la familia de su API key; las de login no traen estos campos.
+    kind: v.optional(v.literal("mcp")),
+    familyId: v.optional(v.id("families")),
   })
     .index("by_user", ["userId"])
     .index("by_token_hash", ["tokenHash"])
     .index("by_expires_at", ["expiresAt"]),
+
+  // API keys de larga vida para clientes externos (MCP). Se guarda solo el
+  // hash SHA-256 del token; el valor en claro se muestra una única vez al crearlo.
+  apiTokens: defineTable({
+    userId: v.id("users"),
+    familyId: v.id("families"),
+    name: v.string(),
+    tokenHash: v.string(),
+    tokenPrefix: v.string(),
+    createdAt: v.number(),
+    lastUsedAt: v.optional(v.number()),
+    revokedAt: v.optional(v.number()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_token_hash", ["tokenHash"]),
 
   families: defineTable({
     name: v.string(),

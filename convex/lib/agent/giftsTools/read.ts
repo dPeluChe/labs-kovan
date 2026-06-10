@@ -1,6 +1,15 @@
 import { api } from "../../../_generated/api";
 import type { ToolDefinition, ToolContext } from "../tools.types";
-import { findGiftEventByName } from "./helpers";
+import { findBestMatch } from "../fuzzyMatch";
+import { findGiftEventByName, listGiftEventNames } from "./helpers";
+
+async function eventNotFoundError(context: ToolContext, eventName: string) {
+  const names = await listGiftEventNames(context);
+  const available = names.length > 0
+    ? ` Eventos existentes: ${names.join(", ")}.`
+    : " No hay eventos de regalos creados.";
+  return { error: `No se encontró el evento "${eventName}".${available}` };
+}
 
 export const getGiftsForEventTool: ToolDefinition = {
   name: "getGiftsForEvent",
@@ -22,7 +31,7 @@ export async function handleGetGiftsForEvent(context: ToolContext, args: Record<
   const { eventName } = args as { eventName: string };
   const event = await findGiftEventByName(context, eventName);
 
-  if (!event) return { error: `No se encontró el evento "${eventName}".` };
+  if (!event) return await eventNotFoundError(context, eventName);
 
   const allItems = await context.ctx.runQuery(api.gifts.getAllGiftItemsForEvent, {
     sessionToken: context.sessionToken,
@@ -69,21 +78,24 @@ export async function handleGetGiftsForPerson(context: ToolContext, args: Record
   const { eventName, personName } = args as { eventName: string; personName: string };
   const event = await findGiftEventByName(context, eventName);
 
-  if (!event) return { error: `No se encontró el evento "${eventName}".` };
+  if (!event) return await eventNotFoundError(context, eventName);
 
   const recipients = await context.ctx.runQuery(api.gifts.getGiftRecipients, {
     sessionToken: context.sessionToken,
     eventId: event._id,
   });
 
-  const recipient = recipients.find(
-    (item: { name: string }) =>
-      item.name.toLowerCase().includes(personName.toLowerCase()) ||
-      personName.toLowerCase().includes(item.name.toLowerCase())
+  const recipient = findBestMatch(
+    personName,
+    recipients,
+    (item: { name: string }) => item.name,
+    0.75
   );
 
   if (!recipient) {
-    return { error: `No se encontró a "${personName}" en el evento "${event.name}".` };
+    const names = recipients.map((r: { name: string }) => r.name);
+    const available = names.length > 0 ? ` Destinatarios del evento: ${names.join(", ")}.` : "";
+    return { error: `No se encontró a "${personName}" en el evento "${event.name}".${available}` };
   }
 
   const items = await context.ctx.runQuery(api.gifts.getGiftItems, {

@@ -1,5 +1,141 @@
 # Changelog
 
+## [Phase 4.2 - Hardening post-review del servidor MCP] - 2026-06-10
+
+Ajustes derivados del code review del PR #6, antes del merge.
+
+### 🔒 Seguridad
+
+- **Sesiones MCP acotadas a la familia de su API key**: la sesión efímera
+  se crea con `kind: "mcp"` y `familyId`, y
+  `requireFamilyAccessFromSession` rechaza el acceso a cualquier otra
+  familia del usuario. Antes la sesión minteada era equivalente a una de
+  login (válida para todas las familias del usuario); ahora nunca es más
+  poderosa que la llave que la originó.
+- **API key obligatoria para todo el endpoint MCP**: `ping`, las
+  notificaciones y los métodos desconocidos también exigen `Authorization`
+  válido; el endpoint ya no confirma su existencia a clientes sin
+  credenciales. De paso, `initialize`/`tools/list` validan una sola vez.
+- **`expenses/agent.ts` ya no confía en `familyId` suelto**:
+  `agentGetExpenseSummary` y `agentCreateExpense` (usadas por
+  `getExpenseSummary`, `registerExpense` y `getFamilyOverview`) ahora
+  exigen `sessionToken` y validan membresía como el resto del backend.
+- `recordSubscriptionPayment` valida `amount > 0` también en la mutation
+  (antes solo validaban las tools).
+
+### 🐛 Fixes
+
+- **Fechas `YYYY-MM-DD` se parsean como fecha local** con el nuevo helper
+  `lib/agent/dates.ts` (`parseLocalDate`), usado por `addTask`,
+  `registerExpense`, `addVehicleEvent` y `createGiftEvent`. Antes
+  `new Date("YYYY-MM-DD")` interpretaba UTC y en México la fecha corría un
+  día hacia atrás; además ahora se rechazan fechas imposibles tipo
+  `2026-02-31` (con test `src/test/dates.test.ts`).
+
+## [Phase 4.1 - Tools Fase 2 + Auditoría de tools + Refactors] - 2026-06-10
+
+Segunda ronda del agente/MCP: el catálogo pasa de 17 a 27 tools (con
+lecturas en todos los dominios principales), se auditaron las tools
+existentes con fixes de bugs reales, y se consolidó la duplicación del
+módulo de suscripciones.
+
+### 🧰 Nuevas tools (disponibles en agente interno y MCP)
+
+- `getFamilyOverview` — resumen general en una llamada: gastos del mes,
+  tareas pendientes, próximos eventos, medicamentos activos y líder del
+  hogar (cada sección es tolerante a fallos vía `Promise.allSettled`).
+- Tareas: `listTasks` (filtro por tipo), `addTask`, `completeTask`
+  (fuzzy match sobre pendientes).
+- Calendario: `getUpcomingEvents` (eventos sincronizados de Google).
+- Salud: `getHealthSummary` (perfiles, medicamentos activos, registros
+  recientes).
+- Finanzas: `getSubscriptions` con costo mensual estimado (normaliza
+  ciclos bimestral/trimestral/anual).
+- Hogar: `getHouseholdRanking` (podio semanal) y `logHouseholdActivity`
+  (suma puntos; valida contra el catálogo de actividades).
+- Viajes: `getTrips`. Diario: `addDiaryEntry` (privada por default).
+
+### 🔍 Auditoría de tools existentes (fixes)
+
+- **`addToCollection` corregido**: insertaba `owned: true` con
+  `status: "wishlist"` (contradictorio). Ahora acepta `owned` y deriva
+  el status correcto (`owned_unread` vs `wishlist`); el enum de tipos
+  ahora incluye `comic` y `collectible` como el schema.
+- **Fuzzy matching consciente de palabras** en `lib/agent/fuzzyMatch.ts`:
+  un substring sin límite de palabra ya no puntúa alto ("Ana" ya no hace
+  match con "Mariana"); palabra completa contenida puntúa 0.85 y prefijo
+  de palabra 0.75 ("Cumple" → "Cumpleaños de María").
+- **Gifts migrado de `includes()` a fuzzy matching** (eventos, regalos y
+  destinatarios, con umbral más estricto para personas) y errores
+  accionables que listan los eventos/destinatarios disponibles.
+- **Detección de duplicados** al crear lugares, recetas y items de
+  colección: la tool avisa y exige confirmación (`allowDuplicate=true`)
+  en vez de duplicar silenciosamente.
+- **Validación de montos y fechas** en `registerExpense` y
+  `registerLoan` (rechaza montos ≤ 0 y fechas malformadas).
+- System prompt del agente actualizado con los nuevos dominios y la regla
+  de no crear duplicados sin confirmación.
+
+### ♻️ Refactors
+
+- **Suscripciones consolidadas en un solo módulo** (`convex/subscriptions.ts`).
+  Existían dos implementaciones divergentes: la copia de
+  `convex/expenses/subscriptions.ts` **borraba en cascada el historial de
+  gastos** al eliminar una suscripción (pérdida de datos financieros),
+  mientras la canónica dejaba gastos huérfanos. Comportamiento unificado:
+  al eliminar una suscripción los gastos se **desligan** (se conserva el
+  historial). `recordSubscriptionPayment` se movió al módulo canónico y
+  ahora deriva `familyId` de la suscripción. Frontend migrado
+  (`ExpensesView`, `NewSubscriptionModal`).
+- **Fix de seguridad: `tasks.getTask`** no validaba sesión ni familia
+  (cualquier `taskId` era legible). Ahora exige `sessionToken` y
+  membresía activa de la familia dueña de la tarea.
+
+## [Phase 4 - Servidor MCP integrado] - 2026-06-10
+
+Kovan ahora expone un servidor MCP (Model Context Protocol) que vive en el
+propio backend de Convex, para conectar Claude Code, Claude Desktop y
+cualquier cliente MCP a los datos familiares. Documentación completa en
+[`docs/MCP.md`](docs/MCP.md).
+
+### 🔌 Servidor MCP (`POST /mcp`)
+
+- Nuevo router HTTP (`convex/http.ts`) con transporte **Streamable HTTP
+  stateless**: `initialize`, `tools/list`, `tools/call` y `ping` sobre
+  JSON-RPC 2.0, con CORS y negociación de versión de protocolo
+  (2025-06-18 / 2025-03-26 / 2024-11-05).
+- **Catálogo de tools compartido**: el MCP expone el mismo registry de
+  `convex/lib/agent/` que usa el agente Gemini interno; toda tool nueva
+  queda disponible en ambos automáticamente.
+- Helpers puros del protocolo en `convex/lib/mcp/protocol.ts`, con tests
+  (`src/test/mcpProtocol.test.ts`).
+
+### 🔑 API keys personales (`apiTokens`)
+
+- Nueva tabla `apiTokens`: llaves de larga vida por usuario **y** familia,
+  almacenadas solo como hash SHA-256; el valor en claro se muestra una
+  única vez al crearlas. Límite de 10 activas por usuario.
+- Para ejecutar tools, el endpoint intercambia la API key por una **sesión
+  efímera** (10 min máx) que se destruye al terminar la tool call,
+  reutilizando intacta la validación de membresía/aislamiento por familia
+  de todas las queries y mutations existentes.
+- Nueva página **Configuración → Conexiones MCP** (`/mcp`): crear llaves
+  nombradas, copiar una sola vez, ver último uso, revocar (con histórico),
+  y guía de conexión con snippets para Claude Code y Claude Desktop.
+
+### 🛠️ Calidad de tools del agente
+
+- **Fix**: `addVehicleEvent` creaba un vehículo nuevo cuando no encontraba
+  match exacto del nombre (duplicados silenciosos). Ahora usa fuzzy
+  matching real (`findBestMatch`, incluyendo marca/modelo), y si no hay
+  match responde con la lista de vehículos disponibles exigiendo
+  confirmación explícita (`createIfMissing=true`) antes de crear.
+- Nueva tool de lectura `listVehicles` para que el agente desambigüe antes
+  de escribir.
+- Validación de fechas (`date`, `nextDate`) con mensajes de error
+  accionables en lugar de guardar `NaN`.
+- Tests del fuzzy matching (`src/test/fuzzyMatch.test.ts`).
+
 ## [Phase 3 - Household + Design System + Refactors] - 2026-04-10
 
 Gran ronda que integra la feature de gamificación del hogar, un design
