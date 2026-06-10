@@ -1,5 +1,33 @@
 # Changelog
 
+## [Phase 4.4 - MCP Tools Lote B: escrituras que completan flujos] - 2026-06-10
+
+El catálogo pasa de 35 a **44 tools**: los flujos que solo se podían
+consultar ahora se completan por chat/MCP. Backlog MCP-TOOLS-B completo
+(ver `docs/TASK_COMPLETED/2606.md`).
+
+### 🧰 Nuevas tools (agente interno + MCP)
+
+- **Salud**: `addMedication` y `addMedicalRecord` — resuelven el perfil
+  (persona/mascota) con fuzzy match por nombre/apodo; si no hay match
+  listan los perfiles disponibles en vez de adivinar.
+- **Préstamos**: `registerLoanPayment` — abonos con fuzzy match por
+  persona sobre préstamos activos; valida que el abono no exceda el
+  saldo y reporta el saldo restante (la mutation `loans.addPayment`
+  actualiza balance y marca saldado).
+- **Suscripciones**: `addSubscription` (anti-duplicados, valida monto y
+  `dueDay` 1-31) y `recordSubscriptionPayment` (fuzzy match por nombre;
+  el pago queda ligado en el historial de gastos).
+- **Calendario**: `createCalendarEvent` — fecha + hora 24h + duración;
+  via la action de orquestación existente (Google Calendar). Si el
+  calendario no está conectado devuelve un error accionable.
+- **Viajes**: `getTripDetail` (reservas con confirmación/costo +
+  itinerario por día) y `createTrip` (anti-duplicados, valida rango de
+  fechas).
+- **Diario**: `getDiaryEntries` — lee entradas propias y familiares;
+  la privacidad la filtra la query existente (`diary.getEntries`).
+- System prompt del agente actualizado con las capacidades de escritura.
+
 ## [Phase 4.3 - MCP Tools Lote A: lecturas para simetría del catálogo] - 2026-06-10
 
 El catálogo pasa de 27 a **35 tools**: los módulos que eran write-only

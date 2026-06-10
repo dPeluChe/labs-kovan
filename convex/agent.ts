@@ -63,13 +63,13 @@ export const sendMessage = action({
 
 **Funciones:**
 Ayudas a las familias a gestionar:
-- 💰 Gastos, préstamos y suscripciones
+- 💰 Gastos, préstamos (con abonos) y suscripciones (alta y pagos)
 - 📝 Tareas pendientes y lista del super
-- 📅 Calendario familiar (próximos eventos)
-- 🏥 Salud: perfiles, medicamentos, registros
+- 📅 Calendario familiar (consultar y crear eventos)
+- 🏥 Salud: perfiles, medicamentos y registros (consulta y captura)
 - 🏠 Tareas del hogar (puntos y ranking semanal)
-- ✈️ Viajes
-- 📔 Diario personal con mood
+- ✈️ Viajes (planear, ver itinerario y reservas)
+- 📔 Diario personal con mood (escribir y leer)
 - 📚 Colecciones (libros, juegos, etc)
 - 📍 Lugares recomendados
 - 🍳 Recetas de cocina

@@ -128,13 +128,13 @@ Con el rewrite activo, los clientes usan `https://tudominio.com/api/mcp`.
 | Dominio | Lectura | Escritura |
 |---|---|---|
 | General | `getFamilyOverview` (resumen del día), `listFamilyMembers` | — |
-| Finanzas | `getExpenseSummary`, `getLoans`, `getSubscriptions` | `registerExpense`, `registerLoan` |
+| Finanzas | `getExpenseSummary`, `getLoans`, `getSubscriptions` | `registerExpense`, `registerLoan`, `registerLoanPayment`, `addSubscription`, `recordSubscriptionPayment` |
 | Tareas | `listTasks` | `addTask`, `completeTask` |
-| Calendario | `getUpcomingEvents` | — |
-| Salud | `getHealthSummary` | — |
+| Calendario | `getUpcomingEvents` | `createCalendarEvent` (requiere Google Calendar conectado) |
+| Salud | `getHealthSummary` | `addMedication`, `addMedicalRecord` |
 | Hogar | `getHouseholdRanking` | `logHouseholdActivity` |
-| Viajes | `getTrips` | — |
-| Diario | — | `addDiaryEntry` |
+| Viajes | `getTrips`, `getTripDetail` (reservas + itinerario) | `createTrip` |
+| Diario | `getDiaryEntries` (respeta privacidad por autor) | `addDiaryEntry` |
 | Vehículos | `listVehicles`, `getVehicleReminders` | `addVehicleEvent` |
 | Regalos | `getGiftsForEvent`, `getGiftsForPerson` | `createGiftEvent`, `addGiftToEvent`, `updateGiftStatus`, `updateGiftItem` |
 | Lugares | `getPlaces` | `addPlace`, `registerPlaceVisit` |

@@ -16,18 +16,9 @@ _(vacío — agregar aquí lo que está activamente en trabajo)_
 
 ## Priority 2 — Siguiente
 
-### MCP-TOOLS-B: Escrituras que completan flujos `added: 2026-06-10`
-
-- [ ] `addMedication` / `addMedicalRecord` — con fuzzy match del perfil (persona/mascota) vía `getPersonProfiles`
-- [ ] `registerLoanPayment` — abonos a préstamos (`loanPayments` existe sin tool; debe actualizar `balance`)
-- [ ] `addSubscription` + `recordSubscriptionPayment` — la mutation ya existe en `convex/subscriptions.ts`, solo exponerla
-- [ ] `createCalendarEvent` — vía la action existente `calendar/orchestration.createEvent` (nota: requiere `ctx.runAction`, no `runQuery`)
-- [ ] `getTripDetail` (itinerario + reservas) + `createTrip`
-- [ ] `getDiaryEntries` — leer entradas propias (la query `diary.getEntries` ya filtra privacidad por autor)
-
-> Criterio acordado: NO exponer vía MCP — contenido de documentos de la
-> bóveda, administración de familia (invitar/expulsar), ni borrados en
-> general. Esas acciones se quedan en la app.
+> Criterio acordado para tools MCP: NO exponer — contenido de documentos
+> de la bóveda, administración de familia (invitar/expulsar), ni borrados
+> en general. Esas acciones se quedan en la app.
 
 ### MCP-MISC: Ajustes menores del agente/MCP `added: 2026-06-10`
 

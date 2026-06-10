@@ -56,3 +56,54 @@ export async function handleAddDiaryEntry(context: ToolContext, args: Record<str
         message: `Entrada de diario guardada${moodMsg} (${visibility === "family" ? "visible para la familia" : "privada"}).`
     };
 }
+
+const DEFAULT_ENTRIES_LIMIT = 5;
+
+export const getDiaryEntriesTool: ToolDefinition = {
+    name: "getDiaryEntries",
+    description: "Leer las entradas recientes del diario: las propias (privadas) y las compartidas con la familia. La privacidad se respeta automáticamente (nunca se ven entradas privadas de otros).",
+    parameters: {
+        type: "object" as const,
+        properties: {
+            limit: {
+                type: "number" as const,
+                description: `Cantidad de entradas a traer (default ${DEFAULT_ENTRIES_LIMIT})`
+            }
+        },
+        required: []
+    }
+};
+
+export async function handleGetDiaryEntries(context: ToolContext, args: Record<string, unknown>) {
+    const { limit } = args as { limit?: number };
+    const max = typeof limit === "number" && Number.isFinite(limit) && limit > 0
+        ? Math.min(Math.floor(limit), 20)
+        : DEFAULT_ENTRIES_LIMIT;
+
+    // diary.getEntries ya filtra privacidad: familiares + propias privadas.
+    const entries = await context.ctx.runQuery(api.diary.getEntries, {
+        sessionToken: context.sessionToken,
+        familyId: context.familyId
+    });
+
+    if (entries.length === 0) {
+        return { success: true, message: "No hay entradas de diario visibles para ti." };
+    }
+
+    const lines = entries.slice(0, max).map((entry) => {
+        const date = new Date(entry.date).toLocaleDateString("es-MX", { day: "numeric", month: "short" });
+        const mood = entry.moodEmoji || entry.moodLabel
+            ? ` ${[entry.moodEmoji, entry.moodLabel].filter(Boolean).join(" ")}`
+            : "";
+        const visibility = entry.visibility === "family" ? " [familiar]" : "";
+        const isMine = entry.userId === context.userId ? "" : " (de otro miembro)";
+        const content = (entry.content ?? "").trim();
+        const preview = content.length > 140 ? `${content.slice(0, 140)}…` : content;
+        return `- ${date}${mood}${visibility}${isMine}: ${preview || "(sin texto)"}`;
+    });
+
+    return {
+        success: true,
+        message: `Entradas del diario (${Math.min(entries.length, max)} de ${entries.length}):\n${lines.join("\n")}`
+    };
+}

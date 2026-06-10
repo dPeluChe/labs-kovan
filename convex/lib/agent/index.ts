@@ -23,7 +23,8 @@ import {
     getExpenseSummaryTool, handleGetExpenseSummary,
     getLoansTool, handleGetLoans,
     registerExpenseTool, handleRegisterExpense,
-    registerLoanTool, handleRegisterLoan
+    registerLoanTool, handleRegisterLoan,
+    registerLoanPaymentTool, handleRegisterLoanPayment
 } from "./tools.finances";
 import {
     getCollectionsTool, handleGetCollections,
@@ -62,15 +63,33 @@ import {
     addTaskTool, handleAddTask,
     completeTaskTool, handleCompleteTask
 } from "./tools.tasks";
-import { getUpcomingEventsTool, handleGetUpcomingEvents } from "./tools.calendar";
-import { getHealthSummaryTool, handleGetHealthSummary } from "./tools.health";
-import { getSubscriptionsTool, handleGetSubscriptions } from "./tools.subscriptions";
+import {
+    getUpcomingEventsTool, handleGetUpcomingEvents,
+    createCalendarEventTool, handleCreateCalendarEvent
+} from "./tools.calendar";
+import {
+    getHealthSummaryTool, handleGetHealthSummary,
+    addMedicationTool, handleAddMedication,
+    addMedicalRecordTool, handleAddMedicalRecord
+} from "./tools.health";
+import {
+    getSubscriptionsTool, handleGetSubscriptions,
+    addSubscriptionTool, handleAddSubscription,
+    recordSubscriptionPaymentTool, handleRecordSubscriptionPayment
+} from "./tools.subscriptions";
 import {
     getHouseholdRankingTool, handleGetHouseholdRanking,
     logHouseholdActivityTool, handleLogHouseholdActivity
 } from "./tools.household";
-import { getTripsTool, handleGetTrips } from "./tools.trips";
-import { addDiaryEntryTool, handleAddDiaryEntry } from "./tools.diary";
+import {
+    getTripsTool, handleGetTrips,
+    getTripDetailTool, handleGetTripDetail,
+    createTripTool, handleCreateTrip
+} from "./tools.trips";
+import {
+    addDiaryEntryTool, handleAddDiaryEntry,
+    getDiaryEntriesTool, handleGetDiaryEntries
+} from "./tools.diary";
 import { getFamilyOverviewTool, handleGetFamilyOverview } from "./tools.overview";
 
 // Combined registry of all tools
@@ -95,10 +114,13 @@ export const allToolDefinitions: ToolDefinition[] = [
     listRecipesTool,
     getExpiringDocumentsTool,
     listFamilyMembersTool,
+    getTripDetailTool,
+    getDiaryEntriesTool,
 
     // Write tools
     registerExpenseTool,
     registerLoanTool,
+    registerLoanPaymentTool,
     addToCollectionTool,
     addPlaceTool,
     registerPlaceVisitTool,
@@ -109,6 +131,12 @@ export const allToolDefinitions: ToolDefinition[] = [
     completeTaskTool,
     logHouseholdActivityTool,
     addDiaryEntryTool,
+    addMedicationTool,
+    addMedicalRecordTool,
+    addSubscriptionTool,
+    recordSubscriptionPaymentTool,
+    createCalendarEventTool,
+    createTripTool,
 
     // Gifts tools
     createGiftEventTool,
@@ -138,8 +166,11 @@ export const toolHandlers: Record<string, ToolHandler> = {
     listRecipes: handleListRecipes,
     getExpiringDocuments: handleGetExpiringDocuments,
     listFamilyMembers: handleListFamilyMembers,
+    getTripDetail: handleGetTripDetail,
+    getDiaryEntries: handleGetDiaryEntries,
     registerExpense: handleRegisterExpense,
     registerLoan: handleRegisterLoan,
+    registerLoanPayment: handleRegisterLoanPayment,
     addToCollection: handleAddToCollection,
     addPlace: handleAddPlace,
     registerPlaceVisit: handleRegisterPlaceVisit,
@@ -150,6 +181,12 @@ export const toolHandlers: Record<string, ToolHandler> = {
     completeTask: handleCompleteTask,
     logHouseholdActivity: handleLogHouseholdActivity,
     addDiaryEntry: handleAddDiaryEntry,
+    addMedication: handleAddMedication,
+    addMedicalRecord: handleAddMedicalRecord,
+    addSubscription: handleAddSubscription,
+    recordSubscriptionPayment: handleRecordSubscriptionPayment,
+    createCalendarEvent: handleCreateCalendarEvent,
+    createTrip: handleCreateTrip,
     createGiftEvent: handleCreateGiftEvent,
     addGiftToEvent: handleAddGiftToEvent,
     updateGiftStatus: handleUpdateGiftStatus,
