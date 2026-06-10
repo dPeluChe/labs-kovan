@@ -1,5 +1,30 @@
 # Changelog
 
+## [Phase 4.3 - MCP Tools Lote A: lecturas para simetría del catálogo] - 2026-06-10
+
+El catálogo pasa de 27 a **35 tools**: los módulos que eran write-only
+(lugares, recetas, contactos) ganan lectura, y se exponen dominios nuevos
+en solo-lectura. Backlog MCP-TOOLS-A completo (ver
+`docs/TASK_COMPLETED/2606.md`).
+
+### 🧰 Nuevas tools (agente interno + MCP)
+
+- **Contactos**: `searchContacts` (fuzzy por nombre/especialidad, filtro
+  por categoría) y `addContact` (con detección de duplicados).
+- **Lugares**: `getPlaces` (filtros por categoría y visitado/pendiente) y
+  `registerPlaceVisit` (fuzzy match del lugar, rating 1-5, fecha local).
+- **Recetas**: `listRecipes` (búsqueda fuzzy por título, filtro por
+  categoría).
+- **Documentos**: `getExpiringDocuments` — vencidos y por vencer en una
+  ventana configurable (default 90 días), con nombre de la persona.
+  Expone **solo metadata**: nunca contenido de la bóveda ni números de
+  documento.
+- **Vehículos**: `getVehicleReminders` — próximos mantenimientos/trámites
+  vía `nextDate`, ordenados y marcando vencidos.
+- **Familia**: `listFamilyMembers` — miembros activos con rol, para que
+  el agente desambigüe nombres antes de escribir (regalos, salud, hogar).
+- System prompt del agente actualizado con los dominios nuevos.
+
 ## [Phase 4.2 - Hardening post-review del servidor MCP] - 2026-06-10
 
 Ajustes derivados del code review del PR #6, antes del merge.

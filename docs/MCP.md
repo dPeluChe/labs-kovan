@@ -127,7 +127,7 @@ Con el rewrite activo, los clientes usan `https://tudominio.com/api/mcp`.
 
 | Dominio | Lectura | Escritura |
 |---|---|---|
-| General | `getFamilyOverview` (resumen del día) | — |
+| General | `getFamilyOverview` (resumen del día), `listFamilyMembers` | — |
 | Finanzas | `getExpenseSummary`, `getLoans`, `getSubscriptions` | `registerExpense`, `registerLoan` |
 | Tareas | `listTasks` | `addTask`, `completeTask` |
 | Calendario | `getUpcomingEvents` | — |
@@ -135,11 +135,17 @@ Con el rewrite activo, los clientes usan `https://tudominio.com/api/mcp`.
 | Hogar | `getHouseholdRanking` | `logHouseholdActivity` |
 | Viajes | `getTrips` | — |
 | Diario | — | `addDiaryEntry` |
-| Vehículos | `listVehicles` | `addVehicleEvent` |
+| Vehículos | `listVehicles`, `getVehicleReminders` | `addVehicleEvent` |
 | Regalos | `getGiftsForEvent`, `getGiftsForPerson` | `createGiftEvent`, `addGiftToEvent`, `updateGiftStatus`, `updateGiftItem` |
-| Lugares | — | `addPlace` |
-| Recetas | — | `addRecipe` |
+| Lugares | `getPlaces` | `addPlace`, `registerPlaceVisit` |
+| Recetas | `listRecipes` | `addRecipe` |
 | Colecciones | `getCollections` | `addToCollection` |
+| Contactos | `searchContacts` | `addContact` |
+| Documentos | `getExpiringDocuments` (solo metadata) | — |
+
+> `getExpiringDocuments` expone únicamente título, tipo, vencimiento y
+> persona — nunca el contenido de la bóveda ni números de documento
+> (criterio acordado en el backlog).
 
 ## Agregar una tool nueva
 

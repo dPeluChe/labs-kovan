@@ -1,8 +1,68 @@
 import { api } from "../../_generated/api";
 import type { ToolDefinition, ToolContext } from "./tools.types";
-import { findBestMatch } from "./fuzzyMatch";
+import { findAllMatches, findBestMatch } from "./fuzzyMatch";
 
 const DUPLICATE_THRESHOLD = 0.85;
+const SEARCH_THRESHOLD = 0.5;
+
+export const listRecipesTool: ToolDefinition = {
+    name: "listRecipes",
+    description: "Consultar las recetas guardadas de la familia, con búsqueda opcional por título o filtro por categoría (desayuno, comida, cena, postre…). Usa esto cuando pregunten qué cocinar o si tienen cierta receta.",
+    parameters: {
+        type: "object" as const,
+        properties: {
+            query: {
+                type: "string" as const,
+                description: "Título o parte del título a buscar (opcional, fuzzy match)"
+            },
+            category: {
+                type: "string" as const,
+                description: "Filtrar por categoría exacta, ej: 'Desayuno', 'Postre' (opcional)"
+            }
+        },
+        required: []
+    }
+};
+
+export async function handleListRecipes(context: ToolContext, args: Record<string, unknown>) {
+    const { query, category } = args as { query?: string; category?: string };
+
+    const recipes = await context.ctx.runQuery(api.recipes.getRecipes, {
+        sessionToken: context.sessionToken,
+        familyId: context.familyId
+    });
+
+    let results = category
+        ? recipes.filter((r) => r.category?.toLowerCase() === category.toLowerCase())
+        : recipes;
+
+    if (query) {
+        results = findAllMatches(query, results, (r) => r.title, SEARCH_THRESHOLD, 10)
+            .map((m) => m.item);
+    }
+
+    if (results.length === 0) {
+        const scope = [query && `"${query}"`, category && `categoría ${category}`].filter(Boolean).join(", ");
+        return {
+            success: true,
+            message: scope
+                ? `No encontré recetas para ${scope}. Hay ${recipes.length} recetas guardadas en total.`
+                : "No hay recetas guardadas aún."
+        };
+    }
+
+    const lines = results.map((recipe) => {
+        const cat = recipe.category ? ` (${recipe.category})` : "";
+        const fav = recipe.isFavorite ? " ⭐" : "";
+        const desc = recipe.description ? ` — ${recipe.description}` : "";
+        return `- ${recipe.title}${cat}${fav}${desc}`;
+    });
+
+    return {
+        success: true,
+        message: `Recetas (${results.length}):\n${lines.join("\n")}`
+    };
+}
 
 export const addRecipeTool: ToolDefinition = {
     name: "addRecipe",

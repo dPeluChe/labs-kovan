@@ -104,6 +104,60 @@ export async function handleListVehicles(context: ToolContext) {
     };
 }
 
+export const getVehicleRemindersTool: ToolDefinition = {
+    name: "getVehicleReminders",
+    description: "Consultar los próximos mantenimientos y trámites pendientes de los vehículos (verificación, servicio, seguro) según los recordatorios registrados. Usa esto cuando pregunten qué le toca a un coche o qué trámites vehiculares vienen.",
+    parameters: {
+        type: "object" as const,
+        properties: {},
+        required: []
+    }
+};
+
+export async function handleGetVehicleReminders(context: ToolContext) {
+    const vehicles = await context.ctx.runQuery(api.vehicles.getVehicles, {
+        sessionToken: context.sessionToken,
+        familyId: context.familyId
+    });
+
+    if (vehicles.length === 0) {
+        return { success: true, message: "No hay vehículos registrados en la familia." };
+    }
+
+    const eventsByVehicle = await Promise.all(
+        vehicles.map((vehicle) =>
+            context.ctx.runQuery(api.vehicles.getVehicleEvents, {
+                sessionToken: context.sessionToken,
+                vehicleId: vehicle._id
+            }).then((events) => ({ vehicle, events }))
+        )
+    );
+
+    const now = Date.now();
+    const reminders = eventsByVehicle
+        .flatMap(({ vehicle, events }) =>
+            events
+                .filter((event) => event.nextDate !== undefined)
+                .map((event) => ({ vehicle, event, nextDate: event.nextDate as number }))
+        )
+        .sort((a, b) => a.nextDate - b.nextDate);
+
+    if (reminders.length === 0) {
+        return { success: true, message: "No hay recordatorios vehiculares registrados. 🎉" };
+    }
+
+    const lines = reminders.map(({ vehicle, event, nextDate }) => {
+        const date = new Date(nextDate).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" });
+        const overdue = nextDate < now ? " ⚠️ VENCIDO" : "";
+        return `- ${vehicle.name}: ${event.title} → ${date}${overdue}`;
+    });
+
+    return {
+        success: true,
+        message: `Recordatorios vehiculares (${reminders.length}):\n${lines.join("\n")}`
+    };
+}
+
 export async function handleAddVehicleEvent(context: ToolContext, args: Record<string, unknown>) {
     const { vehicleName, type, title, date, nextDate, amount, notes, createIfMissing } = args as {
         vehicleName: string;
