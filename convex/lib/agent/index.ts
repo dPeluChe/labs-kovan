@@ -20,7 +20,10 @@ import {
 } from "./tools.collections";
 import { addPlaceTool, handleAddPlace } from "./tools.places";
 import { addRecipeTool, handleAddRecipe } from "./tools.recipes";
-import { addVehicleEventTool, handleAddVehicleEvent } from "./tools.vehicles";
+import {
+    addVehicleEventTool, handleAddVehicleEvent,
+    listVehiclesTool, handleListVehicles
+} from "./tools.vehicles";
 import {
     createGiftEventTool, handleCreateGiftEvent,
     addGiftToEventTool, handleAddGiftToEvent,
@@ -36,6 +39,7 @@ export const allToolDefinitions: ToolDefinition[] = [
     getExpenseSummaryTool,
     getLoansTool,
     getCollectionsTool,
+    listVehiclesTool,
 
     // Write tools
     registerExpenseTool,
@@ -65,6 +69,7 @@ export const toolHandlers: Record<string, ToolHandler> = {
     addPlace: handleAddPlace,
     addRecipe: handleAddRecipe,
     addVehicleEvent: handleAddVehicleEvent,
+    listVehicles: handleListVehicles,
     createGiftEvent: handleCreateGiftEvent,
     addGiftToEvent: handleAddGiftToEvent,
     updateGiftStatus: handleUpdateGiftStatus,

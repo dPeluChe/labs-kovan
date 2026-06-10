@@ -1,5 +1,50 @@
 # Changelog
 
+## [Phase 4 - Servidor MCP integrado] - 2026-06-10
+
+Kovan ahora expone un servidor MCP (Model Context Protocol) que vive en el
+propio backend de Convex, para conectar Claude Code, Claude Desktop y
+cualquier cliente MCP a los datos familiares. Documentación completa en
+[`docs/MCP.md`](docs/MCP.md).
+
+### 🔌 Servidor MCP (`POST /mcp`)
+
+- Nuevo router HTTP (`convex/http.ts`) con transporte **Streamable HTTP
+  stateless**: `initialize`, `tools/list`, `tools/call` y `ping` sobre
+  JSON-RPC 2.0, con CORS y negociación de versión de protocolo
+  (2025-06-18 / 2025-03-26 / 2024-11-05).
+- **Catálogo de tools compartido**: el MCP expone el mismo registry de
+  `convex/lib/agent/` que usa el agente Gemini interno; toda tool nueva
+  queda disponible en ambos automáticamente.
+- Helpers puros del protocolo en `convex/lib/mcp/protocol.ts`, con tests
+  (`src/test/mcpProtocol.test.ts`).
+
+### 🔑 API keys personales (`apiTokens`)
+
+- Nueva tabla `apiTokens`: llaves de larga vida por usuario **y** familia,
+  almacenadas solo como hash SHA-256; el valor en claro se muestra una
+  única vez al crearlas. Límite de 10 activas por usuario.
+- Para ejecutar tools, el endpoint intercambia la API key por una **sesión
+  efímera** (10 min máx) que se destruye al terminar la tool call,
+  reutilizando intacta la validación de membresía/aislamiento por familia
+  de todas las queries y mutations existentes.
+- Nueva página **Configuración → Conexiones MCP** (`/mcp`): crear llaves
+  nombradas, copiar una sola vez, ver último uso, revocar (con histórico),
+  y guía de conexión con snippets para Claude Code y Claude Desktop.
+
+### 🛠️ Calidad de tools del agente
+
+- **Fix**: `addVehicleEvent` creaba un vehículo nuevo cuando no encontraba
+  match exacto del nombre (duplicados silenciosos). Ahora usa fuzzy
+  matching real (`findBestMatch`, incluyendo marca/modelo), y si no hay
+  match responde con la lista de vehículos disponibles exigiendo
+  confirmación explícita (`createIfMissing=true`) antes de crear.
+- Nueva tool de lectura `listVehicles` para que el agente desambigüe antes
+  de escribir.
+- Validación de fechas (`date`, `nextDate`) con mensajes de error
+  accionables en lugar de guardar `NaN`.
+- Tests del fuzzy matching (`src/test/fuzzyMatch.test.ts`).
+
 ## [Phase 3 - Household + Design System + Refactors] - 2026-04-10
 
 Gran ronda que integra la feature de gamificación del hogar, un design

@@ -55,6 +55,7 @@ const ActivitiesPage = lazy(() =>
 );
 const AgentPage = lazy(() => import("./pages/AgentPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage").then((m) => ({ default: m.SettingsPage })));
+const McpPage = lazy(() => import("./pages/McpPage").then((m) => ({ default: m.McpPage })));
 const ContactsPage = lazy(() => import("./pages/ContactsPage").then((m) => ({ default: m.ContactsPage })));
 const DiaryPage = lazy(() => import("./pages/DiaryPage").then((m) => ({ default: m.DiaryPage })));
 const HouseholdPage = lazy(() => import("./pages/HouseholdPage").then((m) => ({ default: m.HouseholdPage })));
@@ -119,6 +120,7 @@ function AppRoutes() {
           <Route path="/activities" element={<ActivitiesPage />} />
           <Route path="/agent" element={<AgentPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/mcp" element={<McpPage />} />
           <Route path="/contacts" element={<ContactsPage />} />
           <Route path="/diary" element={<DiaryPage />} />
           <Route path="/household" element={<HouseholdPage />} />
