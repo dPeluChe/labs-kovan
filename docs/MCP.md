@@ -13,11 +13,13 @@ Cliente MCP (Claude Code / Desktop / …)
         ▼
 convex/http.ts → POST /mcp          (Streamable HTTP, stateless)
         │
-        ├─ initialize / tools/list  → valida la API key (apiTokens)
+        ├─ validateApiToken         → toda request (incluido ping) exige
+        │                             API key válida antes de responder
         │
         └─ tools/call
              ├─ mintMcpSession      → intercambia la API key por una
-             │                        sesión efímera (10 min máx)
+             │                        sesión efímera (10 min máx) acotada
+             │                        a la familia de la llave
              ├─ toolHandlers[name]  → mismas tools del agente interno
              │                        (convex/lib/agent/)
              └─ clearMcpSession     → elimina la sesión al terminar
@@ -32,6 +34,15 @@ Decisiones clave:
   existentes validan `sessionToken`; el endpoint MCP intercambia la API key
   por una sesión corta y la destruye al terminar la tool call. Así se reusa
   íntegra la validación de membresía y aislamiento por familia.
+- **Sesiones MCP acotadas a una familia.** La sesión efímera se crea con
+  `kind: "mcp"` y el `familyId` de la API key;
+  `requireFamilyAccessFromSession` rechaza cualquier acceso a otra familia
+  aunque el usuario pertenezca a varias. Una sesión MCP nunca es más
+  poderosa que la llave que la originó.
+- **Ninguna función confía en un `familyId` suelto.** Incluso las funciones
+  `internal.*` que usan las tools (`expenses/agent.ts`) exigen
+  `sessionToken` y validan membresía; la invariante aplica a todo acceso a
+  datos sin excepción.
 - **Stateless.** No se emite `Mcp-Session-Id` ni se ofrece stream SSE
   (`GET /mcp` responde 405). Cada request es independiente, ideal para
   serverless. Los batches JSON-RPC se rechazan (la revisión 2025-06-18 del
@@ -151,12 +162,16 @@ Convenciones para tools de calidad:
   no `includes()` a mano.
 - Valida fechas y números antes de escribir; devuelve mensajes accionables
   en español (el agente los muestra o reacciona a ellos).
+- Parsea fechas `YYYY-MM-DD` con `parseLocalDate` de `lib/agent/dates.ts`
+  (`new Date("YYYY-MM-DD")` interpreta UTC y corre la fecha un día en
+  zonas horarias negativas como la de México).
 
 ## Pruebas
 
 - `src/test/mcpProtocol.test.ts` — parsing/validación JSON-RPC y negociación
   de versión del protocolo.
 - `src/test/fuzzyMatch.test.ts` — matching difuso usado por las tools.
+- `src/test/dates.test.ts` — parseo local de fechas `YYYY-MM-DD`.
 
 Smoke test manual contra un deployment:
 

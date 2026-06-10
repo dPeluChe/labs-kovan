@@ -1,5 +1,37 @@
 # Changelog
 
+## [Phase 4.2 - Hardening post-review del servidor MCP] - 2026-06-10
+
+Ajustes derivados del code review del PR #6, antes del merge.
+
+### 🔒 Seguridad
+
+- **Sesiones MCP acotadas a la familia de su API key**: la sesión efímera
+  se crea con `kind: "mcp"` y `familyId`, y
+  `requireFamilyAccessFromSession` rechaza el acceso a cualquier otra
+  familia del usuario. Antes la sesión minteada era equivalente a una de
+  login (válida para todas las familias del usuario); ahora nunca es más
+  poderosa que la llave que la originó.
+- **API key obligatoria para todo el endpoint MCP**: `ping`, las
+  notificaciones y los métodos desconocidos también exigen `Authorization`
+  válido; el endpoint ya no confirma su existencia a clientes sin
+  credenciales. De paso, `initialize`/`tools/list` validan una sola vez.
+- **`expenses/agent.ts` ya no confía en `familyId` suelto**:
+  `agentGetExpenseSummary` y `agentCreateExpense` (usadas por
+  `getExpenseSummary`, `registerExpense` y `getFamilyOverview`) ahora
+  exigen `sessionToken` y validan membresía como el resto del backend.
+- `recordSubscriptionPayment` valida `amount > 0` también en la mutation
+  (antes solo validaban las tools).
+
+### 🐛 Fixes
+
+- **Fechas `YYYY-MM-DD` se parsean como fecha local** con el nuevo helper
+  `lib/agent/dates.ts` (`parseLocalDate`), usado por `addTask`,
+  `registerExpense`, `addVehicleEvent` y `createGiftEvent`. Antes
+  `new Date("YYYY-MM-DD")` interpretaba UTC y en México la fecha corría un
+  día hacia atrás; además ahora se rechazan fechas imposibles tipo
+  `2026-02-31` (con test `src/test/dates.test.ts`).
+
 ## [Phase 4.1 - Tools Fase 2 + Auditoría de tools + Refactors] - 2026-06-10
 
 Segunda ronda del agente/MCP: el catálogo pasa de 17 a 27 tools (con
