@@ -1,5 +1,64 @@
 # Changelog
 
+## [Phase 4.1 - Tools Fase 2 + Auditoría de tools + Refactors] - 2026-06-10
+
+Segunda ronda del agente/MCP: el catálogo pasa de 17 a 27 tools (con
+lecturas en todos los dominios principales), se auditaron las tools
+existentes con fixes de bugs reales, y se consolidó la duplicación del
+módulo de suscripciones.
+
+### 🧰 Nuevas tools (disponibles en agente interno y MCP)
+
+- `getFamilyOverview` — resumen general en una llamada: gastos del mes,
+  tareas pendientes, próximos eventos, medicamentos activos y líder del
+  hogar (cada sección es tolerante a fallos vía `Promise.allSettled`).
+- Tareas: `listTasks` (filtro por tipo), `addTask`, `completeTask`
+  (fuzzy match sobre pendientes).
+- Calendario: `getUpcomingEvents` (eventos sincronizados de Google).
+- Salud: `getHealthSummary` (perfiles, medicamentos activos, registros
+  recientes).
+- Finanzas: `getSubscriptions` con costo mensual estimado (normaliza
+  ciclos bimestral/trimestral/anual).
+- Hogar: `getHouseholdRanking` (podio semanal) y `logHouseholdActivity`
+  (suma puntos; valida contra el catálogo de actividades).
+- Viajes: `getTrips`. Diario: `addDiaryEntry` (privada por default).
+
+### 🔍 Auditoría de tools existentes (fixes)
+
+- **`addToCollection` corregido**: insertaba `owned: true` con
+  `status: "wishlist"` (contradictorio). Ahora acepta `owned` y deriva
+  el status correcto (`owned_unread` vs `wishlist`); el enum de tipos
+  ahora incluye `comic` y `collectible` como el schema.
+- **Fuzzy matching consciente de palabras** en `lib/agent/fuzzyMatch.ts`:
+  un substring sin límite de palabra ya no puntúa alto ("Ana" ya no hace
+  match con "Mariana"); palabra completa contenida puntúa 0.85 y prefijo
+  de palabra 0.75 ("Cumple" → "Cumpleaños de María").
+- **Gifts migrado de `includes()` a fuzzy matching** (eventos, regalos y
+  destinatarios, con umbral más estricto para personas) y errores
+  accionables que listan los eventos/destinatarios disponibles.
+- **Detección de duplicados** al crear lugares, recetas y items de
+  colección: la tool avisa y exige confirmación (`allowDuplicate=true`)
+  en vez de duplicar silenciosamente.
+- **Validación de montos y fechas** en `registerExpense` y
+  `registerLoan` (rechaza montos ≤ 0 y fechas malformadas).
+- System prompt del agente actualizado con los nuevos dominios y la regla
+  de no crear duplicados sin confirmación.
+
+### ♻️ Refactors
+
+- **Suscripciones consolidadas en un solo módulo** (`convex/subscriptions.ts`).
+  Existían dos implementaciones divergentes: la copia de
+  `convex/expenses/subscriptions.ts` **borraba en cascada el historial de
+  gastos** al eliminar una suscripción (pérdida de datos financieros),
+  mientras la canónica dejaba gastos huérfanos. Comportamiento unificado:
+  al eliminar una suscripción los gastos se **desligan** (se conserva el
+  historial). `recordSubscriptionPayment` se movió al módulo canónico y
+  ahora deriva `familyId` de la suscripción. Frontend migrado
+  (`ExpensesView`, `NewSubscriptionModal`).
+- **Fix de seguridad: `tasks.getTask`** no validaba sesión ni familia
+  (cualquier `taskId` era legible). Ahora exige `sessionToken` y
+  membresía activa de la familia dueña de la tarea.
+
 ## [Phase 4 - Servidor MCP integrado] - 2026-06-10
 
 Kovan ahora expone un servidor MCP (Model Context Protocol) que vive en el

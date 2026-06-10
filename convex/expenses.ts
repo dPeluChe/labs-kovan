@@ -14,13 +14,8 @@ export {
   deleteExpense,
 } from "./expenses/mutations";
 
-export {
-  getSubscriptions,
-  createSubscription,
-  updateSubscription,
-  deleteSubscription,
-  recordSubscriptionPayment,
-} from "./expenses/subscriptions";
+// Las funciones de suscripciones viven en convex/subscriptions.ts
+// (módulo canónico único; antes había una copia divergente aquí).
 
 export {
   agentGetExpenseSummary,

@@ -25,7 +25,7 @@ export function NewSubscriptionModal({
   const [dueDay, setDueDay] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const createSubscription = useMutation(api.expenses.createSubscription);
+  const createSubscription = useMutation(api.subscriptions.create);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

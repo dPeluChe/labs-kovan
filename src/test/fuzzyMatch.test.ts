@@ -6,8 +6,19 @@ describe("stringSimilarity", () => {
     expect(stringSimilarity("Civic", "civic")).toBe(1.0);
   });
 
-  it("substring da score alto", () => {
-    expect(stringSimilarity("Civic", "Honda Civic")).toBe(0.8);
+  it("palabra completa contenida da score alto", () => {
+    expect(stringSimilarity("Civic", "Honda Civic")).toBe(0.85);
+    expect(stringSimilarity("civic honda", "Honda Civic")).toBe(0.85);
+  });
+
+  it("prefijo de palabra da score medio-alto", () => {
+    // "cumple" es prefijo de "cumpleaños"
+    expect(stringSimilarity("Cumple", "Cumpleaños de María")).toBe(0.75);
+  });
+
+  it("substring que no respeta límites de palabra NO puntúa alto", () => {
+    // "ana" está contenido en "mariana" pero no es la misma persona
+    expect(stringSimilarity("Ana", "Mariana")).toBeLessThan(0.6);
   });
 
   it("strings muy distintos dan score bajo", () => {
@@ -30,6 +41,11 @@ describe("findBestMatch", () => {
   it("devuelve null cuando nada supera el umbral", () => {
     const match = findBestMatch("Tesla Model 3", vehicles, (v) => v.name, 0.6);
     expect(match).toBeNull();
+  });
+
+  it("no confunde personas con nombres contenidos", () => {
+    const recipients = [{ name: "Mariana" }, { name: "Pedro" }];
+    expect(findBestMatch("Ana", recipients, (r) => r.name, 0.75)).toBeNull();
   });
 
   it("devuelve null con lista vacía", () => {

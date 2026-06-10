@@ -42,7 +42,7 @@ export function ExpensesView() {
   );
 
   const subscriptions = useQuery(
-    api.expenses.getSubscriptions,
+    api.subscriptions.list,
     currentFamily && sessionToken ? { sessionToken, familyId: currentFamily._id } : "skip"
   );
 
@@ -52,7 +52,7 @@ export function ExpensesView() {
   );
 
   const deleteExpense = useMutation(api.expenses.deleteExpense);
-  const deleteSubscription = useMutation(api.expenses.deleteSubscription);
+  const deleteSubscription = useMutation(api.subscriptions.deleteSubscription);
 
   const filteredExpenses = expenses?.filter((expense: Doc<"expenses">) => {
     if (dateFilter === "all") return true;

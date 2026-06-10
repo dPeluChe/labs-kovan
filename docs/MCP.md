@@ -112,6 +112,24 @@ endpoint proxy conviene en `/api/mcp`:
 
 Con el rewrite activo, los clientes usan `https://tudominio.com/api/mcp`.
 
+## Catálogo de tools
+
+| Dominio | Lectura | Escritura |
+|---|---|---|
+| General | `getFamilyOverview` (resumen del día) | — |
+| Finanzas | `getExpenseSummary`, `getLoans`, `getSubscriptions` | `registerExpense`, `registerLoan` |
+| Tareas | `listTasks` | `addTask`, `completeTask` |
+| Calendario | `getUpcomingEvents` | — |
+| Salud | `getHealthSummary` | — |
+| Hogar | `getHouseholdRanking` | `logHouseholdActivity` |
+| Viajes | `getTrips` | — |
+| Diario | — | `addDiaryEntry` |
+| Vehículos | `listVehicles` | `addVehicleEvent` |
+| Regalos | `getGiftsForEvent`, `getGiftsForPerson` | `createGiftEvent`, `addGiftToEvent`, `updateGiftStatus`, `updateGiftItem` |
+| Lugares | — | `addPlace` |
+| Recetas | — | `addRecipe` |
+| Colecciones | `getCollections` | `addToCollection` |
+
 ## Agregar una tool nueva
 
 1. Define `ToolDefinition` + handler en `convex/lib/agent/tools.<feature>.ts`

@@ -106,6 +106,43 @@ export const deleteSubscription = mutation({
         const sub = await ctx.db.get(args.subscriptionId);
         if (!sub) throw new Error("Subscription not found");
         await requireFamilyAccessFromSession(ctx, args.sessionToken, sub.familyId);
+
+        // Los gastos son historial financiero: se desligan (no se borran)
+        // para que los resúmenes mensuales no pierdan movimientos pasados.
+        const expenses = await ctx.db
+            .query("expenses")
+            .withIndex("by_subscription", (q) => q.eq("subscriptionId", args.subscriptionId))
+            .collect();
+        await Promise.all(expenses.map((e) => ctx.db.patch(e._id, { subscriptionId: undefined })));
+
         await ctx.db.delete(args.subscriptionId);
+    },
+});
+
+export const recordSubscriptionPayment = mutation({
+    args: {
+        sessionToken: v.string(),
+        subscriptionId: v.id("subscriptions"),
+        amount: v.number(),
+        date: v.number(),
+        paidBy: v.optional(v.id("users")),
+        notes: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const subscription = await ctx.db.get(args.subscriptionId);
+        if (!subscription) throw new Error("Suscripción no encontrada");
+        await requireFamilyAccessFromSession(ctx, args.sessionToken, subscription.familyId);
+
+        return await ctx.db.insert("expenses", {
+            familyId: subscription.familyId,
+            type: "subscription",
+            category: "subscription",
+            description: `Pago: ${subscription.name}`,
+            amount: args.amount,
+            date: args.date,
+            paidBy: args.paidBy,
+            notes: args.notes,
+            subscriptionId: args.subscriptionId,
+        });
     },
 });
