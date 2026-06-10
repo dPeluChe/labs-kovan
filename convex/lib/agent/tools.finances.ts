@@ -1,5 +1,6 @@
 import { api, internal } from "../../_generated/api";
 import type { ToolDefinition, ToolContext } from "./tools.types";
+import { findBestMatch } from "./fuzzyMatch";
 import { parseLocalDate } from "./dates";
 
 // ==================== READ TOOLS ====================
@@ -166,5 +167,93 @@ export async function handleRegisterLoan(context: ToolContext, args: Record<stri
     return {
         success: true,
         message: `Préstamo registrado: ${type === "lent" ? "Prestaste" : "Te prestaron"} $${amount} a/de ${personName}.`
+    };
+}
+
+const LOAN_MATCH_THRESHOLD = 0.6;
+
+export const registerLoanPaymentTool: ToolDefinition = {
+    name: "registerLoanPayment",
+    description: "Registrar un abono/pago a un préstamo activo, buscándolo por el nombre de la persona (fuzzy match). Actualiza el saldo y marca el préstamo como saldado si llega a 0.",
+    parameters: {
+        type: "object" as const,
+        properties: {
+            personName: {
+                type: "string" as const,
+                description: "Nombre de la persona del préstamo"
+            },
+            amount: {
+                type: "number" as const,
+                description: "Monto del abono"
+            },
+            date: {
+                type: "string" as const,
+                description: "Fecha del abono YYYY-MM-DD (opcional, default hoy)"
+            },
+            notes: {
+                type: "string" as const,
+                description: "Notas (opcional)"
+            }
+        },
+        required: ["personName", "amount"]
+    }
+};
+
+export async function handleRegisterLoanPayment(context: ToolContext, args: Record<string, unknown>) {
+    const { personName, amount, date, notes } = args as {
+        personName: string;
+        amount: number;
+        date?: string;
+        notes?: string;
+    };
+
+    if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) {
+        return { success: false, message: `El monto "${amount}" no es válido. Debe ser un número mayor a 0.` };
+    }
+
+    const paymentDate = date ? parseLocalDate(date) : Date.now();
+    if (paymentDate === null) {
+        return { success: false, message: `La fecha "${date}" no es válida. Usa el formato YYYY-MM-DD.` };
+    }
+
+    const loans = await context.ctx.runQuery(api.loans.list, {
+        sessionToken: context.sessionToken,
+        familyId: context.familyId
+    });
+    const activeLoans = loans.filter((l: { status: string }) => l.status === "active");
+
+    const loan = findBestMatch(personName, activeLoans, (l) => l.personName, LOAN_MATCH_THRESHOLD);
+    if (!loan) {
+        const available = activeLoans.length > 0
+            ? ` Préstamos activos: ${activeLoans.map((l: { personName: string; balance: number }) => `${l.personName} ($${l.balance})`).join(", ")}.`
+            : " No hay préstamos activos.";
+        return {
+            success: false,
+            message: `No encontré un préstamo activo de "${personName}".${available}`
+        };
+    }
+
+    if (amount > loan.balance) {
+        return {
+            success: false,
+            message: `El abono ($${amount}) es mayor al saldo pendiente de ${loan.personName} ($${loan.balance}). Confirma el monto con el usuario.`
+        };
+    }
+
+    await context.ctx.runMutation(api.loans.addPayment, {
+        sessionToken: context.sessionToken,
+        loanId: loan._id,
+        amount,
+        date: paymentDate,
+        notes
+    });
+
+    const newBalance = loan.balance - amount;
+    const settled = newBalance <= 0.01;
+    return {
+        success: true,
+        message: settled
+            ? `Abono de $${amount} registrado. El préstamo de ${loan.personName} quedó saldado. ✅`
+            : `Abono de $${amount} registrado. Saldo pendiente de ${loan.personName}: $${newBalance}.`
     };
 }
