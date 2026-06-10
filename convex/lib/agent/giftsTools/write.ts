@@ -1,5 +1,6 @@
 import { api } from "../../../_generated/api";
 import type { ToolDefinition, ToolContext } from "../tools.types";
+import { parseLocalDate } from "../dates";
 import {
   type GiftStatus,
   findGiftEventByName,
@@ -45,11 +46,20 @@ export const createGiftEventTool: ToolDefinition = {
 export async function handleCreateGiftEvent(context: ToolContext, args: Record<string, unknown>) {
   const { name, date, description } = args as { name: string; date?: string; description?: string };
 
+  let eventDate: number | undefined;
+  if (date) {
+    const parsed = parseLocalDate(date);
+    if (parsed === null) {
+      return { success: false, message: `La fecha "${date}" no es válida. Usa el formato YYYY-MM-DD.` };
+    }
+    eventDate = parsed;
+  }
+
   await context.ctx.runMutation(api.gifts.createGiftEvent, {
     sessionToken: context.sessionToken,
     familyId: context.familyId,
     name,
-    date: date ? new Date(date).getTime() : undefined,
+    date: eventDate,
     description,
   });
 

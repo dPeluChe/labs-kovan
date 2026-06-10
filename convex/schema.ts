@@ -25,6 +25,10 @@ export default defineSchema({
     tokenHash: v.string(),
     createdAt: v.number(),
     expiresAt: v.number(),
+    // Las sesiones efímeras del endpoint MCP llevan kind="mcp" y quedan
+    // ligadas a la familia de su API key; las de login no traen estos campos.
+    kind: v.optional(v.literal("mcp")),
+    familyId: v.optional(v.id("families")),
   })
     .index("by_user", ["userId"])
     .index("by_token_hash", ["tokenHash"])

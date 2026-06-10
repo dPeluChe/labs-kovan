@@ -1,6 +1,7 @@
 import { api } from "../../_generated/api";
 import type { ToolDefinition, ToolContext } from "./tools.types";
 import { findBestMatch } from "./fuzzyMatch";
+import { parseLocalDate } from "./dates";
 
 type TaskType = "general" | "shopping" | "chore";
 type TaskPriority = "low" | "medium" | "high";
@@ -102,10 +103,11 @@ export async function handleAddTask(context: ToolContext, args: Record<string, u
 
     let dueTimestamp: number | undefined;
     if (dueDate) {
-        dueTimestamp = new Date(dueDate).getTime();
-        if (Number.isNaN(dueTimestamp)) {
+        const parsed = parseLocalDate(dueDate);
+        if (parsed === null) {
             return { success: false, message: `La fecha "${dueDate}" no es válida. Usa el formato YYYY-MM-DD.` };
         }
+        dueTimestamp = parsed;
     }
 
     await context.ctx.runMutation(api.tasks.create, {

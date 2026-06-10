@@ -19,7 +19,7 @@ export async function handleGetFamilyOverview(context: ToolContext) {
 
     // Cada sección es independiente: si una falla, las demás siguen útiles.
     const [expenses, tasks, events, health, household] = await Promise.allSettled([
-        context.ctx.runQuery(internal.expenses.agentGetExpenseSummary, { familyId: context.familyId }),
+        context.ctx.runQuery(internal.expenses.agentGetExpenseSummary, base),
         context.ctx.runQuery(api.tasks.list, { ...base, status: "pending" }),
         context.ctx.runQuery(api.calendar.getUpcomingEvents, { ...base, limit: 5 }),
         context.ctx.runQuery(api.health.getHealthSummary, base),

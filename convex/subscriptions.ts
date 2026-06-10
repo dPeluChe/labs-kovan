@@ -129,6 +129,10 @@ export const recordSubscriptionPayment = mutation({
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        if (!Number.isFinite(args.amount) || args.amount <= 0) {
+            throw new Error("El monto del pago debe ser mayor a 0");
+        }
+
         const subscription = await ctx.db.get(args.subscriptionId);
         if (!subscription) throw new Error("Suscripción no encontrada");
         await requireFamilyAccessFromSession(ctx, args.sessionToken, subscription.familyId);

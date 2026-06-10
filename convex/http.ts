@@ -83,6 +83,11 @@ const mcpEndpoint = httpAction(async (ctx, request) => {
   const message = parsed.message;
   const id = message.id ?? null;
 
+  // Toda interacción (incluidos ping y notificaciones) exige API key válida:
+  // el endpoint no confirma ni su existencia a clientes sin credenciales.
+  const auth = await ctx.runQuery(internal.apiTokens.validateApiToken, { token });
+  if (!auth) return unauthorizedResponse(id);
+
   // Las notificaciones (initialized, cancelled, etc.) no llevan respuesta.
   if (isNotification(message)) {
     return new Response(null, { status: 202, headers: CORS_HEADERS });
@@ -90,9 +95,6 @@ const mcpEndpoint = httpAction(async (ctx, request) => {
 
   switch (message.method) {
     case "initialize": {
-      const auth = await ctx.runQuery(internal.apiTokens.validateApiToken, { token });
-      if (!auth) return unauthorizedResponse(id);
-
       return jsonResponse(
         jsonRpcResult(id, {
           protocolVersion: negotiateProtocolVersion(message.params?.protocolVersion),
@@ -108,9 +110,6 @@ const mcpEndpoint = httpAction(async (ctx, request) => {
     }
 
     case "tools/list": {
-      const auth = await ctx.runQuery(internal.apiTokens.validateApiToken, { token });
-      if (!auth) return unauthorizedResponse(id);
-
       const tools = allToolDefinitions.map((tool) => ({
         name: tool.name,
         description: tool.description,

@@ -1,5 +1,6 @@
 import { api, internal } from "../../_generated/api";
 import type { ToolDefinition, ToolContext } from "./tools.types";
+import { parseLocalDate } from "./dates";
 
 // ==================== READ TOOLS ====================
 
@@ -15,6 +16,7 @@ export const getExpenseSummaryTool: ToolDefinition = {
 
 export async function handleGetExpenseSummary(context: ToolContext) {
     const summary = await context.ctx.runQuery(internal.expenses.agentGetExpenseSummary, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId
     });
 
@@ -102,12 +104,13 @@ export async function handleRegisterExpense(context: ToolContext, args: Record<s
         return { success: false, message: `El monto "${amount}" no es válido. Debe ser un número mayor a 0.` };
     }
 
-    const expenseDate = date ? new Date(date).getTime() : Date.now();
-    if (Number.isNaN(expenseDate)) {
+    const expenseDate = date ? parseLocalDate(date) : Date.now();
+    if (expenseDate === null) {
         return { success: false, message: `La fecha "${date}" no es válida. Usa el formato YYYY-MM-DD.` };
     }
 
     await context.ctx.runMutation(internal.expenses.agentCreateExpense, {
+        sessionToken: context.sessionToken,
         familyId: context.familyId,
         description,
         amount,

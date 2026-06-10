@@ -2,6 +2,7 @@ import { api } from "../../_generated/api";
 import type { Doc } from "../../_generated/dataModel";
 import type { ToolDefinition, ToolContext } from "./tools.types";
 import { findBestMatch } from "./fuzzyMatch";
+import { parseLocalDate } from "./dates";
 
 const VEHICLE_MATCH_THRESHOLD = 0.6;
 
@@ -84,8 +85,7 @@ function matchVehicle(searchTerm: string, vehicles: Doc<"vehicles">[]): Doc<"veh
 
 function parseDateArg(value: string | undefined, fallback: number): number | null {
     if (!value) return fallback;
-    const timestamp = new Date(value).getTime();
-    return Number.isNaN(timestamp) ? null : timestamp;
+    return parseLocalDate(value);
 }
 
 export async function handleListVehicles(context: ToolContext) {

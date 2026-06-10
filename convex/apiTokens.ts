@@ -174,11 +174,15 @@ export const mintMcpSession = internalMutation({
 
     const now = Date.now();
     const rawSessionToken = generateRandomToken(32);
+    // kind/familyId acotan la sesión a la familia de la API key: una sesión
+    // MCP nunca debe ser más poderosa que la llave que la originó.
     await ctx.db.insert("sessions", {
       userId: apiToken.userId,
       tokenHash: await sha256Hex(rawSessionToken),
       createdAt: now,
       expiresAt: now + MCP_SESSION_DURATION_MS,
+      kind: "mcp",
+      familyId: apiToken.familyId,
     });
 
     await ctx.db.patch(apiToken._id, { lastUsedAt: now });
