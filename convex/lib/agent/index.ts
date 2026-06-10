@@ -14,6 +14,9 @@ export * from "./tools.household";
 export * from "./tools.trips";
 export * from "./tools.diary";
 export * from "./tools.overview";
+export * from "./tools.contacts";
+export * from "./tools.documents";
+export * from "./tools.family";
 
 import type { ToolDefinition, ToolHandler } from "./tools.types";
 import {
@@ -26,12 +29,26 @@ import {
     getCollectionsTool, handleGetCollections,
     addToCollectionTool, handleAddToCollection
 } from "./tools.collections";
-import { addPlaceTool, handleAddPlace } from "./tools.places";
-import { addRecipeTool, handleAddRecipe } from "./tools.recipes";
+import {
+    addPlaceTool, handleAddPlace,
+    getPlacesTool, handleGetPlaces,
+    registerPlaceVisitTool, handleRegisterPlaceVisit
+} from "./tools.places";
+import {
+    addRecipeTool, handleAddRecipe,
+    listRecipesTool, handleListRecipes
+} from "./tools.recipes";
 import {
     addVehicleEventTool, handleAddVehicleEvent,
-    listVehiclesTool, handleListVehicles
+    listVehiclesTool, handleListVehicles,
+    getVehicleRemindersTool, handleGetVehicleReminders
 } from "./tools.vehicles";
+import {
+    searchContactsTool, handleSearchContacts,
+    addContactTool, handleAddContact
+} from "./tools.contacts";
+import { getExpiringDocumentsTool, handleGetExpiringDocuments } from "./tools.documents";
+import { listFamilyMembersTool, handleListFamilyMembers } from "./tools.family";
 import {
     createGiftEventTool, handleCreateGiftEvent,
     addGiftToEventTool, handleAddGiftToEvent,
@@ -66,18 +83,26 @@ export const allToolDefinitions: ToolDefinition[] = [
     getLoansTool,
     getCollectionsTool,
     listVehiclesTool,
+    getVehicleRemindersTool,
     listTasksTool,
     getUpcomingEventsTool,
     getHealthSummaryTool,
     getSubscriptionsTool,
     getHouseholdRankingTool,
     getTripsTool,
+    searchContactsTool,
+    getPlacesTool,
+    listRecipesTool,
+    getExpiringDocumentsTool,
+    listFamilyMembersTool,
 
     // Write tools
     registerExpenseTool,
     registerLoanTool,
     addToCollectionTool,
     addPlaceTool,
+    registerPlaceVisitTool,
+    addContactTool,
     addRecipeTool,
     addVehicleEventTool,
     addTaskTool,
@@ -107,10 +132,18 @@ export const toolHandlers: Record<string, ToolHandler> = {
     getSubscriptions: handleGetSubscriptions,
     getHouseholdRanking: handleGetHouseholdRanking,
     getTrips: handleGetTrips,
+    getVehicleReminders: handleGetVehicleReminders,
+    searchContacts: handleSearchContacts,
+    getPlaces: handleGetPlaces,
+    listRecipes: handleListRecipes,
+    getExpiringDocuments: handleGetExpiringDocuments,
+    listFamilyMembers: handleListFamilyMembers,
     registerExpense: handleRegisterExpense,
     registerLoan: handleRegisterLoan,
     addToCollection: handleAddToCollection,
     addPlace: handleAddPlace,
+    registerPlaceVisit: handleRegisterPlaceVisit,
+    addContact: handleAddContact,
     addRecipe: handleAddRecipe,
     addVehicleEvent: handleAddVehicleEvent,
     addTask: handleAddTask,
