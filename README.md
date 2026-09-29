@@ -10,7 +10,7 @@ sistema de gamificación de tareas del hogar.
 - **Backend**: [Convex](https://convex.dev) (serverless, reactivo)
 - **Estilos**: Tailwind CSS v4 + DaisyUI
 - **Animaciones**: Framer Motion
-- **IA**: Google Gemini via `@ai-sdk/google` + LangChain
+- **IA**: Google Gemini via `@google/generative-ai`
 - **Routing**: React Router v7
 - **Imágenes**: Cloudinary
 
@@ -225,7 +225,7 @@ agente.
 - `react-vendor`: React, React DOM, React Router
 - `ui-vendor`: Framer Motion, Lucide icons
 - `utils-vendor`: Convex, Zod, UUID
-- `ai-vendor`: AI SDK, LangChain, Google AI
+- `ai-vendor`: matcher de ids con `@ai-sdk`, `ai/`, `langchain` o `google` — el frontend no importa librerías de IA (el agente usa `@google/generative-ai` solo en `convex/`, fuera de este bundle), así que no emite chunk; rama muerta que se elimina con las deps (`REVIEW-DEADCODE`)
 - `vendor`: el resto
 
 Combinado con el lazy loading de páginas, esto produce un grafo de chunks
@@ -382,12 +382,9 @@ los tres headers unificados:
 Las únicas excepciones son los flujos pre-app (Login, Landing, FamilySetup) y
 el chat full-screen del Agente, que tienen layouts intencionalmente diferentes.
 
-> **Nota**: durante la integración del design system con la ronda de
-> particionado de páginas en carpetas por componente, 12 páginas mantienen
-> la estructura nueva (split en componentes) pero postergaron la aplicación
-> de los primitivos del design system a una pasada posterior. Esas
-> migraciones están documentadas en el backlog y se re-aplicarán como
-> sub-PRs chiquitos: ver la lista en `docs/` o en el follow-up interno.
+Los patches históricos por archivo de esa homologación viven en
+`docs/archived/2604-ds-followup/` (post-mortem de referencia; las 12
+migraciones diferidas ya fueron re-aplicadas en PR #2, merge `5b16e9b`).
 
 ## Feature destacada: Gamificación del hogar
 

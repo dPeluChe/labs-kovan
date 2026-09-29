@@ -84,7 +84,6 @@ Sistema modular y reutilizable para juegos basados en turnos. Vive en `src/compo
 
 ### REVIEW-DOCS: correcciones de README `added: 2026-09-29`
 
-- [ ] Stack: la IA del agente usa `@google/generative-ai`, no `@ai-sdk/google` + LangChain (esas deps están muertas — ver `REVIEW-DEADCODE`)
 - [ ] Setup: aclarar que las vars de backend (`GEMINI_API_KEY`, `GOOGLE_CLIENT_*`, `CLOUDINARY_*`) van en Convex Dashboard, no en `.env.local` — `.env.example` ya quedó corregido en el PR de la revisión
 
 ### DOCS-NITS: Doc nits menores identificados en post-merge review `added: 2026-04-10`
