@@ -94,14 +94,26 @@ npm install
 
 ### 2. Variables de entorno
 
-Copia `.env.example` a `.env.local` y completa los valores:
+La lista completa de variables vive en `.env.example` (fuente canónica).
+Se dividen en dos lugares según quién las lee:
 
-```env
-VITE_CONVEX_URL=                # URL de tu deployment de Convex
-VITE_CLOUDINARY_CLOUD_NAME=     # Tu cloud de Cloudinary
-VITE_CLOUDINARY_UPLOAD_PRESET=  # Preset unsigned para uploads
-GEMINI_API_KEY=                 # API key de Google Gemini (para el agente)
-```
+- **Frontend (`.env.local`)** — solo las que empiezan con `VITE_` (Vite no
+  expone al browser nada más):
+
+  ```env
+  VITE_CONVEX_URL=                # URL de tu deployment de Convex
+  VITE_CLOUDINARY_CLOUD_NAME=     # Tu cloud de Cloudinary
+  VITE_CLOUDINARY_UPLOAD_PRESET=  # Preset unsigned para uploads
+  ```
+
+- **Backend (Convex Dashboard → Settings → Environment Variables)** — las
+  que `convex/` lee con `process.env`; nunca van en `.env.local`:
+  `GEMINI_API_KEY` (agente), `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
+  (calendario de Google) y `CLOUDINARY_*` (borrado de imágenes).
+
+  El modelo del agente es opcionalmente configurable: `GEMINI_MODEL`
+  (default `gemini-2.5-flash`) y `GEMINI_FALLBACK_MODEL` (default
+  `gemini-2.5-flash-lite`, se usa solo si el modelo primario agota cuota).
 
 ### 3. Levantar Convex
 
