@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   useMemo,
   useCallback,
@@ -9,6 +10,11 @@ import type { ReactNode } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
+import {
+  clearPersistedSession,
+  persistSession,
+  restoreSession,
+} from "../lib/session";
 
 interface User {
   _id: Id<"users">;
@@ -30,12 +36,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const SESSION_TOKEN_KEY = "kovan_session_token";
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [sessionToken, setSessionToken] = useState<string | null>(() => {
-    return localStorage.getItem(SESSION_TOKEN_KEY);
-  });
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [isRestoringSession, setIsRestoringSession] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loginUser = useMutation(api.users.loginUser);
@@ -46,33 +49,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionToken ? { sessionToken } : "skip"
   );
 
+  useEffect(() => {
+    let cancelled = false;
+    restoreSession()
+      .then((token) => {
+        if (!cancelled && token) setSessionToken(token);
+      })
+      .catch(() => {
+        // Backend inalcanzable: se arranca desconectado.
+      })
+      .finally(() => {
+        if (!cancelled) setIsRestoringSession(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const isLoading = useMemo(() => {
-    if (isSubmitting) return true;
+    if (isSubmitting || isRestoringSession) return true;
     if (sessionToken === null) return false;
     return user === undefined;
-  }, [sessionToken, user, isSubmitting]);
+  }, [sessionToken, user, isSubmitting, isRestoringSession]);
+
+  const startSession = useCallback(async (token: string) => {
+    try {
+      await persistSession(token);
+    } catch (error) {
+      console.error("Error persisting session:", error);
+    }
+    setSessionToken(token);
+  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     setIsSubmitting(true);
     try {
       const result = await loginUser({ email, password });
-      localStorage.setItem(SESSION_TOKEN_KEY, result.sessionToken);
-      setSessionToken(result.sessionToken);
+      await startSession(result.sessionToken);
     } finally {
       setIsSubmitting(false);
     }
-  }, [loginUser]);
+  }, [loginUser, startSession]);
 
   const register = useCallback(async (name: string, email: string, password: string) => {
     setIsSubmitting(true);
     try {
       const result = await registerUser({ name, email, password });
-      localStorage.setItem(SESSION_TOKEN_KEY, result.sessionToken);
-      setSessionToken(result.sessionToken);
+      await startSession(result.sessionToken);
     } finally {
       setIsSubmitting(false);
     }
-  }, [registerUser]);
+  }, [registerUser, startSession]);
 
   const logout = useCallback(async () => {
     if (sessionToken) {
@@ -82,7 +109,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Error during logout:", error);
       }
     }
-    localStorage.removeItem(SESSION_TOKEN_KEY);
+    try {
+      await clearPersistedSession();
+    } catch (error) {
+      console.error("Error clearing persisted session:", error);
+    }
     setSessionToken(null);
   }, [logoutUser, sessionToken]);
 

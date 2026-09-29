@@ -188,10 +188,131 @@ const mcpPreflight = httpAction(async () => {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 });
 
+// Sesión persistente del frontend: el sessionToken vive solo en memoria; la
+// persistencia entre recargas usa una cookie HttpOnly+Secure+SameSite=None
+// en el dominio *.convex.site, ilegible para cualquier JS de la app (ni
+// siquiera sin HttpOnly, por ser otro origen). La app la crea tras login
+// (POST), la consulta al recargar (GET) y la borra en logout (DELETE).
+const SESSION_COOKIE = "kovan_session";
+const SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // igual que las sesiones (30 días)
+
+const DEV_APP_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"];
+
+// Orígenes desde los que la app puede usar la cookie. APP_ORIGIN se define en
+// el Convex Dashboard (coma-separado si hay varios). Reflejar cualquier origen
+// con credenciales dejaría que cualquier sitio leyera el token de sesión.
+function allowedOrigin(request: Request): string | null {
+  const origin = request.headers.get("Origin");
+  if (!origin) return null;
+  const configured = (process.env.APP_ORIGIN ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return [...configured, ...DEV_APP_ORIGINS].includes(origin) ? origin : null;
+}
+
+function sessionCorsHeaders(request: Request): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Credentials": "true",
+    Vary: "Origin",
+  };
+  const origin = allowedOrigin(request);
+  if (origin) headers["Access-Control-Allow-Origin"] = origin;
+  return headers;
+}
+
+function sessionCookieHeader(token: string, maxAge: number): string {
+  return `${SESSION_COOKIE}=${token}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${maxAge}`;
+}
+
+function readSessionCookie(request: Request): string | null {
+  const header = request.headers.get("Cookie");
+  if (!header) return null;
+  for (const part of header.split(";")) {
+    const [name, ...rest] = part.trim().split("=");
+    if (name === SESSION_COOKIE) return rest.join("=");
+  }
+  return null;
+}
+
+const sessionResume = httpAction(async (ctx, request) => {
+  const headers = sessionCorsHeaders(request);
+  const token = readSessionCookie(request);
+  const valid =
+    token !== null &&
+    (await ctx.runQuery(internal.users.validateSessionToken, { sessionToken: token }));
+
+  if (!valid) {
+    return new Response(JSON.stringify({ sessionToken: null }), {
+      status: 401,
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": sessionCookieHeader("", 0),
+        ...headers,
+      },
+    });
+  }
+
+  return new Response(JSON.stringify({ sessionToken: token }), {
+    status: 200,
+    headers: { "Content-Type": "application/json", ...headers },
+  });
+});
+
+const sessionPersist = httpAction(async (ctx, request) => {
+  const headers = sessionCorsHeaders(request);
+
+  // Exigir JSON fuerza preflight en navegadores: sin CORS para el origen,
+  // un sitio externo no puede fijar la cookie de sesión (session fixation).
+  if (!request.headers.get("Content-Type")?.includes("application/json")) {
+    return new Response(null, { status: 415, headers });
+  }
+  if (request.headers.get("Origin") && !allowedOrigin(request)) {
+    return new Response(null, { status: 403, headers });
+  }
+
+  const body = (await request.json().catch(() => null)) as { sessionToken?: unknown } | null;
+  const token = typeof body?.sessionToken === "string" ? body.sessionToken : null;
+  const valid =
+    token !== null &&
+    (await ctx.runQuery(internal.users.validateSessionToken, { sessionToken: token }));
+
+  if (!valid) {
+    return new Response(null, { status: 401, headers });
+  }
+
+  return new Response(null, {
+    status: 204,
+    headers: { "Set-Cookie": sessionCookieHeader(token, SESSION_COOKIE_MAX_AGE), ...headers },
+  });
+});
+
+const sessionClear = httpAction(async (_ctx, request) => {
+  const headers = sessionCorsHeaders(request);
+  if (request.headers.get("Origin") && !allowedOrigin(request)) {
+    return new Response(null, { status: 403, headers });
+  }
+
+  return new Response(null, {
+    status: 204,
+    headers: { "Set-Cookie": sessionCookieHeader("", 0), ...headers },
+  });
+});
+
+const sessionPreflight = httpAction(async (_ctx, request) => {
+  return new Response(null, { status: 204, headers: sessionCorsHeaders(request) });
+});
+
 const http = httpRouter();
 
 http.route({ path: "/mcp", method: "POST", handler: mcpEndpoint });
 http.route({ path: "/mcp", method: "GET", handler: mcpGetNotAllowed });
 http.route({ path: "/mcp", method: "OPTIONS", handler: mcpPreflight });
+http.route({ path: "/auth/session", method: "GET", handler: sessionResume });
+http.route({ path: "/auth/session", method: "POST", handler: sessionPersist });
+http.route({ path: "/auth/session", method: "DELETE", handler: sessionClear });
+http.route({ path: "/auth/session", method: "OPTIONS", handler: sessionPreflight });
 
 export default http;
