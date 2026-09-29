@@ -32,8 +32,8 @@ try {
 }
 
 const score = report.summary?.score ?? report.projects?.[0]?.score ?? null;
-if (score === null) {
-  console.error("doctor:check could not obtain a react-doctor score (score API unreachable); failing closed");
+if (typeof score !== "number" || !Number.isFinite(score)) {
+  console.error("doctor:check could not obtain a numeric react-doctor score (score API unreachable or malformed report); failing closed");
   process.exit(1);
 }
 
