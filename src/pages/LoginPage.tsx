@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -94,20 +94,6 @@ export function LoginPage() {
     api.families.getFamilyByInviteToken,
     inviteToken ? { inviteToken } : "skip"
   );
-
-  useEffect(() => {
-    if (!inviteToken) {
-      localStorage.removeItem("kovan_pending_invite_token");
-      return;
-    }
-    if (inviteData === undefined) return;
-
-    if (inviteData) {
-      localStorage.setItem("kovan_pending_invite_token", inviteToken);
-    } else {
-      localStorage.removeItem("kovan_pending_invite_token");
-    }
-  }, [inviteToken, inviteData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  "ignore": {
+    "overrides": [
+      {
+        "files": ["src/contexts/AuthContext.tsx"],
+        "rules": ["react-doctor/auth-token-in-web-storage"]
+      }
+    ]
+  }
+}

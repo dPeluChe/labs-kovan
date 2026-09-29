@@ -11,8 +11,8 @@ import { Trash2, Pill, CheckCircle, PauseCircle, StopCircle, Clock } from "lucid
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import { useAuth } from "../../../contexts/AuthContext";
 
-function StatusBadge({ s, endDate }: { s: string | undefined; endDate: number | undefined }) {
-    if (s === "active" || (!s && (!endDate || endDate > Date.now()))) {
+function StatusBadge({ s, endDate, now }: { s: string | undefined; endDate: number | undefined; now: number }) {
+    if (s === "active" || (!s && (!endDate || endDate > now))) {
         return <span className="badge badge-success badge-sm text-white gap-1"><CheckCircle className="w-3 h-3" /> Activo</span>;
     }
     if (s === "paused") return <span className="badge badge-warning badge-sm text-white gap-1"><PauseCircle className="w-3 h-3" /> Suspendido</span>;
@@ -34,12 +34,13 @@ export function MedicationDetailModal({
 
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [now] = useState(() => Date.now());
 
     // Edit state
     const [name, setName] = useState(medication.name);
     const [dosage, setDosage] = useState(medication.dosage);
     const [status, setStatus] = useState<"active" | "completed" | "paused">(
-        (medication.status as "active" | "completed" | "paused") || (medication.endDate && medication.endDate <= Date.now() ? "completed" : "active")
+        (medication.status as "active" | "completed" | "paused") || (medication.endDate && medication.endDate <= now ? "completed" : "active")
     );
     const [startDate, setStartDate] = useState(() => new Date(medication.startDate).toISOString().split("T")[0]);
     const [endDate, setEndDate] = useState(() => medication.endDate ? new Date(medication.endDate).toISOString().split("T")[0] : "");
@@ -190,7 +191,7 @@ export function MedicationDetailModal({
                 <div className="flex items-center justify-between mb-2 -mt-2">
                     <span className="text-lg font-bold hidden"></span> {/* spacing hack */}
                     <div className="flex gap-2 w-full justify-end">
-                        <StatusBadge s={medication.status} endDate={medication.endDate} />
+                        <StatusBadge s={medication.status} endDate={medication.endDate} now={now} />
                     </div>
                 </div>
 

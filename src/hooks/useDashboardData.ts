@@ -7,7 +7,7 @@ interface UseDashboardDataParams {
   sessionToken?: string | null;
 }
 
-type Subscription = { isActive: boolean; amount?: number | null; billingCycle?: string };
+type Subscription = { isActive?: boolean; amount?: number | null; billingCycle?: string };
 type DashboardDoc = { isArchived?: boolean; expiryDate?: number };
 
 function toMonthlyAmount(sub: Subscription) {
@@ -42,16 +42,16 @@ function deriveDashboardData<TDoc extends DashboardDoc>(q: DerivedInput<TDoc>, n
       .sort((a, b) => (a.expiryDate || 0) - (b.expiryDate || 0)) || [];
 
   const flags = {
-    hasGifts: q.giftEvents && q.giftEvents.length > 0,
-    hasHealth: q.healthSummary && q.healthSummary.profileCount > 0,
-    hasLibrary: q.librarySummary && (q.librarySummary.owned > 0 || q.librarySummary.wishlist > 0),
-    hasVehicles: q.vehiclesSummary && q.vehiclesSummary.vehicleCount > 0,
-    hasCalendar: q.upcomingEvents && q.upcomingEvents.length > 0,
-    hasExpenses: q.expensesSummary && q.expensesSummary.countThisMonth > 0,
-    hasRecipes: q.recipesSummary && q.recipesSummary.total > 0,
-    hasPlaces: q.placesSummary && q.placesSummary.total > 0,
-    hasSubscriptions: q.subscriptions && q.subscriptions.length > 0,
-    hasDocuments: q.documents && q.documents.length > 0,
+    hasGifts: (q.giftEvents?.length ?? 0) > 0,
+    hasHealth: (q.healthSummary?.profileCount ?? 0) > 0,
+    hasLibrary: (q.librarySummary?.owned ?? 0) > 0 || (q.librarySummary?.wishlist ?? 0) > 0,
+    hasVehicles: (q.vehiclesSummary?.vehicleCount ?? 0) > 0,
+    hasCalendar: (q.upcomingEvents?.length ?? 0) > 0,
+    hasExpenses: (q.expensesSummary?.countThisMonth ?? 0) > 0,
+    hasRecipes: (q.recipesSummary?.total ?? 0) > 0,
+    hasPlaces: (q.placesSummary?.total ?? 0) > 0,
+    hasSubscriptions: (q.subscriptions?.length ?? 0) > 0,
+    hasDocuments: (q.documents?.length ?? 0) > 0,
   };
 
   const isLoading =

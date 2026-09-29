@@ -31,7 +31,13 @@ interface FamilyContextType {
 const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
 
 const CURRENT_FAMILY_KEY = "kovan_current_family";
-const PENDING_INVITE_KEY = "kovan_pending_invite_token";
+
+function removeInviteTokenFromUrl() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has("inviteToken")) return;
+  url.searchParams.delete("inviteToken");
+  window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+}
 
 export function FamilyProvider({ children }: { children: ReactNode }) {
   const { user, sessionToken } = useAuth();
@@ -58,7 +64,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     const processPendingInvite = async () => {
       if (!user || processingInvite) return;
 
-      const pendingInvite = localStorage.getItem(PENDING_INVITE_KEY);
+      const pendingInvite = new URLSearchParams(window.location.search).get("inviteToken");
       if (!pendingInvite) return;
 
       setProcessingInvite(true);
@@ -83,7 +89,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
         setInviteError(message);
       } finally {
         setProcessingInvite((cur) => (!cancelled ? false : cur));
-        if (!cancelled) localStorage.removeItem(PENDING_INVITE_KEY);
+        if (!cancelled) removeInviteTokenFromUrl();
       }
     };
 
