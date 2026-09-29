@@ -11,9 +11,9 @@ core/
 │   ├── PlayerManager.ts # Gestión de jugadores
 │   ├── types.ts         # Tipos base
 │   └── index.ts         # Exportaciones
-├── physics/             # Motor de física (Matter.js) 🚧
-├── state/               # Gestión de estado 📋
-└── ui/                  # Componentes UI genéricos 📋
+├── physics/             # Motor de física (Matter.js) 🚧 (por crear)
+├── state/               # Gestión de estado 📋 (por crear)
+└── ui/                  # Componentes UI genéricos 📋 (por crear)
 ```
 
 ## 🎯 Uso Básico
@@ -130,7 +130,7 @@ export function BattleshipGame() {
 
 Listo y en uso: `TurnManager`, `PlayerManager` y los tipos base (ver las secciones de Uso y APIs arriba).
 
-Pendientes: `GameStateManager`, `HistoryManager`, `PhysicsEngine` (wrapper de Matter.js), `ParticleSystem` y componentes UI genéricos. Las carpetas `physics/`, `state/` y `ui/` existen como placeholders vacíos.
+Pendientes: `GameStateManager`, `HistoryManager`, `PhysicsEngine` (wrapper de Matter.js), `ParticleSystem` y componentes UI genéricos. Cada pieza vivirá en su propia carpeta (`physics/`, `state/`, `ui/`) dentro de `core/`; la carpeta se crea al implementar la pieza (git no conserva carpetas vacías).
 
 > Tracking: el backlog con el detalle de estos pendientes vive en [`docs/TASK_TODO.md`](../../../../../docs/TASK_TODO.md) bajo la task `ACTIVITIES-CORE`. No agregues checklists `- [ ]` a este README — las tareas nuevas van directo a `TASK_TODO.md`.
 
