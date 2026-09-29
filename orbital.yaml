@@ -1,0 +1,10 @@
+# Gates de calidad que Orbital ejecuta antes de abrir un PR.
+# Reflejan los pasos de CI (.github/workflows/ci.yml): lint, tipos, tests y build.
+setup: npm ci
+check:lint: npm run lint
+check:types: npx tsc -b
+check:test: npm run test
+check:build: npm run build
+smoke:start: VITE_CONVEX_URL=https://example.convex.cloud npm run dev -- --port 5173 --strictPort
+smoke:url: http://localhost:5173
+smoke:routes: /,/health
