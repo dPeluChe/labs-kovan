@@ -110,7 +110,7 @@ Backend (`process.env` en `convex/`):
 | Tests | `npm run test` | ✅ 9 archivos, 61 tests, 0 fallos (11.4s). |
 | Build | `VITE_CONVEX_URL=https://example.convex.cloud npm run build` | ✅ exit 0 (~9s). Mismo placeholder que usa CI (`.github/workflows/ci.yml:44`). |
 | react-doctor | `npx -y react-doctor@latest .` (versión resuelta: **0.9.14**) | ❌ **Score 48/100** — 513 issues: 15 errores, 498 warnings, 314 archivos; exit 1. Coincide con el baseline del brief. |
-| Dependencias | `npm outdated` | 34 paquetes detrás de `wanted`/`latest` (extracto abajo). |
+| Dependencias | `npm outdated` | exit 1 (su exit normal cuando hay outdated): 34 paquetes detrás de `wanted`/`latest` — salida verbatim completa en §4. |
 | Auditoría | `npm audit` | 31 vulnerabilidades (1 critical, 17 high, 8 moderate, 5 low); `npm audit fix` las resuelve según el propio reporte. |
 
 ### react-doctor 0.9.14 — reglas top por conteo
@@ -225,7 +225,50 @@ aplicado en lo nuevo; los gaps se concentran en código viejo).
 - **Agente toma `families[0]`** en vez de la familia activa
   (`convex/agent.ts:13`) — **ya trackeado** en `MCP-MISC`, no duplicar.
 
-### Dependencias por detrás (`npm outdated`, extracto)
+### Dependencias por detrás (`npm outdated`)
+
+Salida verbatim completa de `npm outdated` (exit 1 — su código normal
+cuando existen paquetes outdated), capturada el 2026-09-29 tras `npm ci`:
+
+```
+Package                       Current   Wanted   Latest  Location                                  Depended by
+@ai-sdk/google                 2.0.46  2.0.100   4.0.85  node_modules/@ai-sdk/google               repo
+@eslint/js                     9.39.2   9.39.5   10.0.1  node_modules/@eslint/js                   repo
+@langchain/core                 1.1.5   1.2.13   1.2.13  node_modules/@langchain/core              repo
+@langchain/google-genai         2.1.0    2.3.2    2.3.2  node_modules/@langchain/google-genai      repo
+@tailwindcss/vite              4.1.18    4.3.3    4.3.3  node_modules/@tailwindcss/vite            repo
+@testing-library/jest-dom       6.9.1    6.9.1    7.0.1  node_modules/@testing-library/jest-dom    repo
+@testing-library/react         16.3.2   16.3.3   16.3.3  node_modules/@testing-library/react       repo
+@testing-library/user-event    14.6.1   14.6.7   14.6.7  node_modules/@testing-library/user-event  repo
+@types/node                   24.10.4  24.19.0   26.6.3  node_modules/@types/node                  repo
+@types/react                   19.2.7   19.3.0   19.3.0  node_modules/@types/react                 repo
+@types/react-dom               19.2.3   19.3.0   19.3.0  node_modules/@types/react-dom             repo
+@vitejs/plugin-react            5.1.2    5.2.0    6.1.1  node_modules/@vitejs/plugin-react         repo
+ai                            5.0.113  5.0.269  7.0.122  node_modules/ai                           repo
+convex                         1.31.0   1.46.0   1.46.0  node_modules/convex                       repo
+daisyui                        5.5.14   5.7.46   5.7.46  node_modules/daisyui                      repo
+date-fns                        4.1.0    4.4.0    4.4.0  node_modules/date-fns                     repo
+eslint                         9.39.2   9.39.5  10.11.0  node_modules/eslint                       repo
+eslint-plugin-react-hooks       7.0.1    7.1.1    7.1.1  node_modules/eslint-plugin-react-hooks    repo
+eslint-plugin-react-refresh    0.4.24   0.4.26    0.5.7  node_modules/eslint-plugin-react-refresh  repo
+framer-motion                12.23.26  12.43.0   13.4.6  node_modules/framer-motion                repo
+globals                        16.5.0   16.5.0   17.12.0  node_modules/globals                      repo
+jsdom                          27.0.1   27.4.0   30.1.1  node_modules/jsdom                        repo
+langchain                       1.2.0   1.5.14   1.5.14  node_modules/langchain                    repo
+lucide-react                  0.556.0  0.556.0   1.48.0  node_modules/lucide-react                 repo
+react                          19.2.3   19.3.0   19.3.0  node_modules/react                        repo
+react-dom                      19.2.3   19.3.0   19.3.0  node_modules/react-dom                    repo
+react-router-dom               7.10.1   7.18.4   7.18.4  node_modules/react-router-dom             repo
+tailwindcss                    4.1.18    4.3.3    4.3.3  node_modules/tailwindcss                  repo
+typescript                      5.9.3    5.9.3    7.0.2  node_modules/typescript                   repo
+typescript-eslint              8.49.0   8.71.0   8.71.0  node_modules/typescript-eslint            repo
+uuid                           13.0.0   13.0.2   14.0.2  node_modules/uuid                         repo
+vite                            7.2.7    7.3.6    8.3.1  node_modules/vite                         repo
+vitest                          3.2.4    3.2.7    5.0.2  node_modules/vitest                       repo
+zod                            4.1.13    4.6.5    4.6.5  node_modules/zod                          repo
+```
+
+Interpretación (extracto de los más relevantes):
 
 | Paquete | Actual | Latest | Nota |
 |---|---|---|---|
