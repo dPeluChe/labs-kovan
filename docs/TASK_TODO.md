@@ -14,7 +14,45 @@
 
 _(vacío — agregar aquí lo que está activamente en trabajo)_
 
+> Revisión 2026-09-29 (`docs/JOURNAL/REVIEW_2609.md`): ningún gate en rojo —
+> install, typecheck, lint, tests y build pasan. Los items `REVIEW-*` de
+> abajo vienen de esa revisión.
+
 ## Priority 2 — Siguiente
+
+### REVIEW-REACTDOCTOR: react-doctor 48/100 → 90 `added: 2026-09-29`
+
+`npx -y react-doctor@latest .` (0.9.14) reporta 513 issues (15 errores,
+498 warnings). Tarea separada según el brief de la revisión — no mezclar
+con otros cambios. Empezar por los 15 errores:
+
+- [ ] `react-router-no-navigate-in-render` ×2 — `src/pages/GiftEventDetailPage.tsx:144`, `src/pages/HealthProfilePage.tsx:87`
+- [ ] `no-layout-property-animation` ×9 — `WeeklyPodium`, `AnimatedTabs` (usar transform/opacity)
+- [ ] `effect-needs-cleanup` ×2 — suscripciones/timers sin cleanup
+- [ ] `no-impure-state-updater` ×1, `require-reduced-motion` ×1
+- [ ] Luego warnings por volumen: accesibilidad de labels (105+93+64), `no-static-element-interactions` ×27, `click-events-have-key-events` ×26, `async-await-in-loop` ×23 en `convex/`
+
+### REVIEW-AUTH: funciones públicas sin validación de sesión `added: 2026-09-29`
+
+13 de 220 funciones públicas de `convex/` no validan sesión ni membresía
+(la excepción documentada `getFamilyByInviteToken` no cuenta). Detalle y
+evaluación por función en `docs/JOURNAL/REVIEW_2609.md` §4.
+
+- [ ] `featureRequests.list` — expone todos los requests (con emails) sin auth y sin callers; proteger como admin o eliminar
+- [ ] `files.generateUploadUrl` — minta URLs de upload sin sesión; agregar `sessionToken`
+- [ ] `cloudinary.deleteImage` — sin sesión; agregar guardia al cablear credenciales (ver `REVIEW-CLOUDINARY`)
+- [ ] `calendar/googleActions.ts` ×7 — actions públicas (`getGoogleAuthUrl`, `exchangeGoogleAuthCode`, `provisionKovanCalendar`, `fetchGoogleEventsAction`, `createGoogleEventAction`, `updateGoogleEventAction`, `deleteGoogleEventAction`); validar sesión o convertir a `internalAction` las que solo se llaman server-side
+- [ ] `featureRequests.submit` — pública por diseño (modal en Landing); considerar rate-limit/captcha básico
+
+### REVIEW-CLOUDINARY: `deleteImage` es un no-op silencioso `added: 2026-09-29`
+
+`convex/cloudinary.ts:6-10` usa un `CLOUDINARY_CONFIG` hardcodeado con
+strings vacíos — nunca lee `process.env.CLOUDINARY_*`. La action siempre
+retorna `{ success: true, skipped: true }` y `useCloudinary` la llama al
+reemplazar/borrar imágenes: los assets viejos se acumulan en Cloudinary.
+
+- [ ] Leer `process.env.CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` en vez del objeto hardcodeado
+- [ ] Agregar validación de sesión (ver `REVIEW-AUTH`)
 
 > Criterio acordado para tools MCP: NO exponer — contenido de documentos
 > de la bóveda, administración de familia (invitar/expulsar), ni borrados
@@ -39,6 +77,27 @@ Sistema modular y reutilizable para juegos basados en turnos. Vive en `src/compo
 > Motivación: todos los juegos nuevos por turnos deberían consumir este core en vez de reimplementar lógica de estado, historial y física. Las carpetas `physics/`, `state/`, `ui/` ya existen vacías como placeholders.
 
 ## Priority 3 — Backlog
+
+### REVIEW-DEADCODE: funciones y deps muertas `added: 2026-09-29`
+
+- [ ] Eliminar `users.getCurrentUser` y `users.getOrCreateUser` (`convex/users.ts:14,29`) — usan `ctx.auth.getUserIdentity()` sin `auth.config.*`; identidad siempre `null`, sin callers en `src/`
+- [ ] `featureRequests.list` (`convex/featureRequests.ts:35`) — sin callers; decidir entre borrarla o protegerla con admin (ver `REVIEW-AUTH`)
+- [ ] Quitar dependencias sin un solo import: `ai`, `@ai-sdk/google`, `langchain`, `@langchain/core`, `@langchain/google-genai`, `matter-js`, `@types/react-router-dom` (v5 muerta — `react-router-dom` v7 trae sus tipos). El chunk `ai-vendor` de `vite.config.ts` queda obsoleto con ellas
+
+### REVIEW-DEPS: dependencias y vulnerabilidades `added: 2026-09-29`
+
+- [ ] `npm audit fix` — 31 vulns (1 critical, 17 high); la mayoría transitivas/dev-only o en deps muertas (langchain/langsmith)
+- [ ] Actualizaciones menores seguras: `react-router-dom` → 7.18.x (advisories de XSS/open-redirect), `convex` → 1.46
+- [ ] Evaluar majors: `vite` 8, `vitest` 5, `eslint` 10, `typescript` 7
+
+### REVIEW-HEALTH: cobertura de typecheck en CI `added: 2026-09-29`
+
+- [ ] `convex/` no lo typecheckea ningún gate: `tsc -b` solo cubre `tsconfig.app.json` + `tsconfig.node.json`. Agregar `npx tsc --noEmit -p convex/tsconfig.json` al CI (o un script `typecheck` en `package.json`)
+
+### REVIEW-DOCS: correcciones de README `added: 2026-09-29`
+
+- [ ] Stack: la IA del agente usa `@google/generative-ai`, no `@ai-sdk/google` + LangChain (esas deps están muertas — ver `REVIEW-DEADCODE`)
+- [ ] Setup: aclarar que las vars de backend (`GEMINI_API_KEY`, `GOOGLE_CLIENT_*`, `CLOUDINARY_*`) van en Convex Dashboard, no en `.env.local` — `.env.example` ya quedó corregido en el PR de la revisión
 
 ### DOCS-NITS: Doc nits menores identificados en post-merge review `added: 2026-04-10`
 
