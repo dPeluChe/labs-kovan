@@ -94,10 +94,6 @@ Sistema modular y reutilizable para juegos basados en turnos. Vive en `src/compo
 
 - [ ] `convex/` no lo typecheckea ningún gate: `tsc -b` solo cubre `tsconfig.app.json` + `tsconfig.node.json`. Agregar `npx tsc --noEmit -p convex/tsconfig.json` al CI (o un script `typecheck` en `package.json`)
 
-### REVIEW-DOCS: correcciones de README `added: 2026-09-29`
-
-- [ ] Setup: aclarar que las vars de backend (`GEMINI_API_KEY`, `GOOGLE_CLIENT_*`, `CLOUDINARY_*`) van en Convex Dashboard, no en `.env.local` — `.env.example` ya quedó corregido en el PR de la revisión
-
 ### DOCS-NITS: Doc nits menores identificados en post-merge review `added: 2026-04-10`
 
 Pequeños ajustes de documentación identificados durante la sesión de cierre de Phase 3 pero postergados para mantener el scope del PR #3 acotado.
