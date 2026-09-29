@@ -10,7 +10,7 @@ sistema de gamificación de tareas del hogar.
 - **Backend**: [Convex](https://convex.dev) (serverless, reactivo)
 - **Estilos**: Tailwind CSS v4 + DaisyUI
 - **Animaciones**: Framer Motion
-- **IA**: Google Gemini via `@ai-sdk/google` + LangChain
+- **IA**: Google Gemini via `@google/generative-ai`
 - **Routing**: React Router v7
 - **Imágenes**: Cloudinary
 
@@ -225,7 +225,7 @@ agente.
 - `react-vendor`: React, React DOM, React Router
 - `ui-vendor`: Framer Motion, Lucide icons
 - `utils-vendor`: Convex, Zod, UUID
-- `ai-vendor`: AI SDK, LangChain, Google AI
+- `ai-vendor`: matcher de ids con `@ai-sdk`, `ai/`, `langchain` o `google` — el frontend no importa librerías de IA (el agente usa `@google/generative-ai` solo en `convex/`, fuera de este bundle), así que no emite chunk; rama muerta que se elimina con las deps (`REVIEW-DEADCODE`)
 - `vendor`: el resto
 
 Combinado con el lazy loading de páginas, esto produce un grafo de chunks
