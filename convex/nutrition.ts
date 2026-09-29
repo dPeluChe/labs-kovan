@@ -102,8 +102,10 @@ export const assignPlan = mutation({
     },
     handler: async (ctx, args) => {
         await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
-        const plan = await getPlanWithAccessOrThrow(ctx, args.sessionToken, args.planId);
-        const person = await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
+        const [{ plan }, { person }] = await Promise.all([
+            getPlanWithAccessOrThrow(ctx, args.sessionToken, args.planId),
+            getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId),
+        ]);
         if (plan.familyId !== args.familyId || person.familyId !== args.familyId) {
             throw new Error("Plan o perfil no pertenecen a la familia");
         }

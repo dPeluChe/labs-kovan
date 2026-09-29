@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -50,6 +50,8 @@ export function AddPlanModal({
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const placeSuggestionAppliedRef = useRef(false);
+
   useEffect(() => {
     if (planToEdit) {
       setActivity(planToEdit.activity || "");
@@ -60,17 +62,19 @@ export function AddPlanModal({
       }
       setTime(planToEdit.time || "");
       setNotes(planToEdit.notes || "");
+      placeSuggestionAppliedRef.current = true;
     }
   }, [planToEdit]);
 
   useEffect(() => {
-    if (initialPlaceId && places && !activity) {
+    if (initialPlaceId && places && !placeSuggestionAppliedRef.current) {
       const p = places.find((pl) => pl._id === initialPlaceId);
       if (p) {
+        placeSuggestionAppliedRef.current = true;
         setActivity(`Visitar ${p.name} `);
       }
     }
-  }, [initialPlaceId, places, activity]);
+  }, [initialPlaceId, places]);
 
   const handlePlaceChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const newPlaceId = e.target.value as Id<"places">;
@@ -126,7 +130,7 @@ export function AddPlanModal({
     <MobileModal isOpen onClose={onClose} title={editPlanId ? "Editar Actividad" : "Nueva Actividad"}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="form-control">
-          <label className="label"><span className="label-text">Lugar (Opcional)</span></label>
+          <label htmlFor="lugar-opcional" className="label"><span className="label-text">Lugar (Opcional)</span></label>
 
           {!placeListId ? (
             <div className="alert alert-warning py-2 text-xs flex shadow-sm">
@@ -137,7 +141,7 @@ export function AddPlanModal({
               </span>
             </div>
           ) : (
-            <select
+            <select id="lugar-opcional"
               className="select select-bordered w-full"
               value={placeId}
               onChange={handlePlaceChange}

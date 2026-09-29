@@ -76,16 +76,16 @@ export const deleteGiftEvent = mutation({
       .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
       .collect();
 
-    for (const recipient of recipients) {
-      const items = await ctx.db
-        .query("giftItems")
-        .withIndex("by_recipient", (q) => q.eq("giftRecipientId", recipient._id))
-        .collect();
-      for (const item of items) {
-        await ctx.db.delete(item._id);
-      }
-      await ctx.db.delete(recipient._id);
-    }
+    await Promise.all(
+      recipients.map(async (recipient) => {
+        const items = await ctx.db
+          .query("giftItems")
+          .withIndex("by_recipient", (q) => q.eq("giftRecipientId", recipient._id))
+          .collect();
+        await Promise.all(items.map((item) => ctx.db.delete(item._id)));
+        await ctx.db.delete(recipient._id);
+      })
+    );
 
     await ctx.db.delete(args.eventId);
   },

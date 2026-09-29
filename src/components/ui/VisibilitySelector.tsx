@@ -8,7 +8,7 @@ interface VisibilitySelectorProps {
 export function VisibilitySelector({ value, onChange }: VisibilitySelectorProps) {
     return (
         <div className="flex-none">
-            <label className="label text-xs font-medium text-muted">Visibilidad</label>
+            <p className="label text-xs font-medium text-muted">Visibilidad</p>
             <div className="flex bg-base-200 rounded-lg p-1 h-[48px] items-center">
                 <button
                     type="button"

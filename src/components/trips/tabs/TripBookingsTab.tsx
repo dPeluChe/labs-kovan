@@ -52,10 +52,11 @@ export function TripBookingsTab({ tripId }: { tripId: Id<"trips"> }) {
                     {bookings.map((booking) => {
                         const Icon = TYPE_ICONS[booking.type as keyof typeof TYPE_ICONS] || FileText;
                         return (
-                            <div
+                            <button
+                                type="button"
                                 key={booking._id}
                                 onClick={() => handleEdit(booking)}
-                                className="card bg-base-100 shadow-sm border border-base-200 cursor-pointer hover:border-primary transition-colors"
+                                className="card bg-base-100 shadow-sm border border-base-200 cursor-pointer hover:border-primary transition-colors w-full text-left"
                             >
                                 <div className="card-body p-4 flex flex-row items-center gap-4">
                                     <div className="bg-base-200 p-3 rounded-full">
@@ -76,7 +77,7 @@ export function TripBookingsTab({ tripId }: { tripId: Id<"trips"> }) {
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            </button>
                         );
                     })}
                     <button onClick={handleAdd} className="btn btn-outline btn-block btn-sm mt-4">

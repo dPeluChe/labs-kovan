@@ -7,6 +7,67 @@ interface UseDashboardDataParams {
   sessionToken?: string | null;
 }
 
+type Subscription = { isActive: boolean; amount?: number | null; billingCycle?: string };
+type DashboardDoc = { isArchived?: boolean; expiryDate?: number };
+
+function toMonthlyAmount(sub: Subscription) {
+  if (!sub.isActive || !sub.amount) return 0;
+  if (sub.billingCycle === "bimonthly") return sub.amount / 2;
+  if (sub.billingCycle === "quarterly") return sub.amount / 3;
+  if (sub.billingCycle === "annual") return sub.amount / 12;
+  if (sub.billingCycle === "variable") return 0;
+  return sub.amount;
+}
+
+interface DerivedInput<TDoc extends DashboardDoc> {
+  giftEvents?: unknown[] | null;
+  healthSummary?: { profileCount: number } | null;
+  librarySummary?: { owned: number; wishlist: number } | null;
+  vehiclesSummary?: { vehicleCount: number } | null;
+  upcomingEvents?: unknown[] | null;
+  expensesSummary?: { countThisMonth: number } | null;
+  recipesSummary?: { total: number } | null;
+  placesSummary?: { total: number } | null;
+  subscriptions?: Subscription[] | null;
+  documents?: TDoc[] | null;
+}
+
+function deriveDashboardData<TDoc extends DashboardDoc>(q: DerivedInput<TDoc>, now: number) {
+  const thirtyDaysFromNow = now + 30 * 24 * 60 * 60 * 1000;
+  const subTotalMonthly = q.subscriptions?.reduce((acc, sub) => acc + toMonthlyAmount(sub), 0) || 0;
+  const subActiveCount = q.subscriptions?.filter((s) => s.isActive).length || 0;
+  const expiringDocuments =
+    q.documents
+      ?.filter((d) => !d.isArchived && d.expiryDate && d.expiryDate <= thirtyDaysFromNow)
+      .sort((a, b) => (a.expiryDate || 0) - (b.expiryDate || 0)) || [];
+
+  const flags = {
+    hasGifts: q.giftEvents && q.giftEvents.length > 0,
+    hasHealth: q.healthSummary && q.healthSummary.profileCount > 0,
+    hasLibrary: q.librarySummary && (q.librarySummary.owned > 0 || q.librarySummary.wishlist > 0),
+    hasVehicles: q.vehiclesSummary && q.vehiclesSummary.vehicleCount > 0,
+    hasCalendar: q.upcomingEvents && q.upcomingEvents.length > 0,
+    hasExpenses: q.expensesSummary && q.expensesSummary.countThisMonth > 0,
+    hasRecipes: q.recipesSummary && q.recipesSummary.total > 0,
+    hasPlaces: q.placesSummary && q.placesSummary.total > 0,
+    hasSubscriptions: q.subscriptions && q.subscriptions.length > 0,
+    hasDocuments: q.documents && q.documents.length > 0,
+  };
+
+  const isLoading =
+    q.giftEvents === undefined ||
+    q.healthSummary === undefined ||
+    q.expensesSummary === undefined ||
+    q.recipesSummary === undefined ||
+    q.placesSummary === undefined ||
+    q.subscriptions === undefined ||
+    q.documents === undefined;
+
+  const hasAnyData = Object.values(flags).some(Boolean);
+
+  return { subTotalMonthly, subActiveCount, expiringDocuments, ...flags, isLoading, hasAnyData };
+}
+
 export function useDashboardData({ familyId, sessionToken }: UseDashboardDataParams) {
   const queryArgs = familyId && sessionToken ? { sessionToken, familyId } : "skip";
 
@@ -25,55 +86,22 @@ export function useDashboardData({ familyId, sessionToken }: UseDashboardDataPar
     familyId && sessionToken ? { sessionToken, familyId, limit: 3 } : "skip"
   );
 
-  const subTotalMonthly = subscriptions?.reduce((acc, sub) => {
-    if (!sub.isActive || !sub.amount) return acc;
-    let monthlyAmount = sub.amount;
-    if (sub.billingCycle === "bimonthly") monthlyAmount /= 2;
-    if (sub.billingCycle === "quarterly") monthlyAmount /= 3;
-    if (sub.billingCycle === "annual") monthlyAmount /= 12;
-    if (sub.billingCycle === "variable") return acc;
-    return acc + monthlyAmount;
-  }, 0) || 0;
-
-  const subActiveCount = subscriptions?.filter((s) => s.isActive).length || 0;
-
   const now = new Date().getTime();
-  const thirtyDaysFromNow = now + 30 * 24 * 60 * 60 * 1000;
-  const expiringDocuments = documents?.filter((d) =>
-    !d.isArchived && d.expiryDate && d.expiryDate <= thirtyDaysFromNow
-  ).sort((a, b) => (a.expiryDate || 0) - (b.expiryDate || 0)) || [];
-
-  const hasGifts = giftEvents && giftEvents.length > 0;
-  const hasHealth = healthSummary && healthSummary.profileCount > 0;
-  const hasLibrary = librarySummary && (librarySummary.owned > 0 || librarySummary.wishlist > 0);
-  const hasVehicles = vehiclesSummary && vehiclesSummary.vehicleCount > 0;
-  const hasCalendar = upcomingEvents && upcomingEvents.length > 0;
-  const hasExpenses = expensesSummary && expensesSummary.countThisMonth > 0;
-  const hasRecipes = recipesSummary && recipesSummary.total > 0;
-  const hasPlaces = placesSummary && placesSummary.total > 0;
-  const hasSubscriptions = subscriptions && subscriptions.length > 0;
-  const hasDocuments = documents && documents.length > 0;
-
-  const isLoading =
-    giftEvents === undefined ||
-    healthSummary === undefined ||
-    expensesSummary === undefined ||
-    recipesSummary === undefined ||
-    placesSummary === undefined ||
-    subscriptions === undefined ||
-    documents === undefined;
-
-  const hasAnyData =
-    hasGifts ||
-    hasHealth ||
-    hasLibrary ||
-    hasVehicles ||
-    hasCalendar ||
-    hasExpenses ||
-    hasRecipes ||
-    hasPlaces ||
-    hasSubscriptions ||
-    hasDocuments;
+  const derived = deriveDashboardData(
+    {
+      giftEvents,
+      healthSummary,
+      librarySummary,
+      vehiclesSummary,
+      upcomingEvents,
+      expensesSummary,
+      recipesSummary,
+      placesSummary,
+      subscriptions,
+      documents,
+    },
+    now
+  );
 
   return {
     now,
@@ -87,20 +115,6 @@ export function useDashboardData({ familyId, sessionToken }: UseDashboardDataPar
     placesSummary,
     subscriptions,
     documents,
-    subTotalMonthly,
-    subActiveCount,
-    expiringDocuments,
-    hasGifts,
-    hasHealth,
-    hasLibrary,
-    hasVehicles,
-    hasCalendar,
-    hasExpenses,
-    hasRecipes,
-    hasPlaces,
-    hasSubscriptions,
-    hasDocuments,
-    isLoading,
-    hasAnyData,
+    ...derived,
   };
 }

@@ -77,9 +77,9 @@ export function CreateActivityModal({ isOpen, onClose, activityToEdit }: CreateA
       <div className="space-y-4">
         {/* Emoji selector */}
         <div className="form-control">
-          <label className="label">
+          <p className="label">
             <span className="label-text font-medium">Emoji</span>
-          </label>
+          </p>
           <div className="flex flex-wrap gap-2">
             {EMOJI_OPTIONS.map((e) => (
               <button
@@ -97,10 +97,10 @@ export function CreateActivityModal({ isOpen, onClose, activityToEdit }: CreateA
 
         {/* Name */}
         <div className="form-control">
-          <label className="label">
+          <label htmlFor="nombre" className="label">
             <span className="label-text font-medium">Nombre</span>
           </label>
-          <input
+          <input id="nombre"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -111,11 +111,11 @@ export function CreateActivityModal({ isOpen, onClose, activityToEdit }: CreateA
 
         {/* Points */}
         <div className="form-control">
-          <label className="label">
+          <label htmlFor="puntos" className="label">
             <span className="label-text font-medium">Puntos</span>
           </label>
           <div className="flex items-center gap-3">
-            <input
+            <input id="puntos"
               type="range"
               min={1}
               max={20}
@@ -131,9 +131,9 @@ export function CreateActivityModal({ isOpen, onClose, activityToEdit }: CreateA
 
         {/* Category */}
         <div className="form-control">
-          <label className="label">
+          <p className="label">
             <span className="label-text font-medium">Categoría</span>
-          </label>
+          </p>
           <div className="grid grid-cols-2 gap-2">
             {CATEGORIES.map((cat) => (
               <button

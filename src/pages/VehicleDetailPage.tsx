@@ -199,6 +199,7 @@ export function VehicleDetailPage() {
                       <button
                         onClick={() => handleDeleteEvent(event._id, event.title)}
                         className="btn btn-ghost btn-xs btn-circle text-error"
+                        aria-label={`Eliminar ${event.title}`}
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>

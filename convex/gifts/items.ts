@@ -89,8 +89,10 @@ export const assignGiftItem = mutation({
     giftRecipientId: v.id("giftRecipients"),
   },
   handler: async (ctx, args) => {
-    const { item } = await getItemWithAccessOrThrow(ctx, args.sessionToken, args.itemId);
-    const { recipient } = await getRecipientWithAccessOrThrow(ctx, args.sessionToken, args.giftRecipientId);
+    const [{ item }, { recipient }] = await Promise.all([
+      getItemWithAccessOrThrow(ctx, args.sessionToken, args.itemId),
+      getRecipientWithAccessOrThrow(ctx, args.sessionToken, args.giftRecipientId),
+    ]);
     if (item.giftEventId !== recipient.giftEventId) {
       throw new Error("El destinatario no pertenece al mismo evento");
     }

@@ -122,6 +122,7 @@ export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent
                     <input
                         type="text"
                         placeholder="Título del evento"
+                        aria-label="Título del evento"
                         className="input input-lg text-lg font-semibold w-full focus:outline-none px-0 border-0 border-b-2 border-base-200 focus:border-primary rounded-none transition-colors"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
@@ -143,6 +144,7 @@ export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent
                         <div className="flex items-center gap-2 flex-1">
                             <input
                                 type="time"
+                                aria-label="Hora de inicio"
                                 className="input input-ghost input-sm w-full font-medium appearance-none min-h-[2.5rem]"
                                 value={startTime}
                                 onChange={(e) => setStartTime(e.target.value)}
@@ -152,6 +154,7 @@ export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent
                             <span className="text-faint">→</span>
                             <input
                                 type="time"
+                                aria-label="Hora de fin"
                                 className="input input-ghost input-sm w-full font-medium appearance-none min-h-[2.5rem]"
                                 value={endTime}
                                 onChange={(e) => setEndTime(e.target.value)}
@@ -168,6 +171,7 @@ export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent
                     <input
                         type="text"
                         placeholder="Ubicación (opcional)"
+                        aria-label="Ubicación"
                         className="input input-ghost input-sm w-full"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
@@ -179,6 +183,7 @@ export function EventFormModal({ isOpen, onClose, preselectedDate, existingEvent
                     <AlignLeft className="w-5 h-5 text-faint mt-2" />
                     <textarea
                         placeholder="Notas o descripción..."
+                        aria-label="Notas o descripción"
                         className="textarea textarea-ghost w-full resize-none"
                         rows={3}
                         value={description}

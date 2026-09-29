@@ -6,6 +6,77 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { Moon, Sun, Users, Home } from "lucide-react";
 
+interface InviteData {
+  invitedEmail: string;
+  familyName: string;
+}
+
+function validateForm({
+  mode,
+  name,
+  email,
+  password,
+  inviteData,
+}: {
+  mode: "login" | "register";
+  name: string;
+  email: string;
+  password: string;
+  inviteData?: InviteData | null;
+}): string | null {
+  if (!email.trim() || !password.trim()) return "Por favor completa todos los campos";
+  if (mode === "register" && !name.trim()) return "Por favor ingresa tu nombre";
+  if (!email.includes("@")) return "Por favor ingresa un email válido";
+  if (inviteData && email.trim().toLowerCase() !== inviteData.invitedEmail.toLowerCase()) {
+    return `Debes usar el correo invitado: ${inviteData.invitedEmail}`;
+  }
+  return null;
+}
+
+function LoginHeader({ inviteData, mode }: { inviteData?: InviteData | null; mode: "login" | "register" }) {
+  return (
+    <div className="text-center mb-8">
+      <div className="bg-primary/10 w-20 h-20 rounded-3xl rotate-3 flex items-center justify-center mx-auto mb-6 animate-bounce-in shadow-lg shadow-primary/20">
+        <span className="text-4xl filter drop-shadow-sm">{inviteData ? "👋" : "🏠"}</span>
+      </div>
+      <h1 className="text-2xl font-bold mb-2">
+        {inviteData ? "¡Te invitaron!" : (mode === "register" ? "Crear cuenta" : "Bienvenido de nuevo")}
+      </h1>
+      <p className="text-muted text-sm">
+        {inviteData
+          ? `Únete a la familia "${inviteData.familyName}"`
+          : mode === "register"
+            ? "Crea tu cuenta para empezar"
+            : "Tu hogar digital te espera"
+        }
+      </p>
+    </div>
+  );
+}
+
+function InviteBanner({ inviteData, inviteToken }: { inviteData?: InviteData | null; inviteToken: string | null }) {
+  if (inviteData) {
+    return (
+      <div className="alert alert-info mb-6 animate-fade-in shadow-sm">
+        <Users className="w-5 h-5" />
+        <div>
+          <p className="font-bold text-sm">Invitación a "{inviteData.familyName}"</p>
+          <p className="text-xs opacity-90">Debes entrar con el correo invitado: {inviteData.invitedEmail}</p>
+        </div>
+      </div>
+    );
+  }
+  if (inviteToken && inviteData === null) {
+    return (
+      <div className="alert alert-warning mb-6 shadow-sm">
+        <Users className="w-5 h-5" />
+        <span className="text-sm">La invitación no es válida o ya expiró.</span>
+      </div>
+    );
+  }
+  return null;
+}
+
 export function LoginPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -42,21 +113,9 @@ export function LoginPage() {
     e.preventDefault();
     setError("");
 
-    if (!email.trim() || !password.trim()) {
-      setError("Por favor completa todos los campos");
-      return;
-    }
-    if (mode === "register" && !name.trim()) {
-      setError("Por favor ingresa tu nombre");
-      return;
-    }
-
-    if (!email.includes("@")) {
-      setError("Por favor ingresa un email válido");
-      return;
-    }
-    if (inviteData && email.trim().toLowerCase() !== inviteData.invitedEmail.toLowerCase()) {
-      setError(`Debes usar el correo invitado: ${inviteData.invitedEmail}`);
+    const validationError = validateForm({ mode, name, email, password, inviteData });
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -108,50 +167,21 @@ export function LoginPage() {
       <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8">
         <div className="card bg-base-100 shadow-2xl w-full max-w-sm animate-scale-in border border-base-content/5">
           <div className="card-body p-6 sm:p-8">
-            <div className="text-center mb-8">
-              <div className="bg-primary/10 w-20 h-20 rounded-3xl rotate-3 flex items-center justify-center mx-auto mb-6 animate-bounce-in shadow-lg shadow-primary/20">
-                <span className="text-4xl filter drop-shadow-sm">{inviteData ? "👋" : "🏠"}</span>
-              </div>
-              <h1 className="text-2xl font-bold mb-2">
-                {inviteData ? "¡Te invitaron!" : (mode === "register" ? "Crear cuenta" : "Bienvenido de nuevo")}
-              </h1>
-              <p className="text-muted text-sm">
-                {inviteData
-                  ? `Únete a la familia "${inviteData.familyName}"`
-                  : mode === "register"
-                    ? "Crea tu cuenta para empezar"
-                    : "Tu hogar digital te espera"
-                }
-              </p>
-            </div>
+            <LoginHeader inviteData={inviteData} mode={mode} />
 
             {/* Invite banner */}
-            {inviteData && (
-              <div className="alert alert-info mb-6 animate-fade-in shadow-sm">
-                <Users className="w-5 h-5" />
-                <div>
-                  <p className="font-bold text-sm">Invitación a "{inviteData.familyName}"</p>
-                  <p className="text-xs opacity-90">Debes entrar con el correo invitado: {inviteData.invitedEmail}</p>
-                </div>
-              </div>
-            )}
-            {inviteToken && inviteData === null && (
-              <div className="alert alert-warning mb-6 shadow-sm">
-                <Users className="w-5 h-5" />
-                <span className="text-sm">La invitación no es válida o ya expiró.</span>
-              </div>
-            )}
+            <InviteBanner inviteData={inviteData} inviteToken={inviteToken} />
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {mode === "register" && (
                 <div className="form-control">
-                  <label className="label pt-0">
+                  <label htmlFor="nombre" className="label pt-0">
                     <span className="label-text font-bold text-xs uppercase tracking-wide opacity-70">Nombre</span>
                   </label>
-                  <input
+                  <input id="nombre"
                     type="text"
                     placeholder="¿Cómo te decimos?"
-                    className="input input-lg input-bordered w-full focus:input-primary rounded-2xl bg-base-200/50 focus:bg-base-100 transition-all font-medium placeholder:font-normal placeholder:opacity-50"
+                    className="input input-lg input-bordered w-full focus:input-primary rounded-2xl bg-base-200/50 focus:bg-base-100 transition-colors font-medium placeholder:font-normal placeholder:opacity-50"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     disabled={isLoading}
@@ -162,13 +192,13 @@ export function LoginPage() {
               )}
 
               <div className="form-control">
-                <label className="label pt-0">
+                <label htmlFor="email" className="label pt-0">
                   <span className="label-text font-bold text-xs uppercase tracking-wide opacity-70">Email</span>
                 </label>
-                <input
+                <input id="email"
                   type="email"
                   placeholder="correo@ejemplo.com"
-                  className="input input-lg input-bordered w-full focus:input-primary rounded-2xl bg-base-200/50 focus:bg-base-100 transition-all font-medium placeholder:font-normal placeholder:opacity-50"
+                  className="input input-lg input-bordered w-full focus:input-primary rounded-2xl bg-base-200/50 focus:bg-base-100 transition-colors font-medium placeholder:font-normal placeholder:opacity-50"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
@@ -177,13 +207,13 @@ export function LoginPage() {
               </div>
 
               <div className="form-control">
-                <label className="label pt-0">
+                <label htmlFor="contrasena" className="label pt-0">
                   <span className="label-text font-bold text-xs uppercase tracking-wide opacity-70">Contraseña</span>
                 </label>
-                <input
+                <input id="contrasena"
                   type="password"
                   placeholder="••••••••"
-                  className="input input-lg input-bordered w-full focus:input-primary rounded-2xl bg-base-200/50 focus:bg-base-100 transition-all font-medium placeholder:font-normal placeholder:opacity-50"
+                  className="input input-lg input-bordered w-full focus:input-primary rounded-2xl bg-base-200/50 focus:bg-base-100 transition-colors font-medium placeholder:font-normal placeholder:opacity-50"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}

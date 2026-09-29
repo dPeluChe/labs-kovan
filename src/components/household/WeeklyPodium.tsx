@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Avatar } from "../ui/Avatar";
 
 interface LeaderboardEntry {
@@ -38,7 +38,7 @@ function PodiumAvatar({
   const medalEmoji = entry.rank === 1 ? "🥇" : entry.rank === 2 ? "🥈" : "🥉";
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, type: "spring", bounce: 0.3 }}
@@ -63,18 +63,18 @@ function PodiumAvatar({
       <span className="font-semibold text-sm truncate max-w-[80px]">
         {entry.userName}
       </span>
-      <motion.span
+      <m.span
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: delay + 0.2 }}
         className="badge badge-primary badge-sm"
       >
         {entry.points} pts
-      </motion.span>
+      </m.span>
       <span className="text-xs text-subtle">
         {entry.activities} {entry.activities === 1 ? "act." : "acts."}
       </span>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -107,14 +107,14 @@ export function WeeklyPodium({ leaderboard, weekStart }: WeeklyPodiumProps) {
         {second && (
           <div className="flex flex-col items-center">
             <PodiumAvatar entry={second} size="md" delay={0.2} />
-            <motion.div
-              initial={{ height: 0 }}
-              animate={{ height: 60 }}
+            <m.div
+              initial={{ clipPath: "inset(100% 0 0 0)" }}
+              animate={{ clipPath: "inset(0% 0 0 0)" }}
               transition={{ delay: 0.3, duration: 0.4 }}
-              className="w-20 bg-base-200 rounded-t-lg mt-2 flex items-end justify-center pb-1"
+              className="w-20 h-[60px] bg-base-200 rounded-t-lg mt-2 flex items-end justify-center pb-1"
             >
               <span className="font-bold text-faint">2</span>
-            </motion.div>
+            </m.div>
           </div>
         )}
 
@@ -122,14 +122,14 @@ export function WeeklyPodium({ leaderboard, weekStart }: WeeklyPodiumProps) {
         {first && (
           <div className="flex flex-col items-center">
             <PodiumAvatar entry={first} size="lg" delay={0} />
-            <motion.div
-              initial={{ height: 0 }}
-              animate={{ height: 80 }}
+            <m.div
+              initial={{ clipPath: "inset(100% 0 0 0)" }}
+              animate={{ clipPath: "inset(0% 0 0 0)" }}
               transition={{ delay: 0.1, duration: 0.4 }}
-              className="w-24 bg-primary/20 rounded-t-lg mt-2 flex items-end justify-center pb-1"
+              className="w-24 h-20 bg-primary/20 rounded-t-lg mt-2 flex items-end justify-center pb-1"
             >
               <span className="font-bold text-primary">1</span>
-            </motion.div>
+            </m.div>
           </div>
         )}
 
@@ -137,14 +137,14 @@ export function WeeklyPodium({ leaderboard, weekStart }: WeeklyPodiumProps) {
         {third && (
           <div className="flex flex-col items-center">
             <PodiumAvatar entry={third} size="md" delay={0.4} />
-            <motion.div
-              initial={{ height: 0 }}
-              animate={{ height: 40 }}
+            <m.div
+              initial={{ clipPath: "inset(100% 0 0 0)" }}
+              animate={{ clipPath: "inset(0% 0 0 0)" }}
               transition={{ delay: 0.5, duration: 0.4 }}
-              className="w-20 bg-base-200 rounded-t-lg mt-2 flex items-end justify-center pb-1"
+              className="w-20 h-10 bg-base-200 rounded-t-lg mt-2 flex items-end justify-center pb-1"
             >
               <span className="font-bold text-faint">3</span>
-            </motion.div>
+            </m.div>
           </div>
         )}
       </div>

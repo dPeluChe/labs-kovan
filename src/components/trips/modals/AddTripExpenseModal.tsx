@@ -28,7 +28,7 @@ export function AddTripExpenseModal({ tripId, familyId, onClose }: { tripId: Id<
     const [description, setDescription] = useState("");
     const [amount, setAmount] = useState("");
     const [category, setCategory] = useState("trip"); // Default to trip
-    const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+    const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -80,7 +80,7 @@ export function AddTripExpenseModal({ tripId, familyId, onClose }: { tripId: Id<
                 </div>
 
                 <div className="form-control">
-                    <label className="label"><span className="label-text">Categoría</span></label>
+                    <p className="label"><span className="label-text">Categoría</span></p>
                     <div className="grid grid-cols-3 gap-2">
                         {TRIP_CATEGORIES.map((cat) => (
                             <button

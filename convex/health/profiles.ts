@@ -63,21 +63,21 @@ export const deletePersonProfile = mutation({
   args: { sessionToken: v.string(), personId: v.id("personProfiles") },
   handler: async (ctx, args) => {
     await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
-    const records = await ctx.db
-      .query("medicalRecords")
-      .withIndex("by_person", (q) => q.eq("personId", args.personId))
-      .collect();
-    for (const record of records) {
-      await ctx.db.delete(record._id);
-    }
+    const [records, meds] = await Promise.all([
+      ctx.db
+        .query("medicalRecords")
+        .withIndex("by_person", (q) => q.eq("personId", args.personId))
+        .collect(),
+      ctx.db
+        .query("medications")
+        .withIndex("by_person", (q) => q.eq("personId", args.personId))
+        .collect(),
+    ]);
 
-    const meds = await ctx.db
-      .query("medications")
-      .withIndex("by_person", (q) => q.eq("personId", args.personId))
-      .collect();
-    for (const med of meds) {
-      await ctx.db.delete(med._id);
-    }
+    await Promise.all([
+      ...records.map((record) => ctx.db.delete(record._id)),
+      ...meds.map((med) => ctx.db.delete(med._id)),
+    ]);
 
     await ctx.db.delete(args.personId);
   },

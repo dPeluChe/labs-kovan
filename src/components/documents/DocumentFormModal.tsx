@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { MobileModal } from "../ui/MobileModal";
@@ -47,29 +47,30 @@ export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormMod
     const [notes, setNotes] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) {
-            if (document) {
-                // Edit mode
-                setTitle(document.title);
-                setType(document.type);
-                setPersonId(document.personId || "");
-                setDocumentNumber(document.documentNumber || "");
-                setExpiryDate(document.expiryDate ? new Date(document.expiryDate).toISOString().split('T')[0] : "");
-                setIssueDate(document.issueDate ? new Date(document.issueDate).toISOString().split('T')[0] : "");
-                setNotes(document.notes || "");
-            } else {
-                // Create mode: Cleanup
-                setTitle("");
-                setType("other");
-                setPersonId("");
-                setDocumentNumber("");
-                setExpiryDate("");
-                setIssueDate("");
-                setNotes("");
-            }
+    // Reset/populate the form when the modal opens or a different document is
+    // passed in (React's adjust-state-during-render pattern avoids a stale frame).
+    const formKey = isOpen ? (document?._id ?? "new") : "closed";
+    const [prevFormKey, setPrevFormKey] = useState(formKey);
+    if (prevFormKey !== formKey) {
+        setPrevFormKey(formKey);
+        if (isOpen && document) {
+            setTitle(document.title);
+            setType(document.type);
+            setPersonId(document.personId || "");
+            setDocumentNumber(document.documentNumber || "");
+            setExpiryDate(document.expiryDate ? new Date(document.expiryDate).toISOString().split('T')[0] : "");
+            setIssueDate(document.issueDate ? new Date(document.issueDate).toISOString().split('T')[0] : "");
+            setNotes(document.notes || "");
+        } else {
+            setTitle("");
+            setType("other");
+            setPersonId("");
+            setDocumentNumber("");
+            setExpiryDate("");
+            setIssueDate("");
+            setNotes("");
         }
-    }, [isOpen, document]);
+    }
 
 
     const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -130,10 +131,10 @@ export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormMod
 
                 {/* Document Type Dropdown */}
                 <div className="form-control w-full">
-                    <label className="label">
+                    <label htmlFor="tipo-de-documento" className="label">
                         <span className="label-text">Tipo de documento</span>
                     </label>
-                    <select
+                    <select id="tipo-de-documento"
                         className="select select-bordered w-full rounded-xl"
                         onChange={handleTypeChange}
                         value={COMMON_DOCS.find(d => d.type === type && (d.id !== 'other' ? d.label === title : true))?.id || user && document ? "custom" : "other"}
@@ -159,10 +160,10 @@ export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormMod
 
                 {/* Person Selector with Groups */}
                 <div className="form-control w-full">
-                    <label className="label">
+                    <label htmlFor="de-quien-es" className="label">
                         <span className="label-text">¿De quién es?</span>
                     </label>
-                    <select
+                    <select id="de-quien-es"
                         className="select select-bordered w-full rounded-xl"
                         value={personId}
                         onChange={(e) => setPersonId(e.target.value)}
@@ -194,8 +195,8 @@ export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormMod
                 {/* Dates & Numbers */}
                 <div className="space-y-3">
                     <div className="form-control w-full">
-                        <label className="label text-xs font-medium text-muted">Número / Folio</label>
-                        <input
+                        <label htmlFor="numero-folio" className="label text-xs font-medium text-muted">Número / Folio</label>
+                        <input id="numero-folio"
                             type="text"
                             className="input input-bordered w-full rounded-xl"
                             value={documentNumber}
@@ -222,8 +223,8 @@ export function DocumentFormModal({ isOpen, onClose, document }: DocumentFormMod
                     </div>
 
                     <div className="form-control w-full">
-                        <label className="label text-xs font-medium text-muted">Notas</label>
-                        <textarea
+                        <label htmlFor="notas" className="label text-xs font-medium text-muted">Notas</label>
+                        <textarea id="notas"
                             className="textarea textarea-bordered w-full rounded-xl"
                             placeholder="Detalles adicionales, ubicación física, contraseñas..."
                             value={notes}

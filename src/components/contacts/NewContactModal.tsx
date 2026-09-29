@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useRef} from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -25,13 +25,16 @@ export function NewContactModal({
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const submitSeq = useRef(0);
+
   const createContact = useMutation(api.contacts.createContact);
 
   const handleSubmit = async (e: FormEvent) => {
+    const seq = ++submitSeq.current;
     e.preventDefault();
     if (!name.trim()) return;
 
-    setIsLoading(true);
+    setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
     try {
       if (!sessionToken) return;
       await createContact({
@@ -45,9 +48,9 @@ export function NewContactModal({
         address: address.trim() || undefined,
         notes: notes.trim() || undefined,
       });
-      onClose();
+      if (seq === submitSeq.current) onClose();
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
     }
   };
 
@@ -55,8 +58,8 @@ export function NewContactModal({
     <MobileModal isOpen={true} onClose={onClose} title="Nuevo contacto">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="form-control">
-          <label className="label"><span className="label-text">Nombre *</span></label>
-          <input
+          <label htmlFor="nombre" className="label"><span className="label-text">Nombre *</span></label>
+          <input id="nombre"
             type="text"
             placeholder="Ej: Dr. Juan Pérez"
             className="input input-bordered w-full"
@@ -66,7 +69,7 @@ export function NewContactModal({
         </div>
 
         <div className="form-control">
-          <label className="label"><span className="label-text">Categoría</span></label>
+          <p className="label"><span className="label-text">Categoría</span></p>
           <div className="grid grid-cols-4 gap-2">
             {(Object.entries(CATEGORY_CONFIG) as [ContactCategory, typeof CATEGORY_CONFIG[ContactCategory]][]).map(
               ([key, config]) => {
@@ -88,8 +91,8 @@ export function NewContactModal({
         </div>
 
         <div className="form-control">
-          <label className="label"><span className="label-text">Especialidad</span></label>
-          <input
+          <label htmlFor="especialidad" className="label"><span className="label-text">Especialidad</span></label>
+          <input id="especialidad"
             type="text"
             placeholder="Ej: Cardiólogo, Pediatra"
             className="input input-bordered w-full"
@@ -100,8 +103,8 @@ export function NewContactModal({
 
         <div className="grid grid-cols-2 gap-2">
           <div className="form-control">
-            <label className="label"><span className="label-text">Teléfono</span></label>
-            <input
+            <label htmlFor="telefono" className="label"><span className="label-text">Teléfono</span></label>
+            <input id="telefono"
               type="tel"
               placeholder="55 1234 5678"
               className="input input-bordered w-full"
@@ -110,8 +113,8 @@ export function NewContactModal({
             />
           </div>
           <div className="form-control">
-            <label className="label"><span className="label-text">Email</span></label>
-            <input
+            <label htmlFor="email" className="label"><span className="label-text">Email</span></label>
+            <input id="email"
               type="email"
               placeholder="correo@ejemplo.com"
               className="input input-bordered w-full"
@@ -122,8 +125,8 @@ export function NewContactModal({
         </div>
 
         <div className="form-control">
-          <label className="label"><span className="label-text">Dirección</span></label>
-          <input
+          <label htmlFor="direccion" className="label"><span className="label-text">Dirección</span></label>
+          <input id="direccion"
             type="text"
             placeholder="Calle, número, colonia..."
             className="input input-bordered w-full"
@@ -133,8 +136,8 @@ export function NewContactModal({
         </div>
 
         <div className="form-control">
-          <label className="label"><span className="label-text">Notas</span></label>
-          <textarea
+          <label htmlFor="notas" className="label"><span className="label-text">Notas</span></label>
+          <textarea id="notas"
             placeholder="Horarios, recomendaciones..."
             className="textarea textarea-bordered w-full"
             value={notes}

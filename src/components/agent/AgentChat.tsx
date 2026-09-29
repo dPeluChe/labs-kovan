@@ -5,8 +5,36 @@ import { api } from "../../../convex/_generated/api";
 import { useAuth } from "../../contexts/AuthContext";
 
 interface Message {
+    id: string;
     role: "user" | "assistant";
     content: string;
+}
+
+interface ChatBubbleProps {
+    isUser: boolean;
+    avatar: React.ReactNode;
+    compact?: boolean;
+    dimmed?: boolean;
+    children: React.ReactNode;
+}
+
+function ChatBubble({ isUser, avatar, compact = false, dimmed = false, children }: ChatBubbleProps) {
+    return (
+        <div className={`chat ${isUser ? "chat-end" : "chat-start"}`}>
+            <div className={`chat-image avatar${compact ? " placeholder" : ""}`}>
+                <div
+                    className={`${compact ? "w-8" : "w-10 h-10 flex items-center justify-center"} rounded-full ${
+                        isUser ? "bg-secondary text-secondary-content" : "bg-primary text-primary-content"
+                    }`}
+                >
+                    {avatar}
+                </div>
+            </div>
+            <div className={`chat-bubble ${isUser ? "chat-bubble-secondary" : "chat-bubble-primary"}${dimmed ? " opacity-50" : ""}`}>
+                {children}
+            </div>
+        </div>
+    );
 }
 
 export function AgentChat() {
@@ -31,6 +59,7 @@ export function AgentChat() {
             const loadedMessages = conversationHistory
                 .reverse()
                 .map((msg: { role: "user" | "assistant"; content: string }) => ({
+                    id: crypto.randomUUID(),
                     role: msg.role,
                     content: msg.content
                 }));
@@ -61,7 +90,7 @@ export function AgentChat() {
 
         const userMsg = input.trim();
         setInput("");
-        const newUserMessage = { role: "user" as const, content: userMsg };
+        const newUserMessage = { id: crypto.randomUUID(), role: "user" as const, content: userMsg };
         setMessages(prev => [...prev, newUserMessage]);
         setIsLoading(true);
 
@@ -71,7 +100,7 @@ export function AgentChat() {
             history.push({ role: "user", content: userMsg });
 
             if (!user || !sessionToken) {
-                setMessages(prev => [...prev, { role: "assistant", content: "No se ha encontrado un usuario activo. Por favor recarga la página." }]);
+                setMessages(prev => [...prev, { id: crypto.randomUUID(), role: "assistant", content: "No se ha encontrado un usuario activo. Por favor recarga la página." }]);
                 setIsLoading(false);
                 return;
             }
@@ -85,7 +114,7 @@ export function AgentChat() {
             });
 
             const assistantMsg = String(response);
-            setMessages(prev => [...prev, { role: "assistant", content: assistantMsg }]);
+            setMessages(prev => [...prev, { id: crypto.randomUUID(), role: "assistant", content: assistantMsg }]);
 
             // Save assistant message
             await saveMessageMutation({ sessionToken, role: "assistant", content: assistantMsg });
@@ -94,6 +123,7 @@ export function AgentChat() {
             const errorMessage = error instanceof Error ? error.message : String(error);
             const errorMsg = `❌ Error: ${errorMessage}\n\nPor favor intenta de nuevo o reformula tu pregunta.`;
             setMessages(prev => [...prev, {
+                id: crypto.randomUUID(),
                 role: "assistant",
                 content: errorMsg
             }]);
@@ -114,6 +144,7 @@ export function AgentChat() {
                 <button
                     onClick={() => setIsOpen(true)}
                     className="fixed bottom-20 right-4 z-50 btn btn-circle btn-primary btn-lg shadow-xl animate-bounce-subtle"
+                    aria-label="Abrir asistente"
                 >
                     <Bot className="w-8 h-8" />
                 </button>
@@ -141,7 +172,7 @@ export function AgentChat() {
                             >
                                 <Trash2 className="w-5 h-5" />
                             </button>
-                            <button onClick={() => setIsOpen(false)} className="btn btn-ghost btn-sm btn-circle text-primary-content">
+                            <button onClick={() => setIsOpen(false)} className="btn btn-ghost btn-sm btn-circle text-primary-content" aria-label="Cerrar chat">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
@@ -162,34 +193,20 @@ export function AgentChat() {
                             </div>
                         )}
 
-                        {messages.map((msg, i) => (
-                            <div key={i} className={`chat ${msg.role === "user" ? "chat-end" : "chat-start"}`}>
-                                <div className="chat-image avatar">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${msg.role === "user" ? "bg-secondary text-secondary-content" : "bg-primary text-primary-content"}`}>
-                                        {msg.role === "user" ? (
-                                            <span className="text-sm font-bold">U</span>
-                                        ) : (
-                                            <Bot className="w-5 h-5" />
-                                        )}
-                                    </div>
-                                </div>
-                                <div className={`chat-bubble ${msg.role === "user" ? "chat-bubble-secondary" : "chat-bubble-primary"}`}>
-                                    {msg.content}
-                                </div>
-                            </div>
+                        {messages.map((msg) => (
+                            <ChatBubble
+                                key={msg.id}
+                                isUser={msg.role === "user"}
+                                avatar={msg.role === "user" ? <span className="text-sm font-bold">U</span> : <Bot className="w-5 h-5" />}
+                            >
+                                {msg.content}
+                            </ChatBubble>
                         ))}
 
                         {isLoading && (
-                            <div className="chat chat-start">
-                                <div className="chat-image avatar placeholder">
-                                    <div className="w-8 rounded-full bg-primary text-primary-content">
-                                        <Bot className="w-5 h-5" />
-                                    </div>
-                                </div>
-                                <div className="chat-bubble chat-bubble-primary opacity-50">
-                                    <span className="loading loading-dots loading-sm"></span>
-                                </div>
-                            </div>
+                            <ChatBubble isUser={false} compact dimmed avatar={<Bot className="w-5 h-5" />}>
+                                <span className="loading loading-dots loading-sm"></span>
+                            </ChatBubble>
                         )}
                     </div>
 
@@ -200,6 +217,7 @@ export function AgentChat() {
                                 type="text"
                                 className="input input-bordered join-item w-full"
                                 placeholder="Escribe tu solicitud..."
+                                aria-label="Escribe tu solicitud"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 autoFocus
@@ -208,6 +226,7 @@ export function AgentChat() {
                                 type="submit"
                                 className="btn btn-primary join-item"
                                 disabled={isLoading || !input.trim()}
+                                aria-label="Enviar mensaje"
                             >
                                 <Send className="w-5 h-5" />
                             </button>

@@ -49,7 +49,9 @@ export function ResourceCard({
                         </div>
                     )}
                 </div>
-                {action || (
+                {action ? (
+                    <div className="relative z-10 shrink-0">{action}</div>
+                ) : (
                     (to || onClick) && <ChevronRight className="w-5 h-5 text-base-content/30 shrink-0" />
                 )}
             </div>
@@ -67,7 +69,15 @@ export function ResourceCard({
     }
 
     return (
-        <div onClick={onClick} className={baseClasses}>
+        <div className={`${baseClasses} relative`}>
+            {onClick && (
+                <button
+                    type="button"
+                    onClick={onClick}
+                    aria-label={title}
+                    className="absolute inset-0 cursor-pointer"
+                />
+            )}
             {content}
         </div>
     );

@@ -102,6 +102,7 @@ export function LoansView() {
                     )}
                     <button
                       className="btn btn-ghost btn-xs text-faint hover:text-error"
+                      aria-label="Borrar préstamo"
                       onClick={async () => {
                         if (await confirm({ title: "Borrar préstamo", message: "Esto eliminará el registro y sus abonos.", variant: "danger" })) {
                           if (sessionToken) deleteLoan({ sessionToken, loanId: loan._id });

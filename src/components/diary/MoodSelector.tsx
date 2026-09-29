@@ -20,7 +20,7 @@ export function MoodSelector({
     return (
         <div className="space-y-4">
             <div>
-                <label className="label text-xs font-medium text-muted">¿Cómo te sientes?</label>
+                <p className="label text-xs font-medium text-muted">¿Cómo te sientes?</p>
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar snap-x">
                     {MOODS.map((m) => (
                         <button
@@ -39,10 +39,10 @@ export function MoodSelector({
 
             {/* Custom Mood Inputs */}
             {mood === "custom" && (
-                <div className="flex gap-3 animate-fade-in bg-primary/5 border border-primary/20 p-3 rounded-xl transition-all">
+                <div className="flex gap-3 animate-fade-in bg-primary/5 border border-primary/20 p-3 rounded-xl transition-colors">
                     <div className="w-16">
-                        <label className="label text-[10px] font-medium text-muted pt-0">Emoji</label>
-                        <input
+                        <label htmlFor="emoji" className="label text-[10px] font-medium text-muted pt-0">Emoji</label>
+                        <input id="emoji"
                             type="text"
                             className="input input-sm input-bordered w-full text-center text-xl px-1 bg-white"
                             value={customEmoji}
@@ -51,8 +51,8 @@ export function MoodSelector({
                         />
                     </div>
                     <div className="flex-1">
-                        <label className="label text-[10px] font-medium text-muted pt-0">Etiqueta</label>
-                        <input
+                        <label htmlFor="etiqueta" className="label text-[10px] font-medium text-muted pt-0">Etiqueta</label>
+                        <input id="etiqueta"
                             type="text"
                             className="input input-sm input-bordered w-full bg-white"
                             placeholder="Ej: Productivo, Zen..."

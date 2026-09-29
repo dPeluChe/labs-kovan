@@ -150,9 +150,10 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
 
             {/* Secondary Stats Grid */}
             <div className="grid grid-cols-2 gap-3">
-                <div
+                <button
+                    type="button"
                     onClick={() => onChangeTab("finances")}
-                    className="card bg-base-100 border border-base-200 shadow-sm p-4 active:scale-95 transition-transform"
+                    className="card bg-base-100 border border-base-200 shadow-sm p-4 active:scale-95 transition-transform text-left"
                 >
                     <div className="flex items-center gap-2 mb-2">
                         <div className="p-1.5 bg-green-100 text-green-600 rounded-md">
@@ -163,11 +164,12 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
                     <div>
                         <div className="text-lg font-bold">${totalSpent.toLocaleString()}</div>
                     </div>
-                </div>
+                </button>
 
-                <div
+                <button
+                    type="button"
                     onClick={() => onChangeTab("itinerary")}
-                    className="card bg-base-100 border border-base-200 shadow-sm p-4 active:scale-95 transition-transform"
+                    className="card bg-base-100 border border-base-200 shadow-sm p-4 active:scale-95 transition-transform text-left"
                 >
                     <div className="flex items-center gap-2 mb-2">
                         <div className="p-1.5 bg-blue-100 text-blue-600 rounded-md">
@@ -182,7 +184,7 @@ export function TripOverviewTab({ tripId, onChangeTab }: { tripId: Id<"trips">, 
                         </div>
                         <progress className="progress progress-primary w-full h-1.5" value={completedPlans} max={totalPlans || 1}></progress>
                     </div>
-                </div>
+                </button>
             </div>
 
             {/* Key Bookings Summary */}

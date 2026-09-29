@@ -11,7 +11,7 @@ export function Header() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="navbar bg-base-100/90 backdrop-blur-md border-b border-base-300 px-4 min-h-14 sticky top-0 z-40 transition-all duration-300">
+    <header className="navbar bg-base-100/90 backdrop-blur-md border-b border-base-300 px-4 min-h-14 sticky top-0 z-40 transition-colors duration-300">
       <div className="flex-1 flex items-center gap-0.5">
         <Link to="/" className="btn btn-ghost btn-sm gap-2 px-2 normal-case">
           <span className="text-lg">{currentFamily?.emoji || "🏠"}</span>
@@ -22,11 +22,10 @@ export function Header() {
 
         {families.length > 1 && (
           <div className="dropdown dropdown-bottom">
-            <div tabIndex={0} role="button" className="btn btn-ghost btn-sm px-1 min-h-0 h-8 w-8 rounded-full opacity-60 hover:opacity-100">
+            <button type="button" aria-label="Cambiar familia" className="btn btn-ghost btn-sm px-1 min-h-0 h-8 w-8 rounded-full opacity-60 hover:opacity-100">
               <ChevronDown className="w-4 h-4" />
-            </div>
+            </button>
             <ul
-              tabIndex={0}
               className="dropdown-content menu bg-base-100 rounded-box z-[60] w-52 p-2 shadow-lg border border-base-300 mt-2"
             >
               {families.map((family) => (
@@ -72,15 +71,14 @@ export function Header() {
         </button>
 
         <div className="dropdown dropdown-end">
-          <div
-            tabIndex={0}
-            role="button"
+          <button
+            type="button"
+            aria-label="Menú de cuenta"
             className="btn btn-ghost btn-circle btn-sm avatar placeholder"
           >
             <Avatar src={user?.photoUrl} name={user?.name} size="sm" />
-          </div>
+          </button>
           <ul
-            tabIndex={0}
             className="dropdown-content menu bg-base-100 rounded-box z-50 w-48 p-2 shadow-lg border border-base-300"
           >
             <li className="menu-title px-4 py-2">

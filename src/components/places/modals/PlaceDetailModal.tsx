@@ -91,8 +91,8 @@ export function PlaceDetailModal({ place, onClose, onDelete }: PlaceDetailModalP
                 {/* Helper to render fields */}
                 {isEditing ? (
                     <div className="form-control">
-                        <label className="label"><span className="label-text">Nombre</span></label>
-                        <input
+                        <label htmlFor="nombre" className="label"><span className="label-text">Nombre</span></label>
+                        <input id="nombre"
                             type="text"
                             className="input input-bordered w-full"
                             value={editData.name}
@@ -115,12 +115,13 @@ export function PlaceDetailModal({ place, onClose, onDelete }: PlaceDetailModalP
 
                 {/* Rating */}
                 <div>
-                    <label className="label"><span className="label-text font-medium">Calificación</span></label>
+                    <p className="label"><span className="label-text font-medium">Calificación</span></p>
                     <div className="flex gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
                             <button
                                 key={star}
                                 type="button"
+                                aria-label={`Calificación ${star} de 5`}
                                 onClick={() => {
                                     if (isEditing) {
                                         setEditData({ ...editData, rating: star });
@@ -142,9 +143,9 @@ export function PlaceDetailModal({ place, onClose, onDelete }: PlaceDetailModalP
                 {/* Address */}
                 {(place.address || isEditing) && (
                     <div>
-                        <label className="label"><span className="label-text font-medium">Dirección</span></label>
+                        <label htmlFor="direccion" className="label"><span className="label-text font-medium">Dirección</span></label>
                         {isEditing ? (
-                            <input
+                            <input id="direccion"
                                 type="text"
                                 className="input input-bordered w-full"
                                 value={editData.address}
@@ -160,9 +161,9 @@ export function PlaceDetailModal({ place, onClose, onDelete }: PlaceDetailModalP
                 {/* Highlight */}
                 {(place.highlight || isEditing) && (
                     <div>
-                        <label className="label"><span className="label-text font-medium">🌟 Qué te gustó / Qué venden</span></label>
+                        <label htmlFor="que-te-gusto-que-venden" className="label"><span className="label-text font-medium">🌟 Qué te gustó / Qué venden</span></label>
                         {isEditing ? (
-                            <input
+                            <input id="que-te-gusto-que-venden"
                                 type="text"
                                 className="input input-bordered w-full"
                                 value={editData.highlight}
@@ -178,12 +179,12 @@ export function PlaceDetailModal({ place, onClose, onDelete }: PlaceDetailModalP
                 {/* Links */}
                 {(place.url || place.mapsUrl || isEditing) && (
                     <div>
-                        <label className="label"><span className="label-text font-medium">Enlaces</span></label>
+                        <label htmlFor="enlaces" className="label"><span className="label-text font-medium">Enlaces</span></label>
                         <div className="flex flex-col gap-2">
                             {isEditing ? (
                                 <>
-                                    <input className="input input-bordered input-sm" placeholder="Instagram / Web" value={editData.url} onChange={e => setEditData({ ...editData, url: e.target.value })} />
-                                    <input className="input input-bordered input-sm" placeholder="Google Maps" value={editData.mapsUrl} onChange={e => setEditData({ ...editData, mapsUrl: e.target.value })} />
+                                    <input id="enlaces" className="input input-bordered input-sm" placeholder="Instagram / Web" value={editData.url} onChange={e => setEditData({ ...editData, url: e.target.value })} />
+                                    <input className="input input-bordered input-sm" placeholder="Google Maps" aria-label="Google Maps" value={editData.mapsUrl} onChange={e => setEditData({ ...editData, mapsUrl: e.target.value })} />
                                 </>
                             ) : (
                                 <>
@@ -205,9 +206,9 @@ export function PlaceDetailModal({ place, onClose, onDelete }: PlaceDetailModalP
 
                 {/* Notes */}
                 <div>
-                    <label className="label"><span className="label-text font-medium">Notas</span></label>
+                    <label htmlFor="notas" className="label"><span className="label-text font-medium">Notas</span></label>
                     {isEditing ? (
-                        <textarea
+                        <textarea id="notas"
                             className="textarea textarea-bordered w-full"
                             rows={4}
                             value={editData.notes}

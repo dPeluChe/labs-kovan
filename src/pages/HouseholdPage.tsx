@@ -262,7 +262,7 @@ export function HouseholdPage() {
                           <button
                             key={activity._id}
                             onClick={() => handleActivityClick(activity)}
-                            className="btn btn-ghost h-auto py-3 flex flex-col items-center gap-1 surface-card hover:border-primary/30 hover:bg-primary/5 active:scale-95 transition-all"
+                            className="btn btn-ghost h-auto py-3 flex flex-col items-center gap-1 surface-card hover:border-primary/30 hover:bg-primary/5 active:scale-95 transition"
                           >
                             <span className="text-2xl">{activity.emoji}</span>
                             <span className="text-xs font-medium leading-tight text-center">

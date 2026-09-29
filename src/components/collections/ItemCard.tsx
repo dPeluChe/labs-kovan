@@ -8,6 +8,39 @@ import type { ConfirmOptions } from "../../hooks/useConfirmModal";
 import { useAuth } from "../../contexts/AuthContext";
 import { ContextMenu } from "../ui/ContextMenu";
 
+function statusBadgeClass(status: string) {
+    if (status === "finished") return "badge-success text-white";
+    if (status === "in_progress") return "badge-warning text-white";
+    return "badge-ghost bg-base-100/80 backdrop-blur-sm";
+}
+
+function CardCover({ item }: { item: Doc<"collections"> }) {
+    const TypeIcon = TYPE_CONFIG[item.type]?.icon || Box;
+    return (
+        <div className={`h-24 w-full relative ${item.imageUrl ? "" : "bg-gradient-to-br from-base-200 to-base-300"} flex items-center justify-center`}>
+            {item.imageUrl ? (
+                <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+            ) : (
+                <TypeIcon className="w-8 h-8 text-base-content/20" />
+            )}
+
+            {/* Status Badge */}
+            <div className="absolute top-2 left-2">
+                <span className={`badge badge-xs shadow-sm ${statusBadgeClass(item.status)}`}>
+                    {STATUS_LABELS[item.status]}
+                </span>
+            </div>
+
+            {/* Owned Toggle (Quick Action) */}
+            {!item.owned && (
+                <div className="absolute top-2 right-2">
+                    <span className="badge badge-xs badge-neutral badge-outline bg-base-100/80 backdrop-blur-sm">Deseado</span>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export function ItemCard({
     item,
     showVolume = false,
@@ -20,8 +53,6 @@ export function ItemCard({
     const updateItem = useMutation(api.collections.updateItem);
     const deleteItem = useMutation(api.collections.deleteItem);
     const { sessionToken } = useAuth();
-
-    const TypeIcon = TYPE_CONFIG[item.type]?.icon || Box;
 
     const toggleOwned = async () => {
         if (!sessionToken) return;
@@ -45,27 +76,7 @@ export function ItemCard({
         <div className={`group relative flex flex-col bg-base-100 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg border ${item.owned ? "border-base-200" : "border-dashed border-base-300 opacity-90"}`}>
 
             {/* Visual Header / Cover Placeholder */}
-            <div className={`h-24 w-full relative ${item.imageUrl ? "" : "bg-gradient-to-br from-base-200 to-base-300"} flex items-center justify-center`}>
-                {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
-                ) : (
-                    <TypeIcon className="w-8 h-8 text-base-content/20" />
-                )}
-
-                {/* Status Badge */}
-                <div className="absolute top-2 left-2">
-                    <span className={`badge badge-xs shadow-sm ${item.status === 'finished' ? 'badge-success text-white' : item.status === 'in_progress' ? 'badge-warning text-white' : 'badge-ghost bg-base-100/80 backdrop-blur-sm'}`}>
-                        {STATUS_LABELS[item.status]}
-                    </span>
-                </div>
-
-                {/* Owned Toggle (Quick Action) */}
-                {!item.owned && (
-                    <div className="absolute top-2 right-2">
-                        <span className="badge badge-xs badge-neutral badge-outline bg-base-100/80 backdrop-blur-sm">Deseado</span>
-                    </div>
-                )}
-            </div>
+            <CardCover item={item} />
 
             {/* Content */}
             <div className="p-3 flex-1 flex flex-col relative">

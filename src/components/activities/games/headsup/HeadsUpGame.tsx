@@ -30,11 +30,11 @@ export function HeadsUpGame({ onComplete }: HeadsUpGameProps) {
   // Estado del juego
   const [gameState, setGameState] = useState<GameState>("category_select");
   const [currentCategory, setCurrentCategory] = useState<HeadsUpCategory>("peliculas");
-  const [cards, setCards] = useState<HeadsUpCard[]>([]);
+  const cardsRef = useRef<HeadsUpCard[]>([]);
   const [currentCard, setCurrentCard] = useState<HeadsUpCard | null>(null);
   const [score, setScore] = useState(0);
   const [skipped, setSkipped] = useState(0);
-  const [usedCardIds, setUsedCardIds] = useState<Set<string>>(new Set());
+  const usedCardIdsRef = useRef<Set<string>>(new Set());
 
   // Usamos ref para evitar closures stale
   const scoreRef = useRef(score);
@@ -87,12 +87,12 @@ export function HeadsUpGame({ onComplete }: HeadsUpGameProps) {
   }, [members]);
 
   useEffect(() => {
-    setCards(categoryCards(currentCategory));
+    cardsRef.current = categoryCards(currentCategory);
   }, [currentCategory, categoryCards]);
 
   const getRandomCard = useCallback((): HeadsUpCard | null => {
-    const availableCards = cards.filter(
-      (card) => !usedCardIds.has(card.id)
+    const availableCards = cardsRef.current.filter(
+      (card) => !usedCardIdsRef.current.has(card.id)
     );
 
     if (availableCards.length === 0) {
@@ -100,13 +100,13 @@ export function HeadsUpGame({ onComplete }: HeadsUpGameProps) {
     }
 
     return getRandomItem(availableCards);
-  }, [cards, usedCardIds]);
+  }, []);
 
   const startGame = useCallback(() => {
     // Resetear estado
     setScore(0);
     setSkipped(0);
-    setUsedCardIds(new Set());
+    usedCardIdsRef.current = new Set();
 
     // Seleccionar primera carta
     const firstCard = getRandomCard();
@@ -120,7 +120,7 @@ export function HeadsUpGame({ onComplete }: HeadsUpGameProps) {
     if (!currentCard) return;
 
     // Marcar como usada
-    setUsedCardIds((prev) => new Set(prev).add(currentCard.id));
+    usedCardIdsRef.current = new Set(usedCardIdsRef.current).add(currentCard.id);
     setScore((prev) => prev + 1);
 
     // Siguiente carta
@@ -137,7 +137,7 @@ export function HeadsUpGame({ onComplete }: HeadsUpGameProps) {
     if (!currentCard) return;
 
     // Marcar como usada (pasada)
-    setUsedCardIds((prev) => new Set(prev).add(currentCard.id));
+    usedCardIdsRef.current = new Set(usedCardIdsRef.current).add(currentCard.id);
     setSkipped((prev) => prev + 1);
 
     // Siguiente carta

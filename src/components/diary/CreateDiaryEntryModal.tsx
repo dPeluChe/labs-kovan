@@ -115,8 +115,8 @@ export function CreateDiaryEntryModal({ isOpen, onClose }: CreateDiaryEntryModal
 
                 {/* Content */}
                 <div>
-                    <label className="label text-xs font-medium text-muted">Tu historia (opcional)</label>
-                    <textarea
+                    <label htmlFor="tu-historia-opcional" className="label text-xs font-medium text-muted">Tu historia (opcional)</label>
+                    <textarea id="tu-historia-opcional"
                         className="textarea textarea-bordered w-full h-32 rounded-xl leading-relaxed resize-none text-base focus:outline-none focus:ring-1 focus:ring-primary"
                         placeholder="Escribe aquí... (Eventos, agradecimientos, pensamientos)"
                         value={content}

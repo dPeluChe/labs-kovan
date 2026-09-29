@@ -20,13 +20,17 @@ export const getVehiclesSummary = query({
       event: { type: string; title: string; date: number };
     }> = [];
 
-    for (const vehicle of vehicles) {
-      const events = await ctx.db
-        .query("vehicleEvents")
-        .withIndex("by_vehicle", (q) => q.eq("vehicleId", vehicle._id))
-        .collect();
+    const eventsByVehicle = await Promise.all(
+      vehicles.map((vehicle) =>
+        ctx.db
+          .query("vehicleEvents")
+          .withIndex("by_vehicle", (q) => q.eq("vehicleId", vehicle._id))
+          .collect()
+      )
+    );
 
-      for (const event of events) {
+    for (const [index, vehicle] of vehicles.entries()) {
+      for (const event of eventsByVehicle[index]) {
         if (event.nextDate && event.nextDate >= now && event.nextDate <= thirtyDaysFromNow) {
           upcomingEvents.push({
             vehicleId: vehicle._id,

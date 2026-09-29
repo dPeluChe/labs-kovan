@@ -19,7 +19,7 @@ export function AddRecordModal({
     const [type] = useState<"consultation" | "study" | "note">("consultation");
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+    const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
     const [doctorName, setDoctorName] = useState("");
     const [clinicName, setClinicName] = useState("");
     const [isLoading, setIsLoading] = useState(false);

@@ -13,7 +13,7 @@ interface FeatureCardProps {
 const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, description, bgColor, textColor, delay }) => {
     return (
         <div
-            className="card-interactive bg-base-100 p-6 rounded-2xl border border-base-content/5 shadow-sm hover:shadow-xl transition-all duration-300 animate-slide-up"
+            className="card-interactive bg-base-100 p-6 rounded-2xl border border-base-content/5 shadow-sm hover:shadow-xl transition-shadow duration-300 animate-slide-up"
             style={{ animationDelay: delay }}
         >
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${bgColor}`}>
@@ -104,9 +104,9 @@ export const FeatureShowcase: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {features.map((feature, index) => (
+                    {features.map((feature) => (
                         <FeatureCard
-                            key={index}
+                            key={feature.title}
                             {...feature}
                         />
                     ))}

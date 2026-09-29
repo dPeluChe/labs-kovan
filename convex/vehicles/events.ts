@@ -92,9 +92,7 @@ export const deleteVehicleEvent = mutation({
       .filter((q) => q.eq(q.field("vehicleEventId"), args.eventId))
       .collect();
 
-    for (const expense of expenses) {
-      await ctx.db.delete(expense._id);
-    }
+    await Promise.all(expenses.map((expense) => ctx.db.delete(expense._id)));
 
     await ctx.db.delete(args.eventId);
   },

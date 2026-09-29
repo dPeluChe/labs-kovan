@@ -69,6 +69,7 @@ export function NavOrderEditor({
                   onClick={() => onMoveItem(id, "up")}
                   disabled={index === 0}
                   className="btn btn-ghost btn-xs btn-circle"
+                  aria-label={`Subir ${item.label}`}
                 >
                   ↑
                 </button>
@@ -76,6 +77,7 @@ export function NavOrderEditor({
                   onClick={() => onMoveItem(id, "down")}
                   disabled={index === mainNavItems.length - 1 && moreItems.length === 0}
                   className="btn btn-ghost btn-xs btn-circle"
+                  aria-label={`Bajar ${item.label}`}
                 >
                   ↓
                 </button>
@@ -120,6 +122,7 @@ export function NavOrderEditor({
                   <button
                     onClick={() => onMoveItem(id, "up")}
                     className="btn btn-ghost btn-xs btn-circle"
+                    aria-label={`Subir ${item.label}`}
                   >
                     ↑
                   </button>
@@ -127,6 +130,7 @@ export function NavOrderEditor({
                     onClick={() => onMoveItem(id, "down")}
                     disabled={index === moreItems.length - 1}
                     className="btn btn-ghost btn-xs btn-circle"
+                    aria-label={`Bajar ${item.label}`}
                   >
                     ↓
                   </button>

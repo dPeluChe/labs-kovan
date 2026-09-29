@@ -28,7 +28,8 @@ export function stringSimilarity(str1: string, str2: string): number {
     const [shorter, longer] = tokens1.length <= tokens2.length ? [tokens1, tokens2] : [tokens2, tokens1];
 
     if (shorter.length > 0) {
-        if (shorter.every((word) => longer.includes(word))) {
+        const longerSet = new Set(longer);
+        if (shorter.every((word) => longerSet.has(word))) {
             return 0.85;
         }
         if (shorter.every((word) => word.length >= 3 && longer.some((w) => w.startsWith(word)))) {

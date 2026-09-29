@@ -34,13 +34,14 @@ export function PlansManager({ sessionToken, familyId, onCreate, onAssign, onEdi
             <button
               onClick={(e) => { e.stopPropagation(); onEdit(plan); }}
               className="absolute top-3 right-3 btn btn-xs btn-ghost btn-circle opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label={`Editar plan ${plan.name}`}
             >
               <FileText className="w-3 h-3" />
             </button>
 
             <div className="card-body p-4">
               <div className="flex justify-between items-start">
-                <div className="cursor-pointer flex-1" onClick={() => onEdit(plan)}>
+                <button type="button" className="cursor-pointer flex-1 text-left" onClick={() => onEdit(plan)}>
                   <h3 className="font-bold">{plan.name}</h3>
                   <p className="text-xs text-muted mb-2 line-clamp-2">{plan.description || "Sin descripción"}</p>
                   <div className="flex flex-wrap gap-2">
@@ -51,7 +52,7 @@ export function PlansManager({ sessionToken, familyId, onCreate, onAssign, onEdi
                     ) : null}
                     {plan.targets?.protein ? <span className="badge badge-xs badge-ghost">AOA: {plan.targets.protein}</span> : null}
                   </div>
-                </div>
+                </button>
                 <button
                   onClick={() => onAssign(plan)}
                   className="btn btn-sm btn-outline btn-primary shrink-0 ml-2"

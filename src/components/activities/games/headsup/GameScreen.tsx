@@ -56,7 +56,7 @@ export function GameScreen({
             />
           </div>
         </div>
-        <button onClick={isPaused ? onResume : onPause} className="btn btn-ghost btn-sm">
+        <button onClick={isPaused ? onResume : onPause} className="btn btn-ghost btn-sm" aria-label={isPaused ? "Reanudar" : "Pausar"}>
           {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
         </button>
       </div>

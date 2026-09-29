@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../contexts/AuthContext";
@@ -141,8 +141,7 @@ export function GiftEventDetailPage() {
   if (!eventId) return null;
   if (event === undefined || recipientsWithItems === undefined) return <PageLoader />;
   if (event === null) {
-    navigate("/gifts");
-    return null;
+    return <Navigate to="/gifts" replace />;
   }
 
   const handleDeleteEvent = async () => {

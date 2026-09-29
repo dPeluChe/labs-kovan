@@ -70,7 +70,7 @@ export function RecordDetailModal({
             {/* Description */}
             {record.description && (
                 <div className="mb-4">
-                    <label className="label"><span className="label-text font-medium">Descripción</span></label>
+                    <p className="label"><span className="label-text font-medium">Descripción</span></p>
                     <p className="text-base-content/80 whitespace-pre-wrap">{record.description}</p>
                 </div>
             )}

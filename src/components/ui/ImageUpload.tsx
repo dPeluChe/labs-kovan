@@ -70,9 +70,9 @@ export function ImageUpload({ label, value, onChange, className = "" }: ImageUpl
   return (
     <div className={`form-control w-full ${className}`}>
       {label && (
-        <label className="label">
+        <p className="label">
           <span className="label-text font-medium">{label}</span>
-        </label>
+        </p>
       )}
 
       <div className="flex items-center gap-4">
@@ -89,13 +89,17 @@ export function ImageUpload({ label, value, onChange, className = "" }: ImageUpl
               type="button"
               onClick={handleRemove}
               className="absolute -top-2 -right-2 btn btn-circle btn-xs btn-error shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label="Quitar imagen"
             >
               <X className="w-3 h-3" />
             </button>
           </div>
         ) : (
-          <div
+          <button
+            type="button"
             onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            aria-label="Subir imagen"
             className={`w-24 h-24 rounded-xl border-2 border-dashed border-base-300 hover:border-primary/50 cursor-pointer flex flex-col items-center justify-center gap-2 transition-colors bg-base-100 hover:bg-base-200/50 ${
               isUploading ? "opacity-50 pointer-events-none" : ""
             }`}
@@ -108,7 +112,7 @@ export function ImageUpload({ label, value, onChange, className = "" }: ImageUpl
                 <span className="text-[10px] text-muted">Subir</span>
               </>
             )}
-          </div>
+          </button>
         )}
         
         {value && !preview && (

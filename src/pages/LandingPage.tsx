@@ -19,9 +19,9 @@ export const LandingPage: React.FC = () => {
             <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
                 <div className="container mx-auto">
                     <div className="bg-base-100/70 backdrop-blur-md border border-base-content/10 shadow-lg rounded-full px-6 py-3 flex items-center justify-between">
-                        <div className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
+                        <button type="button" className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
                             Labs Kovan
-                        </div>
+                        </button>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={toggleTheme}

@@ -30,13 +30,14 @@ export function StudiesTab({
                 />
             ) : (
                 <div className="space-y-3 animate-fade-in">
-                    {studies
+                    {[...studies]
                         .sort((a, b) => b.date - a.date)
                         .map((study) => (
-                            <div
+                            <button
+                                type="button"
                                 key={study._id}
                                 onClick={() => onSelect(study)}
-                                className="card bg-base-100 shadow-sm border border-base-300 cursor-pointer hover:shadow-md transition-shadow"
+                                className="card bg-base-100 shadow-sm border border-base-300 cursor-pointer hover:shadow-md transition-shadow w-full text-left"
                             >
                                 <div className="card-body p-4">
                                     <div className="flex justify-between items-start mb-2">
@@ -60,8 +61,8 @@ export function StudiesTab({
                                     {/* Results Preview - show first 3 */}
                                     {study.results.length > 0 && (
                                         <div className="bg-base-200/50 rounded-lg p-2 space-y-1 mt-2">
-                                            {study.results.slice(0, 3).map((result, idx) => (
-                                                <div key={idx} className="flex justify-between text-sm border-b border-base-200 last:border-0 pb-1 last:pb-0">
+                                            {study.results.slice(0, 3).map((result) => (
+                                                <div key={`${result.parameter}-${result.value}-${result.unit}`} className="flex justify-between text-sm border-b border-base-200 last:border-0 pb-1 last:pb-0">
                                                     <span className="text-body">{result.parameter}</span>
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-medium">{result.value} {result.unit}</span>
@@ -78,7 +79,7 @@ export function StudiesTab({
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            </button>
                         ))}
                 </div>
             )}

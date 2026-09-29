@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef} from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
@@ -107,13 +107,16 @@ function NewPetModal({
     const [birthDate, setBirthDate] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
+    const submitSeq = useRef(0);
+
     const createProfile = useMutation(api.health.createPersonProfile);
 
     const handleSubmit = async (e: React.FormEvent) => {
+        const seq = ++submitSeq.current;
         e.preventDefault();
         if (!name.trim() || !relation.trim()) return;
 
-        setIsLoading(true);
+        setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
         try {
             if (!sessionToken) return;
             await createProfile({
@@ -125,9 +128,9 @@ function NewPetModal({
                 nickname: nickname.trim() || undefined,
                 birthDate: birthDate ? new Date(birthDate).getTime() : undefined,
             });
-            onClose();
+            if (seq === submitSeq.current) onClose();
         } finally {
-            setIsLoading(false);
+            setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
         }
     };
 

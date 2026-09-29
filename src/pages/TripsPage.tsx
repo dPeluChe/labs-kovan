@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef} from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
@@ -11,7 +11,7 @@ import { MobileModal } from "../components/ui/MobileModal";
 import { Input } from "../components/ui/Input";
 import { DateInput } from "../components/ui/DateInput";
 import { PageLoader } from "../components/ui/LoadingSpinner";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import type { Id } from "../../convex/_generated/dataModel";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
 import { useAuth } from "../contexts/AuthContext";
@@ -81,9 +81,9 @@ export function TripsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredTrips?.map((trip) => (
                             <Link key={trip._id} to={`/trips/${trip._id}`}>
-                                <motion.div
+                                <m.div
                                     whileTap={{ scale: 0.98 }}
-                                    className="card bg-base-100 shadow-sm border border-base-200 overflow-hidden hover:shadow-md transition-all h-full"
+                                    className="card bg-base-100 shadow-sm border border-base-200 overflow-hidden hover:shadow-md transition-shadow h-full"
                                 >
                                     {/* Cover Image Placeholder - Could be real image later */}
                                     <div className={`h-32 w-full ${trip.coverImage ? '' : 'bg-gradient-to-r from-blue-500 to-cyan-400'} flex items-center justify-center relative`}>
@@ -136,7 +136,7 @@ export function TripsPage() {
                                             )}
                                         </div>
                                     </div>
-                                </motion.div>
+                                </m.div>
                             </Link>
                         ))}
                     </div>
@@ -155,6 +155,7 @@ export function TripsPage() {
 }
 
 function CreateTripModal({ sessionToken, familyId, onClose }: { sessionToken: string, familyId: string, onClose: () => void }) {
+    const submitSeq = useRef(0);
     const createTrip = useMutation(api.trips.createTrip);
     const [name, setName] = useState("");
     const [destination, setDestination] = useState("");
@@ -164,8 +165,9 @@ function CreateTripModal({ sessionToken, familyId, onClose }: { sessionToken: st
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
+        const seq = ++submitSeq.current;
         e.preventDefault();
-        setIsLoading(true);
+        setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
         try {
             if (!sessionToken) return;
             await createTrip({
@@ -177,9 +179,9 @@ function CreateTripModal({ sessionToken, familyId, onClose }: { sessionToken: st
                 endDate: endDate ? new Date(endDate).getTime() : undefined,
                 budget: budget ? parseFloat(budget) : undefined,
             });
-            onClose();
+            if (seq === submitSeq.current) onClose();
         } finally {
-            setIsLoading(false);
+            setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
         }
     };
 

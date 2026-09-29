@@ -56,9 +56,9 @@ export function LogActivityModal({ isOpen, onClose, activity }: LogActivityModal
 
         {/* Who did it? */}
         <div className="form-control">
-          <label className="label">
+          <p className="label">
             <span className="label-text font-medium">Quién hizo esta actividad?</span>
-          </label>
+          </p>
           <div className="grid grid-cols-2 gap-2">
             {members?.map((member) => (
               <button
@@ -83,10 +83,10 @@ export function LogActivityModal({ isOpen, onClose, activity }: LogActivityModal
 
         {/* Notes */}
         <div className="form-control">
-          <label className="label">
+          <label htmlFor="nota-opcional" className="label">
             <span className="label-text">Nota (opcional)</span>
           </label>
-          <input
+          <input id="nota-opcional"
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}

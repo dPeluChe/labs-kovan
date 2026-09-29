@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
@@ -16,8 +16,13 @@ interface LogMealModalProps {
 }
 
 export function LogMealModal({ sessionToken, familyId, personId, date, plan, onClose }: LogMealModalProps) {
+  const submitSeq = useRef(0);
   const logMeal = useMutation(api.nutrition.logMeal);
   const [name, setName] = useState("");
+  const firstFieldRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+      firstFieldRef.current?.focus();
+  }, []);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showExtras, setShowExtras] = useState(false);
@@ -49,8 +54,9 @@ export function LogMealModal({ sessionToken, familyId, personId, date, plan, onC
   };
 
   const handleSave = async () => {
+    const seq = ++submitSeq.current;
     if (!name) return;
-    setIsLoading(true);
+    setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
     try {
       await logMeal({
         sessionToken,
@@ -60,12 +66,12 @@ export function LogMealModal({ sessionToken, familyId, personId, date, plan, onC
         name,
         content: counts,
       });
-      onClose();
+      if (seq === submitSeq.current) onClose();
     } catch (e) {
       console.error("Failed to log meal", e);
       alert("Error al guardar alimento");
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
     }
   };
 
@@ -82,6 +88,7 @@ export function LogMealModal({ sessionToken, familyId, personId, date, plan, onC
           <button
             onClick={() => handleDecrement(n.key)}
             className={`btn btn-xs btn-square btn-ghost ${count === 0 ? "invisible" : ""}`}
+            aria-label={`Quitar ${n.label}`}
           >
             <Minus className="w-3 h-3" />
           </button>
@@ -91,6 +98,7 @@ export function LogMealModal({ sessionToken, familyId, personId, date, plan, onC
           <button
             onClick={() => handleIncrement(n.key)}
             className="btn btn-xs btn-square btn-ghost"
+            aria-label={`Agregar ${n.label}`}
           >
             <Plus className="w-3 h-3" />
           </button>
@@ -103,11 +111,11 @@ export function LogMealModal({ sessionToken, familyId, personId, date, plan, onC
     <MobileModal title="Registrar Alimento" onClose={onClose}>
       <div className="space-y-6">
         <div>
-          <label className="label text-sm font-medium">Nombre del Alimento / Descripción</label>
-          <input
+          <label htmlFor="nombre-del-alimento-descripcion" className="label text-sm font-medium">Nombre del Alimento / Descripción</label>
+          <input id="nombre-del-alimento-descripcion"
             className="input input-bordered w-full focus:input-primary"
             placeholder="Ej. Desayuno, Tacos, Pizza..."
-            autoFocus
+            ref={firstFieldRef}
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
@@ -116,7 +124,7 @@ export function LogMealModal({ sessionToken, familyId, personId, date, plan, onC
         <div className="space-y-4">
           {planNutrients.length > 0 && (
             <div>
-              <label className="label text-xs font-bold opacity-50 uppercase tracking-wider mb-1">Del Plan</label>
+              <p className="label text-xs font-bold opacity-50 uppercase tracking-wider mb-1">Del Plan</p>
               <div className="grid grid-cols-2 gap-2">
                 {planNutrients.map((n) => renderNutrientRow(n))}
               </div>

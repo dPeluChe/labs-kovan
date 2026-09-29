@@ -54,6 +54,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
   const clearInviteError = useCallback(() => setInviteError(null), []);
 
   useEffect(() => {
+    let cancelled = false;
     const processPendingInvite = async () => {
       if (!user || processingInvite) return;
 
@@ -70,21 +71,24 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
           email: user.email,
         });
 
+        if (cancelled) return;
         if (result.familyId) {
           localStorage.setItem(CURRENT_FAMILY_KEY, result.familyId);
           setSelectedFamilyId(result.familyId);
         }
       } catch (error) {
         console.error("Error joining family:", error);
+        if (cancelled) return;
         const message = error instanceof Error ? error.message : "Error al unirse a la familia";
         setInviteError(message);
       } finally {
-        localStorage.removeItem(PENDING_INVITE_KEY);
-        setProcessingInvite(false);
+        setProcessingInvite((cur) => (!cancelled ? false : cur));
+        if (!cancelled) localStorage.removeItem(PENDING_INVITE_KEY);
       }
     };
 
     processPendingInvite();
+    return () => { cancelled = true; };
   }, [user, sessionToken, joinFamilyByToken, processingInvite]);
 
   const currentFamily = useMemo(() => {

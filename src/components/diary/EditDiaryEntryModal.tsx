@@ -22,7 +22,7 @@ export function EditDiaryEntryModal({ isOpen, onClose, entry }: EditDiaryEntryMo
     const [content, setContent] = useState(entry.content || "");
     const [mood, setMood] = useState<string>(entry.mood || "grateful");
     const [visibility, setVisibility] = useState<"private" | "family">(entry.visibility);
-    const [date, setDate] = useState(new Date(entry.date).toISOString().split("T")[0]);
+    const [date, setDate] = useState(() => new Date(entry.date).toISOString().split("T")[0]);
     const [isLoading, setIsLoading] = useState(false);
 
     // Custom mood state
@@ -117,8 +117,8 @@ export function EditDiaryEntryModal({ isOpen, onClose, entry }: EditDiaryEntryMo
 
                 {/* Content */}
                 <div>
-                    <label className="label text-xs font-medium text-muted">Tu historia</label>
-                    <textarea
+                    <label htmlFor="tu-historia" className="label text-xs font-medium text-muted">Tu historia</label>
+                    <textarea id="tu-historia"
                         className="textarea textarea-bordered w-full h-32 rounded-xl leading-relaxed resize-none text-base focus:outline-none focus:ring-1 focus:ring-primary"
                         placeholder="Edita tu historia..."
                         value={content}

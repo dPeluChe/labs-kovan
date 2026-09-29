@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { MobileModal } from "../../ui/MobileModal";
@@ -18,6 +18,10 @@ export function NewProfileModal({
     initialType = "human"
 }: NewProfileModalProps) {
     const [name, setName] = useState("");
+    const firstFieldRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+        firstFieldRef.current?.focus();
+    }, []);
     const [relation, setRelation] = useState("");
     const [nickname, setNickname] = useState("");
     const [birthDate, setBirthDate] = useState("");
@@ -62,25 +66,25 @@ export function NewProfileModal({
                 {/* For now, sticking to the passed type or simple toggle if needed, but let's keep it simple */}
 
                 <div className="form-control">
-                    <label className="label">
+                    <label htmlFor="nombre" className="label">
                         <span className="label-text">Nombre *</span>
                     </label>
-                    <input
+                    <input id="nombre"
                         type="text"
                         placeholder="Ej: Juan, María"
                         className="input input-bordered w-full"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         disabled={isLoading}
-                        autoFocus
+                        ref={firstFieldRef}
                     />
                 </div>
 
                 <div className="form-control">
-                    <label className="label">
+                    <label htmlFor="relacion" className="label">
                         <span className="label-text">Relación *</span>
                     </label>
-                    <input
+                    <input id="relacion"
                         type="text"
                         placeholder="Ej: Yo, Pareja, Mamá"
                         className="input input-bordered w-full"
@@ -91,10 +95,10 @@ export function NewProfileModal({
                 </div>
 
                 <div className="form-control">
-                    <label className="label">
+                    <label htmlFor="apodo-opcional" className="label">
                         <span className="label-text">Apodo (opcional)</span>
                     </label>
-                    <input
+                    <input id="apodo-opcional"
                         type="text"
                         placeholder="Ej: Peluche, Chuy"
                         className="input input-bordered w-full"

@@ -175,6 +175,7 @@ export function ContactsPage() {
                           onClick={() => toggleFavorite({ sessionToken, contactId: contact._id })}
                           className={`btn btn-ghost btn-xs btn-circle ${contact.isFavorite ? "text-amber-500" : ""
                             }`}
+                          aria-label={contact.isFavorite ? `Quitar a ${contact.name} de favoritos` : `Marcar a ${contact.name} como favorito`}
                         >
                           <Star className={`w-4 h-4 ${contact.isFavorite ? "fill-current" : ""}`} />
                         </button>
@@ -192,6 +193,7 @@ export function ContactsPage() {
                               await deleteContact({ sessionToken, contactId: contact._id });
                             }
                           }}
+                          aria-label={`Eliminar contacto ${contact.name}`}
                           className="btn btn-ghost btn-xs btn-circle text-error"
                         >
                           <Trash2 className="w-3 h-3" />

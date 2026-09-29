@@ -68,7 +68,7 @@ export function StudyDetailModal({
             {/* Results Table */}
             {study.results.length > 0 && (
                 <div className="mb-4">
-                    <label className="label"><span className="label-text font-medium">Resultados</span></label>
+                    <p className="label"><span className="label-text font-medium">Resultados</span></p>
                     <div className="overflow-x-auto">
                         <table className="table table-sm">
                             <thead>
@@ -80,8 +80,8 @@ export function StudyDetailModal({
                                 </tr>
                             </thead>
                             <tbody>
-                                {study.results.map((result, idx: number) => (
-                                    <tr key={idx}>
+                                {study.results.map((result) => (
+                                    <tr key={`${result.parameter}-${result.value}-${result.unit}`}>
                                         <td>{result.parameter}</td>
                                         <td className="text-right font-medium">{result.value}</td>
                                         <td className="text-right text-muted">{result.unit || "-"}</td>
@@ -108,7 +108,7 @@ export function StudyDetailModal({
             {/* Notes */}
             {study.notes && (
                 <div className="mb-4">
-                    <label className="label"><span className="label-text font-medium">Notas</span></label>
+                    <p className="label"><span className="label-text font-medium">Notas</span></p>
                     <p className="text-base-content/80 whitespace-pre-wrap">{study.notes}</p>
                 </div>
             )}

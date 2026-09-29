@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { MobileModal } from "../ui/MobileModal";
@@ -31,8 +31,12 @@ export function TaskFormModal({ isOpen, onClose, defaultType = "general", taskTo
     const [dueDate, setDueDate] = useState(""); // YYYY-MM-DD
     const [isLoading, setIsLoading] = useState(false);
 
-    // Populate form when taskToEdit changes
-    useEffect(() => {
+    // Populate/reset the form when the modal opens with a different task or
+    // default type (adjust-state-during-render avoids a stale frame).
+    const formKey = `${isOpen}:${taskToEdit?._id ?? "new"}:${defaultType}`;
+    const [prevFormKey, setPrevFormKey] = useState(formKey);
+    if (prevFormKey !== formKey) {
+        setPrevFormKey(formKey);
         if (taskToEdit) {
             setTitle(taskToEdit.title);
             setType(taskToEdit.type as "general" | "shopping" | "chore");
@@ -43,13 +47,12 @@ export function TaskFormModal({ isOpen, onClose, defaultType = "general", taskTo
                 setDueDate("");
             }
         } else {
-            // Reset form for create mode
             setTitle("");
             setType(defaultType);
             setPriority("medium");
             setDueDate("");
         }
-    }, [taskToEdit, defaultType, isOpen]); // Reset on open if needed
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -157,7 +160,7 @@ export function TaskFormModal({ isOpen, onClose, defaultType = "general", taskTo
                         </div>
 
                         <div className="flex-1">
-                            <label className="label text-xs font-medium text-muted">Prioridad</label>
+                            <p className="label text-xs font-medium text-muted">Prioridad</p>
                             <div className="flex gap-1 h-12 items-center bg-base-100 border border-base-200 rounded-lg px-2">
                                 {(["low", "medium", "high"] as const).map((p) => (
                                     <button

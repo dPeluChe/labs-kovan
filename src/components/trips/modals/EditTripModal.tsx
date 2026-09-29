@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef} from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
@@ -14,6 +14,7 @@ interface EditTripModalProps {
 }
 
 export function EditTripModal({ sessionToken, trip, onClose }: EditTripModalProps) {
+    const submitSeq = useRef(0);
     const updateTrip = useMutation(api.trips.updateTrip);
 
     // Initial State pre-filled
@@ -27,10 +28,11 @@ export function EditTripModal({ sessionToken, trip, onClose }: EditTripModalProp
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
+        const seq = ++submitSeq.current;
         e.preventDefault();
         if (!name.trim()) return;
 
-        setIsLoading(true);
+        setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
         try {
             if (!sessionToken) return;
             await updateTrip({
@@ -44,9 +46,9 @@ export function EditTripModal({ sessionToken, trip, onClose }: EditTripModalProp
                 budget: budget ? parseFloat(budget) : undefined,
                 description: description.trim() || undefined,
             });
-            onClose();
+            if (seq === submitSeq.current) onClose();
         } finally {
-            setIsLoading(false);
+            setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
         }
     };
 
@@ -97,8 +99,8 @@ export function EditTripModal({ sessionToken, trip, onClose }: EditTripModalProp
                 />
 
                 <div className="form-control">
-                    <label className="label"><span className="label-text">Estado del viaje</span></label>
-                    <select
+                    <label htmlFor="estado-del-viaje" className="label"><span className="label-text">Estado del viaje</span></label>
+                    <select id="estado-del-viaje"
                         className="select select-bordered w-full"
                         value={status}
                         onChange={(e) => setStatus(e.target.value as "planning" | "confirmed" | "active" | "completed")}

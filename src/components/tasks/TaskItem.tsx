@@ -2,6 +2,8 @@ import type { Doc } from "../../../convex/_generated/dataModel";
 import { Check, Calendar, User as UserIcon, Trash2 } from "lucide-react";
 import { SwipeableCard } from "../ui/SwipeableCard";
 
+const DATE_FMT = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short' });
+
 interface TaskItemProps {
     task: Doc<"tasks">;
     onToggle: (taskId: Doc<"tasks">["_id"]) => void;
@@ -20,7 +22,7 @@ export function TaskItem({ task, onToggle, onClick, onDelete }: TaskItemProps) {
     };
 
     const formatDate = (timestamp: number) => {
-        return new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short' }).format(new Date(timestamp));
+        return DATE_FMT.format(new Date(timestamp));
     };
 
     return (
@@ -49,6 +51,7 @@ export function TaskItem({ task, onToggle, onClick, onDelete }: TaskItemProps) {
                         e.stopPropagation();
                         onToggle(task._id);
                     }}
+                    aria-label={isCompleted ? "Marcar como pendiente" : "Completar tarea"}
                     className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${isCompleted
                         ? "bg-primary border-primary text-primary-content"
                         : "border-base-content/20 hover:border-primary"

@@ -72,9 +72,11 @@ export const getRecentLogs = query({
     // Enrich with activity and user data
     const enriched = await Promise.all(
       logs.map(async (log) => {
-        const activity = await ctx.db.get(log.activityId);
-        const user = await ctx.db.get(log.userId);
-        const loggedByUser = log.loggedBy !== log.userId ? await ctx.db.get(log.loggedBy) : null;
+        const [activity, user, loggedByUser] = await Promise.all([
+          ctx.db.get(log.activityId),
+          ctx.db.get(log.userId),
+          log.loggedBy !== log.userId ? ctx.db.get(log.loggedBy) : Promise.resolve(null),
+        ]);
         return {
           ...log,
           activityName: activity?.name ?? "Actividad eliminada",
@@ -227,17 +229,19 @@ export const seedDefaultActivities = mutation({
 
     if (existing) return; // Already seeded
 
-    for (const activity of DEFAULT_ACTIVITIES) {
-      await ctx.db.insert("householdActivities", {
-        familyId: args.familyId,
-        name: activity.name,
-        emoji: activity.emoji,
-        points: activity.points,
-        category: activity.category,
-        isActive: true,
-        createdBy: user._id,
-      });
-    }
+    await Promise.all(
+      DEFAULT_ACTIVITIES.map((activity) =>
+        ctx.db.insert("householdActivities", {
+          familyId: args.familyId,
+          name: activity.name,
+          emoji: activity.emoji,
+          points: activity.points,
+          category: activity.category,
+          isActive: true,
+          createdBy: user._id,
+        })
+      )
+    );
   },
 });
 

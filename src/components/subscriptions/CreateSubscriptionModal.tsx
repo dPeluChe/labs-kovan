@@ -83,10 +83,10 @@ export function CreateSubscriptionModal({ isOpen, onClose }: CreateSubscriptionM
 
                 {/* Type */}
                 <div className="form-control w-full">
-                    <label className="label py-0 pb-1">
+                    <label htmlFor="categoria" className="label py-0 pb-1">
                         <span className="label-text">Categoría</span>
                     </label>
-                    <select
+                    <select id="categoria"
                         className="select select-bordered w-full rounded-xl"
                         value={type}
                         onChange={(e) => setType(e.target.value)}
@@ -99,9 +99,9 @@ export function CreateSubscriptionModal({ isOpen, onClose }: CreateSubscriptionM
 
                 {/* Contract / Reference */}
                 <div className="form-control w-full">
-                    <label className="label py-0 pb-1 text-xs font-medium text-muted">No. Contrato / Referencia (Opcional)</label>
+                    <label htmlFor="no-contrato-referencia-opcional" className="label py-0 pb-1 text-xs font-medium text-muted">No. Contrato / Referencia (Opcional)</label>
                     <div className="relative">
-                        <input
+                        <input id="no-contrato-referencia-opcional"
                             type="text"
                             className="input input-bordered w-full pl-8 rounded-xl"
                             value={referenceNumber}
@@ -114,8 +114,8 @@ export function CreateSubscriptionModal({ isOpen, onClose }: CreateSubscriptionM
 
                 {/* Notes */}
                 <div className="form-control w-full">
-                    <label className="label py-0 pb-1 text-xs font-medium text-muted">Notas</label>
-                    <textarea
+                    <label htmlFor="notas" className="label py-0 pb-1 text-xs font-medium text-muted">Notas</label>
+                    <textarea id="notas"
                         className="textarea textarea-bordered w-full rounded-xl"
                         placeholder="Contraseñas, detalles adicionales..."
                         value={notes}

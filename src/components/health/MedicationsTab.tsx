@@ -111,9 +111,10 @@ function MedicationCard({
     isPast?: boolean;
 }) {
     return (
-        <div
+        <button
+            type="button"
             onClick={onClick}
-            className={`card bg-base-100 shadow-sm border card-interactive ${isPast ? "border-base-200 opacity-75" : "border-success/30"} cursor-pointer hover:bg-base-200/50 transition-colors`}
+            className={`card bg-base-100 shadow-sm border card-interactive ${isPast ? "border-base-200 opacity-75" : "border-success/30"} cursor-pointer hover:bg-base-200/50 transition-colors w-full text-left`}
         >
             <div className="card-body p-3">
                 <div className="flex justify-between items-start">
@@ -131,6 +132,6 @@ function MedicationCard({
                     </div>
                 </div>
             </div>
-        </div>
+        </button>
     );
 }

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef} from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Input } from "../../ui/Input";
@@ -21,13 +21,16 @@ export function CreateListModal({
     const [icon, setIcon] = useState("📍");
     const [isLoading, setIsLoading] = useState(false);
 
+    const submitSeq = useRef(0);
+
     const createList = useMutation(api.places.createList);
 
     const handleSubmit = async (e: React.FormEvent) => {
+        const seq = ++submitSeq.current;
         e.preventDefault();
         if (!name.trim()) return;
 
-        setIsLoading(true);
+        setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
         try {
             if (!sessionToken) return;
             await createList({
@@ -37,9 +40,9 @@ export function CreateListModal({
                 description: description.trim() || undefined,
                 icon,
             });
-            onClose();
+            if (seq === submitSeq.current) onClose();
         } finally {
-            setIsLoading(false);
+            setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
         }
     };
 
@@ -54,10 +57,10 @@ export function CreateListModal({
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex gap-2">
                     <div className="dropdown">
-                        <div tabIndex={0} role="button" className="btn btn-outline text-2xl h-[3rem] w-[3rem] px-0">
+                        <button type="button" className="btn btn-outline text-2xl h-[3rem] w-[3rem] px-0" aria-label="Elegir icono de la lista">
                             {icon}
-                        </div>
-                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 grid grid-cols-5 gap-1">
+                        </button>
+                        <ul className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 grid grid-cols-5 gap-1">
                             {PRESET_ICONS.map(i => (
                                 <li key={i}>
                                     <button

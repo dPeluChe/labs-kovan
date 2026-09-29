@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useRef} from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
@@ -28,17 +28,20 @@ export function EditVehicleModal({
   const [plate, setPlate] = useState(vehicle.plate || "");
   const [brand, setBrand] = useState(vehicle.brand || "");
   const [model, setModel] = useState(vehicle.model || "");
-  const [year, setYear] = useState(vehicle.year?.toString() || "");
+  const [year, setYear] = useState(() => vehicle.year?.toString() || "");
   const [color, setColor] = useState(vehicle.color || "");
   const [isLoading, setIsLoading] = useState(false);
+
+  const submitSeq = useRef(0);
 
   const updateVehicle = useMutation(api.vehicles.updateVehicle);
 
   const handleSubmit = async (e: FormEvent) => {
+    const seq = ++submitSeq.current;
     e.preventDefault();
     if (!name.trim()) return;
 
-    setIsLoading(true);
+    setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
     try {
       if (!sessionToken) return;
       await updateVehicle({
@@ -51,9 +54,9 @@ export function EditVehicleModal({
         year: year ? parseInt(year, 10) : undefined,
         color: color.trim() || undefined,
       });
-      onClose();
+      if (seq === submitSeq.current) onClose();
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
     }
   };
 
@@ -61,8 +64,8 @@ export function EditVehicleModal({
     <MobileModal isOpen={true} onClose={onClose} title="Editar vehículo">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="form-control">
-          <label className="label"><span className="label-text">Nombre *</span></label>
-          <input
+          <label htmlFor="nombre" className="label"><span className="label-text">Nombre *</span></label>
+          <input id="nombre"
             type="text"
             className="input input-bordered w-full"
             value={name}
@@ -71,26 +74,26 @@ export function EditVehicleModal({
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="form-control">
-            <label className="label"><span className="label-text">Marca</span></label>
-            <input type="text" className="input input-bordered w-full" value={brand} onChange={(e) => setBrand(e.target.value)} />
+            <label htmlFor="marca" className="label"><span className="label-text">Marca</span></label>
+            <input id="marca" type="text" className="input input-bordered w-full" value={brand} onChange={(e) => setBrand(e.target.value)} />
           </div>
           <div className="form-control">
-            <label className="label"><span className="label-text">Modelo</span></label>
-            <input type="text" className="input input-bordered w-full" value={model} onChange={(e) => setModel(e.target.value)} />
+            <label htmlFor="modelo" className="label"><span className="label-text">Modelo</span></label>
+            <input id="modelo" type="text" className="input input-bordered w-full" value={model} onChange={(e) => setModel(e.target.value)} />
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2">
           <div className="form-control">
-            <label className="label"><span className="label-text">Año</span></label>
-            <input type="number" className="input input-bordered w-full" value={year} onChange={(e) => setYear(e.target.value)} />
+            <label htmlFor="ano" className="label"><span className="label-text">Año</span></label>
+            <input id="ano" type="number" className="input input-bordered w-full" value={year} onChange={(e) => setYear(e.target.value)} />
           </div>
           <div className="form-control">
-            <label className="label"><span className="label-text">Color</span></label>
-            <input type="text" className="input input-bordered w-full" value={color} onChange={(e) => setColor(e.target.value)} />
+            <label htmlFor="color" className="label"><span className="label-text">Color</span></label>
+            <input id="color" type="text" className="input input-bordered w-full" value={color} onChange={(e) => setColor(e.target.value)} />
           </div>
           <div className="form-control">
-            <label className="label"><span className="label-text">Placa</span></label>
-            <input type="text" className="input input-bordered w-full" value={plate} onChange={(e) => setPlate(e.target.value)} />
+            <label htmlFor="placa" className="label"><span className="label-text">Placa</span></label>
+            <input id="placa" type="text" className="input input-bordered w-full" value={plate} onChange={(e) => setPlate(e.target.value)} />
           </div>
         </div>
         <div className="modal-action">

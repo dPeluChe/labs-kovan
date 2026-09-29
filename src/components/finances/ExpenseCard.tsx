@@ -32,9 +32,14 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
     return (
         <>
             <div
-                onClick={() => onEdit(expense)}
-                className={`card bg-gradient-to-r ${config.color} to-transparent border border-base-300 animate-fade-in hover:shadow-md transition-all cursor-pointer group`}
+                className={`card bg-gradient-to-r ${config.color} to-transparent border border-base-300 animate-fade-in hover:shadow-md transition-all cursor-pointer group relative`}
             >
+                <button
+                    type="button"
+                    onClick={() => onEdit(expense)}
+                    aria-label={`Editar ${expense.description}`}
+                    className="absolute inset-0 cursor-pointer"
+                />
                 <div className="card-body p-3">
                     <div className="flex items-center gap-3">
                         <span className="text-2xl">{config.icon}</span>
@@ -54,7 +59,8 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
                         </div>
                         <button
                             onClick={handleDelete}
-                            className="btn btn-ghost btn-xs btn-circle text-error opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="btn btn-ghost btn-xs btn-circle text-error opacity-0 group-hover:opacity-100 transition-opacity relative z-10"
+                            aria-label="Eliminar gasto"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>

@@ -105,7 +105,8 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
                     <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-4 px-4 snap-x">
                         {/* "All" Option */}
                         <div className="snap-start shrink-0">
-                            <div
+                            <button
+                                type="button"
                                 onClick={() => setSelectedListId(null)}
                                 className={`h-12 px-4 rounded-xl flex items-center gap-2 border cursor-pointer transition-all whitespace-nowrap
                                     ${selectedListId === null
@@ -116,12 +117,13 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
                             >
                                 <Map className="w-4 h-4" />
                                 <span className="font-bold text-sm">Todos</span>
-                            </div>
+                            </button>
                         </div>
 
                         {lists?.map((list) => (
                             <div key={list._id} className="snap-start shrink-0">
-                                <div
+                                <button
+                                    type="button"
                                     onClick={() => setSelectedListId(list._id)}
                                     className={`h-12 px-4 rounded-xl flex items-center gap-2 border cursor-pointer transition-all whitespace-nowrap
                                         ${selectedListId === list._id
@@ -137,7 +139,7 @@ export function PlacesLayout({ familyId }: { familyId: Id<"families"> }) {
                                             {list.count}
                                         </span>
                                     )}
-                                </div>
+                                </button>
                             </div>
                         ))}
 

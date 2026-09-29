@@ -5,6 +5,7 @@ import { api } from "../../convex/_generated/api";
 import { useAuth } from "../contexts/AuthContext";
 
 interface Message {
+    id: string;
     role: "user" | "assistant";
     content: string;
 }
@@ -12,9 +13,13 @@ interface Message {
 export default function AgentPage() {
     const { user, sessionToken } = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
+    const firstFieldRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+        firstFieldRef.current?.focus();
+    }, []);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [lastRequestTime, setLastRequestTime] = useState<number>(0);
+    const lastRequestTimeRef = useRef<number>(0);
     const [isRateLimited, setIsRateLimited] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -34,6 +39,7 @@ export default function AgentPage() {
             const loadedMessages = conversationHistory
                 .reverse()
                 .map((msg: { role: "user" | "assistant"; content: string }) => ({
+                    id: crypto.randomUUID(),
                     role: msg.role,
                     content: msg.content
                 }));
@@ -74,10 +80,11 @@ export default function AgentPage() {
 
         // Rate limiting check
         const now = Date.now();
-        const timeSinceLastRequest = now - lastRequestTime;
-        if (timeSinceLastRequest < RATE_LIMIT_MS && lastRequestTime > 0) {
+        const timeSinceLastRequest = now - lastRequestTimeRef.current;
+        if (timeSinceLastRequest < RATE_LIMIT_MS && lastRequestTimeRef.current > 0) {
             const remainingSeconds = Math.ceil((RATE_LIMIT_MS - timeSinceLastRequest) / 1000);
             setMessages(prev => [...prev, {
+                id: crypto.randomUUID(),
                 role: "assistant",
                 content: `⏱️ Por favor espera ${remainingSeconds} segundos antes de hacer otra pregunta. Esto ayuda a no exceder los límites de uso.`
             }]);
@@ -86,17 +93,17 @@ export default function AgentPage() {
 
         const userMsg = input.trim();
         setInput("");
-        const newUserMessage = { role: "user" as const, content: userMsg };
+        const newUserMessage = { id: crypto.randomUUID(), role: "user" as const, content: userMsg };
         setMessages(prev => [...prev, newUserMessage]);
         setIsLoading(true);
-        setLastRequestTime(now);
+        lastRequestTimeRef.current = now;
 
         try {
             const history = messages.map(m => ({ role: m.role, content: m.content }));
             history.push({ role: "user", content: userMsg });
 
             if (!user || !sessionToken) {
-                setMessages(prev => [...prev, { role: "assistant", content: "No se ha encontrado un usuario activo. Por favor recarga la página." }]);
+                setMessages(prev => [...prev, { id: crypto.randomUUID(), role: "assistant", content: "No se ha encontrado un usuario activo. Por favor recarga la página." }]);
                 setIsLoading(false);
                 return;
             }
@@ -110,7 +117,7 @@ export default function AgentPage() {
             });
 
             const assistantMsg = String(response);
-            setMessages(prev => [...prev, { role: "assistant", content: assistantMsg }]);
+            setMessages(prev => [...prev, { id: crypto.randomUUID(), role: "assistant", content: assistantMsg }]);
 
             // Save assistant message
             await saveMessageMutation({ sessionToken, role: "assistant", content: assistantMsg });
@@ -133,6 +140,7 @@ export default function AgentPage() {
             }
 
             setMessages(prev => [...prev, {
+                id: crypto.randomUUID(),
                 role: "assistant",
                 content: errorMsg
             }]);
@@ -208,8 +216,8 @@ export default function AgentPage() {
                             </div>
                         )}
 
-                        {messages.map((msg, i) => (
-                            <div key={i} className={`chat ${msg.role === "user" ? "chat-end" : "chat-start"}`}>
+                        {messages.map((msg) => (
+                            <div key={msg.id} className={`chat ${msg.role === "user" ? "chat-end" : "chat-start"}`}>
                                 <div className="chat-image avatar">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${msg.role === "user" ? "bg-secondary text-secondary-content" : "bg-primary text-primary-content"}`}>
                                         {msg.role === "user" ? (
@@ -249,15 +257,17 @@ export default function AgentPage() {
                             type="text"
                             className="input input-bordered join-item flex-1"
                             placeholder="Pregúntame algo o dime qué registrar..."
+                            aria-label="Escribe tu mensaje"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             disabled={isLoading}
-                            autoFocus
+                            ref={firstFieldRef}
                         />
                         <button
                             type="submit"
                             className="btn btn-primary join-item"
                             disabled={isLoading || !input.trim()}
+                            aria-label="Enviar mensaje"
                         >
                             <Send className="w-5 h-5" />
                         </button>

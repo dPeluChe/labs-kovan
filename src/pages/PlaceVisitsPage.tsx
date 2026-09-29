@@ -42,7 +42,7 @@ export function PlaceVisitsPage() {
                 title="Bitácora de Visitas"
                 onBack={() => navigate(-1)}
                 description={
-                    <label className="input input-sm flex items-center gap-2 bg-base-200/50 rounded-xl px-3 border-transparent focus-within:border-primary/50 focus-within:ring-2 ring-primary/10 transition-all shadow-sm">
+                    <label className="input input-sm flex items-center gap-2 bg-base-200/50 rounded-xl px-3 border-transparent focus-within:border-primary/50 focus-within:ring-2 ring-primary/10 transition shadow-sm">
                         <Search className="w-4 h-4 opacity-50" />
                         <input
                             type="text"

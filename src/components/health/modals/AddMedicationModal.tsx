@@ -18,7 +18,7 @@ export function AddMedicationModal({
 }) {
     const [name, setName] = useState("");
     const [dosage, setDosage] = useState("");
-    const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
+    const [startDate, setStartDate] = useState(() => new Date().toISOString().split("T")[0]);
     const [endDate, setEndDate] = useState("");
     const [status, setStatus] = useState<"active" | "completed" | "paused">("active");
     const [notes, setNotes] = useState("");
@@ -82,9 +82,9 @@ export function AddMedicationModal({
                 />
 
                 <div className="form-control">
-                    <label className="label"><span className="label-text">Estado</span></label>
+                    <label htmlFor="estado" className="label"><span className="label-text">Estado</span></label>
                     <div className="join w-full">
-                        <input
+                        <input id="estado"
                             className="join-item btn flex-1 btn-sm"
                             type="radio"
                             name="status_add"

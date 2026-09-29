@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { MobileModal } from "../ui/MobileModal";
@@ -16,6 +16,10 @@ export function NewItemModal({
     onClose: () => void;
 }) {
     const [type, setType] = useState<Exclude<CollectionType, "all">>("book");
+    const firstFieldRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+        firstFieldRef.current?.focus();
+    }, []);
     const [title, setTitle] = useState("");
     const [creator, setCreator] = useState("");
     const [series, setSeries] = useState("");
@@ -25,12 +29,14 @@ export function NewItemModal({
     const [isLoading, setIsLoading] = useState(false);
 
     const createItem = useMutation(api.collections.createItem);
+    const submitSeq = useRef(0);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title.trim()) return;
         if (!sessionToken) return;
 
+        const seq = ++submitSeq.current;
         setIsLoading(true);
         try {
             await createItem({
@@ -44,11 +50,11 @@ export function NewItemModal({
                 owned,
                 status,
             });
-            onClose();
+            if (seq === submitSeq.current) onClose();
         } catch (err) {
             console.error(err);
         } finally {
-            setIsLoading(false);
+            setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
         }
     };
 
@@ -56,8 +62,8 @@ export function NewItemModal({
         <MobileModal isOpen={true} onClose={onClose} title="Nuevo Elemento">
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="form-control">
-                    <label className="label"><span className="label-text">Tipo</span></label>
-                    <select
+                    <label htmlFor="tipo" className="label"><span className="label-text">Tipo</span></label>
+                    <select id="tipo"
                         className="select select-bordered w-full"
                         value={type}
                         onChange={(e) => setType(e.target.value as Exclude<CollectionType, "all">)}
@@ -69,29 +75,29 @@ export function NewItemModal({
                 </div>
 
                 <div className="form-control">
-                    <label className="label"><span className="label-text">Título *</span></label>
-                    <input className="input input-bordered" placeholder="Ej: Catan, Batman Vol 1" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
+                    <label htmlFor="titulo" className="label"><span className="label-text">Título *</span></label>
+                    <input id="titulo" className="input input-bordered" placeholder="Ej: Catan, Batman Vol 1" value={title} onChange={(e) => setTitle(e.target.value)} ref={firstFieldRef} />
                 </div>
 
                 <div className="form-control">
-                    <label className="label"><span className="label-text">Creador / Autor (Opcional)</span></label>
-                    <input className="input input-bordered" placeholder="Autor, Diseñador, Estudio" value={creator} onChange={(e) => setCreator(e.target.value)} />
+                    <label htmlFor="creador-autor-opcional" className="label"><span className="label-text">Creador / Autor (Opcional)</span></label>
+                    <input id="creador-autor-opcional" className="input input-bordered" placeholder="Autor, Diseñador, Estudio" value={creator} onChange={(e) => setCreator(e.target.value)} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                     <div className="form-control">
-                        <label className="label"><span className="label-text">Serie / Colección</span></label>
-                        <input className="input input-bordered" placeholder="Ej: Harry Potter" value={series} onChange={(e) => setSeries(e.target.value)} />
+                        <label htmlFor="serie-coleccion" className="label"><span className="label-text">Serie / Colección</span></label>
+                        <input id="serie-coleccion" className="input input-bordered" placeholder="Ej: Harry Potter" value={series} onChange={(e) => setSeries(e.target.value)} />
                     </div>
                     <div className="form-control">
-                        <label className="label"><span className="label-text">Volumen / Versión</span></label>
-                        <input className="input input-bordered" placeholder="Ej: Vol 1, Ed. 2024" value={volumeOrVersion} onChange={(e) => setVolumeOrVersion(e.target.value)} />
+                        <label htmlFor="volumen-version" className="label"><span className="label-text">Volumen / Versión</span></label>
+                        <input id="volumen-version" className="input input-bordered" placeholder="Ej: Vol 1, Ed. 2024" value={volumeOrVersion} onChange={(e) => setVolumeOrVersion(e.target.value)} />
                     </div>
                 </div>
 
                 <div className="form-control">
-                    <label className="label"><span className="label-text">Estado</span></label>
-                    <select className="select select-bordered" value={status} onChange={e => setStatus(e.target.value as CollectionStatus)}>
+                    <label htmlFor="estado" className="label"><span className="label-text">Estado</span></label>
+                    <select id="estado" className="select select-bordered" value={status} onChange={e => setStatus(e.target.value as CollectionStatus)}>
                         {Object.entries(STATUS_LABELS).map(([key, label]) => (
                             <option key={key} value={key}>{label}</option>
                         ))}

@@ -56,18 +56,14 @@ export function useCountdown(
   useEffect(() => {
     if (isRunning && secondsLeft > 0) {
       intervalRef.current = window.setInterval(() => {
-        setSecondsLeft((prev) => {
-          const newSeconds = prev - 1;
-          onTick?.(newSeconds);
+        const newSeconds = secondsLeft - 1;
+        setSecondsLeft(newSeconds);
+        onTick?.(newSeconds);
 
-          if (newSeconds <= 0) {
-            setIsRunning(false);
-            onComplete?.();
-            return 0;
-          }
-
-          return newSeconds;
-        });
+        if (newSeconds <= 0) {
+          setIsRunning(false);
+          onComplete?.();
+        }
       }, 1000);
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -101,6 +97,7 @@ export function useStopwatch(onTick?: (seconds: number) => void) {
   const [seconds, setSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const intervalRef = useRef<number | null>(null);
+  const secondsRef = useRef(0);
 
   const start = useCallback(() => {
     setIsRunning(true);
@@ -116,17 +113,16 @@ export function useStopwatch(onTick?: (seconds: number) => void) {
 
   const reset = useCallback(() => {
     pause();
+    secondsRef.current = 0;
     setSeconds(0);
   }, [pause]);
 
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = window.setInterval(() => {
-        setSeconds((prev) => {
-          const newSeconds = prev + 1;
-          onTick?.(newSeconds);
-          return newSeconds;
-        });
+        secondsRef.current += 1;
+        setSeconds(secondsRef.current);
+        onTick?.(secondsRef.current);
       }, 1000);
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);

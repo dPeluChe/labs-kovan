@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
@@ -179,6 +179,7 @@ function RecipeCard({
             <button
               onClick={onToggleFavorite}
               className={`btn btn-ghost btn-xs btn-circle ${recipe.isFavorite ? "text-amber-500" : ""}`}
+              aria-label={recipe.isFavorite ? "Quitar de favoritos" : "Marcar como favorito"}
             >
               <Heart className={`w-4 h-4 ${recipe.isFavorite ? "fill-current" : ""}`} />
             </button>
@@ -188,12 +189,13 @@ function RecipeCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-ghost btn-xs btn-circle text-primary"
+                aria-label="Abrir receta en nueva pestaña"
               >
                 <ExternalLink className="w-4 h-4" />
               </a>
             )}
           </div>
-          <button onClick={onDelete} className="btn btn-ghost btn-xs btn-circle text-error">
+          <button onClick={onDelete} className="btn btn-ghost btn-xs btn-circle text-error" aria-label="Eliminar receta">
             <Trash2 className="w-3 h-3" />
           </button>
         </div>
@@ -212,17 +214,23 @@ function NewRecipeModal({
   onClose: () => void;
 }) {
   const [title, setTitle] = useState("");
+  const firstFieldRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    firstFieldRef.current?.focus();
+  }, []);
   const [url, setUrl] = useState("");
   const [category, setCategory] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const submitSeq = useRef(0);
 
   const createRecipe = useMutation(api.recipes.createRecipe);
 
   const handleSubmit = async (e: React.FormEvent) => {
+    const seq = ++submitSeq.current;
     e.preventDefault();
     if (!title.trim()) return;
 
-    setIsLoading(true);
+    setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
     try {
       if (!sessionToken) return;
       await createRecipe({
@@ -232,9 +240,9 @@ function NewRecipeModal({
         url: url.trim() || undefined,
         category: category.trim() || undefined,
       });
-      onClose();
+      if (seq === submitSeq.current) onClose();
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
     }
   };
 
@@ -246,20 +254,20 @@ function NewRecipeModal({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="form-control">
-          <label className="label"><span className="label-text">Nombre *</span></label>
-          <input
+          <label htmlFor="nombre" className="label"><span className="label-text">Nombre *</span></label>
+          <input id="nombre"
             type="text"
             placeholder="Ej: Tacos al pastor"
             className="input input-bordered w-full"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            autoFocus
+            ref={firstFieldRef}
           />
         </div>
 
         <div className="form-control">
-          <label className="label"><span className="label-text">URL de la receta</span></label>
-          <input
+          <label htmlFor="url-de-la-receta" className="label"><span className="label-text">URL de la receta</span></label>
+          <input id="url-de-la-receta"
             type="url"
             placeholder="https://..."
             className="input input-bordered w-full"
@@ -269,8 +277,8 @@ function NewRecipeModal({
         </div>
 
         <div className="form-control">
-          <label className="label"><span className="label-text">Categoría</span></label>
-          <select
+          <label htmlFor="categoria" className="label"><span className="label-text">Categoría</span></label>
+          <select id="categoria"
             className="select select-bordered w-full"
             value={category}
             onChange={(e) => setCategory(e.target.value)}

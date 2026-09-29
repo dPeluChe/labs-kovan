@@ -138,9 +138,9 @@ export function ExpensesView() {
                 <Plus className="w-4 h-4" />
                 Nuevo
               </button>
-              <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52">
-                <li><a onClick={handleCreateExpense}>💳 Gasto puntual</a></li>
-                <li><a onClick={() => setShowNewSubscription(true)}>🔄 Nueva suscripción</a></li>
+              <ul className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52">
+                <li><button type="button" onClick={handleCreateExpense}>💳 Gasto puntual</button></li>
+                <li><button type="button" onClick={() => setShowNewSubscription(true)}>🔄 Nueva suscripción</button></li>
               </ul>
             </div>
           ) : (
@@ -210,6 +210,7 @@ export function ExpensesView() {
                         }
                       }}
                       className="btn btn-ghost btn-xs text-error"
+                      aria-label={`Eliminar suscripción ${sub.name}`}
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>

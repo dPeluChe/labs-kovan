@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { PageLoader } from "../components/ui/LoadingSpinner";
@@ -17,7 +17,6 @@ import {
   TestTube,
   ShoppingBag,
   Pencil,
-  CakeIcon
 } from "lucide-react";
 import type { Id, Doc } from "../../convex/_generated/dataModel";
 import { AnimatedTabs } from "../components/ui/AnimatedTabs";
@@ -36,6 +35,7 @@ import { AddNutritionModal } from "../components/health/modals/AddNutritionModal
 import { RecordDetailModal } from "../components/health/modals/RecordDetailModal";
 import { StudyDetailModal } from "../components/health/modals/StudyDetailModal";
 import { EditProfileModal } from "../components/health/modals/EditProfileModal";
+import { ProfileSubtitle } from "../components/health/ProfileSubtitle";
 import { useAuth } from "../contexts/AuthContext";
 
 type Tab = "records" | "medications" | "studies" | "nutrition";
@@ -84,8 +84,7 @@ export function HealthProfilePage() {
   if (!profileId) return null;
   if (profile === undefined) return <PageLoader />;
   if (profile === null) {
-    navigate("/health");
-    return null; // or navigate
+    return <Navigate to="/health" replace />;
   }
 
   const handleDelete = async () => {
@@ -103,17 +102,6 @@ export function HealthProfilePage() {
       await deleteProfile({ sessionToken, personId: profileId as Id<"personProfiles"> });
       navigate("/health");
     }
-  };
-
-  const calculateAge = (birthDate: number) => {
-    const now = new Date();
-    const birth = new Date(birthDate);
-    const diff = now.getTime() - birth.getTime();
-    const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-    const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44));
-
-    if (years > 0) return `${years} años${months > 0 ? ` ${months} meses` : ''}`;
-    return `${months} meses`;
   };
 
   const Icon = profile.type === "pet" ? Cat : User;
@@ -136,21 +124,11 @@ export function HealthProfilePage() {
           </IconBadge>
         }
         subtitle={
-          <div className="flex items-center gap-2">
-            {profile.nickname && (
-              <span className="italic">"{profile.nickname}"</span>
-            )}
-            <span>{profile.relation}</span>
-            {profile.birthDate && (
-              <>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <CakeIcon className="w-3 h-3" />
-                  {calculateAge(profile.birthDate)}
-                </span>
-              </>
-            )}
-          </div>
+          <ProfileSubtitle
+            nickname={profile.nickname}
+            relation={profile.relation}
+            birthDate={profile.birthDate}
+          />
         }
         action={
           <>

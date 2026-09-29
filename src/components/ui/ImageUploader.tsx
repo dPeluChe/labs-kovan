@@ -185,18 +185,20 @@ export function ImageUploader({
 
         {/* Camera overlay for non-empty states */}
         {displayUrl && !isLoading && !disabled && (
-          <div
+          <button
+            type="button"
             onClick={handleClick}
+            aria-label="Cambiar imagen"
             className={`
               absolute inset-0 
               ${SHAPE_CLASSES[shape]}
-              bg-black/50 opacity-0 hover:opacity-100
+              bg-black/50 opacity-0 hover:opacity-100 focus:opacity-100
               flex items-center justify-center
               transition-opacity cursor-pointer
             `}
           >
             <Camera className="w-6 h-6 text-white" />
-          </div>
+          </button>
         )}
       </div>
 
