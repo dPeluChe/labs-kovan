@@ -30,11 +30,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const SESSION_TOKEN_KEY = "kovan_session_token";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Session token lives in memory only: Convex needs it as a JS-readable
-  // function argument, so persisting it in web storage would expose a bearer
-  // credential to any XSS. Sessions do not survive a page reload.
-  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [sessionToken, setSessionToken] = useState<string | null>(() => {
+    return localStorage.getItem(SESSION_TOKEN_KEY);
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loginUser = useMutation(api.users.loginUser);
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsSubmitting(true);
     try {
       const result = await loginUser({ email, password });
+      localStorage.setItem(SESSION_TOKEN_KEY, result.sessionToken);
       setSessionToken(result.sessionToken);
     } finally {
       setIsSubmitting(false);
@@ -65,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsSubmitting(true);
     try {
       const result = await registerUser({ name, email, password });
+      localStorage.setItem(SESSION_TOKEN_KEY, result.sessionToken);
       setSessionToken(result.sessionToken);
     } finally {
       setIsSubmitting(false);
@@ -79,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Error during logout:", error);
       }
     }
+    localStorage.removeItem(SESSION_TOKEN_KEY);
     setSessionToken(null);
   }, [logoutUser, sessionToken]);
 
