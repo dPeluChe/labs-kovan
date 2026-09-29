@@ -382,12 +382,9 @@ los tres headers unificados:
 Las únicas excepciones son los flujos pre-app (Login, Landing, FamilySetup) y
 el chat full-screen del Agente, que tienen layouts intencionalmente diferentes.
 
-> **Nota**: durante la integración del design system con la ronda de
-> particionado de páginas en carpetas por componente, 12 páginas mantienen
-> la estructura nueva (split en componentes) pero postergaron la aplicación
-> de los primitivos del design system a una pasada posterior. Esas
-> migraciones están documentadas en el backlog y se re-aplicarán como
-> sub-PRs chiquitos: ver la lista en `docs/` o en el follow-up interno.
+Los patches históricos por archivo de esa homologación viven en
+`docs/archived/2604-ds-followup/` (post-mortem de referencia; las 12
+migraciones diferidas ya fueron re-aplicadas en PR #2, merge `5b16e9b`).
 
 ## Feature destacada: Gamificación del hogar
 
