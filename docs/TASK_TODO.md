@@ -75,8 +75,6 @@ Sistema modular y reutilizable para juegos basados en turnos. Vive en `src/compo
 
 - [ ] Eliminar `users.getCurrentUser` y `users.getOrCreateUser` (`convex/users.ts:14,29`) — usan `ctx.auth.getUserIdentity()` sin `auth.config.*`; identidad siempre `null`, sin callers en `src/`
 - [ ] `featureRequests.list` (`convex/featureRequests.ts:35`) — sin callers; decidir entre borrarla o protegerla con admin (ver `REVIEW-AUTH`)
-- [x] (2026-09-30, PR de limpieza de deps) Quitar dependencias sin un solo import en `src/` ni `convex/` (verificado 2026-09-30): `ai`, `@ai-sdk/google`, `langchain`, `@langchain/core`, `@langchain/google-genai`, `matter-js`, `uuid`, `zod`, `@types/react-router-dom` (v5 muerta; `react-router-dom` v7 trae sus tipos). Al quitarlas: eliminar la rama `ai-vendor` y `zod`/`uuid` de `utils-vendor` en `vite.config.ts` y actualizar §Bundle splitting del README. `@google/generative-ai` se queda (la usa `convex/agent.ts`)
-- [x] `matter-js` la usa solo la tarea futura `PhysicsEngine` (ACTIVITIES-CORE); reinstalar cuando se construya
 
 ### REVIEW-DEPS: dependencias y vulnerabilidades `added: 2026-09-29`
 
