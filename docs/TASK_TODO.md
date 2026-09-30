@@ -17,6 +17,11 @@ _(vacío — agregar aquí lo que está activamente en trabajo)_
 > Revisión 2026-09-29 (`docs/JOURNAL/REVIEW_2609.md`): ningún gate en rojo —
 > install, typecheck, lint, tests y build pasan. Los items `REVIEW-*` de
 > abajo vienen de esa revisión.
+>
+> Segunda pasada 2026-09-30: `main` en `04a4003` (PR #19 ciclo de chunks, PR #20 react-doctor 91).
+> Orden sugerido: `REVIEW-AUTH` + `REVIEW-CLOUDINARY` (seguridad), `REVIEW-DEADCODE`
+> → `REVIEW-DEPS` (limpian el audit), `REVIEW-HEALTH` + `BUNDLE-SMOKE` (gates), y luego
+> `PERF-COLLECT`, `TEST-COVERAGE`, `TYPES-ANY`, `REACTDOCTOR-2`.
 
 ## Priority 2 — Siguiente
 
@@ -27,7 +32,7 @@ _(vacío — agregar aquí lo que está activamente en trabajo)_
 evaluación por función en `docs/JOURNAL/REVIEW_2609.md` §4.
 
 - [ ] `featureRequests.list` — expone todos los requests (con emails) sin auth y sin callers; proteger como admin o eliminar
-- [ ] `files.generateUploadUrl` — minta URLs de upload sin sesión; agregar `sessionToken`
+- [ ] `files.generateUploadUrl` — minta URLs de upload sin sesión; agregar `sessionToken` (único caller: `src/components/ui/ImageUpload.tsx:15`, hay que pasarlo ahí)
 - [ ] `cloudinary.deleteImage` — sin sesión; agregar guardia al cablear credenciales (ver `REVIEW-CLOUDINARY`)
 - [ ] `calendar/googleActions.ts` ×7 — actions públicas (`getGoogleAuthUrl`, `exchangeGoogleAuthCode`, `provisionKovanCalendar`, `fetchGoogleEventsAction`, `createGoogleEventAction`, `updateGoogleEventAction`, `deleteGoogleEventAction`); validar sesión o convertir a `internalAction` las que solo se llaman server-side
 - [ ] `featureRequests.submit` — pública por diseño (modal en Landing); considerar rate-limit/captcha básico
@@ -70,19 +75,55 @@ Sistema modular y reutilizable para juegos basados en turnos. Vive en `src/compo
 
 - [ ] Eliminar `users.getCurrentUser` y `users.getOrCreateUser` (`convex/users.ts:14,29`) — usan `ctx.auth.getUserIdentity()` sin `auth.config.*`; identidad siempre `null`, sin callers en `src/`
 - [ ] `featureRequests.list` (`convex/featureRequests.ts:35`) — sin callers; decidir entre borrarla o protegerla con admin (ver `REVIEW-AUTH`)
-- [ ] Quitar dependencias sin un solo import: `ai`, `@ai-sdk/google`, `langchain`, `@langchain/core`, `@langchain/google-genai`, `matter-js`, `@types/react-router-dom` (v5 muerta — `react-router-dom` v7 trae sus tipos). El chunk `ai-vendor` de `vite.config.ts` queda obsoleto con ellas
+- [ ] Quitar dependencias sin un solo import en `src/` ni `convex/` (verificado 2026-09-30): `ai`, `@ai-sdk/google`, `langchain`, `@langchain/core`, `@langchain/google-genai`, `matter-js`, `uuid`, `zod`, `@types/react-router-dom` (v5 muerta; `react-router-dom` v7 trae sus tipos). Al quitarlas: eliminar la rama `ai-vendor` y `zod`/`uuid` de `utils-vendor` en `vite.config.ts` y actualizar §Bundle splitting del README. `@google/generative-ai` se queda (la usa `convex/agent.ts`)
+- [ ] `matter-js` la usa solo la tarea futura `PhysicsEngine` (ACTIVITIES-CORE); reinstalar cuando se construya
 
 ### REVIEW-DEPS: dependencias y vulnerabilidades `added: 2026-09-29`
 
-- [ ] `npm audit fix` — 31 vulns (1 critical, 17 high); la mayoría transitivas/dev-only o en deps muertas (langchain/langsmith)
-- [ ] Actualizaciones menores seguras: `react-router-dom` → 7.18.x (advisories de XSS/open-redirect), `convex` → 1.46
-- [ ] Evaluar majors: `vite` 8, `vitest` 5, `eslint` 10, `typescript` 7
+Revisión 2026-09-30: `npm audit --omit=dev` reporta 14 vulns (4 low, 4 moderate, 6 high), todas en la cadena `langchain` → `langgraph` → `uuid`, es decir, deps muertas. Quitarlas (`REVIEW-DEADCODE`) debería limpiar producción; correr `npm audit` de nuevo después.
+
+- [ ] Tras `REVIEW-DEADCODE`, `npm audit fix` para lo que quede (dev-only)
+- [ ] Bump seguro dentro de rango (`npm update`), un PR con los 4 gates: `react` / `react-dom` 19.3, `react-router-dom` 7.18 (advisories XSS/open-redirect), `convex` 1.46, `vite` 7.3, `vitest` 3.2, `tailwindcss` + `@tailwindcss/vite` 4.3, `daisyui` 5.7, `framer-motion` 12.43, `date-fns` 4.4, `typescript-eslint` 8.71
+- [ ] Majors, uno por PR y solo con motivo: `vite` 8 + `@vitejs/plugin-react` 6, `vitest` 5, `eslint` 10, `typescript` 7, `lucide-react` 1.x (revisar iconos renombrados; 121 archivos lo importan), `framer-motion` 13
+- [ ] Fijar versión de Node: no hay `engines` ni `.nvmrc`; CI usa 22.x y con Node 26 local fallan 3 tests de `AuthContext` (`localStorage` no existe en jsdom). Agregar `.nvmrc` y `engines`
 
 ### AUTH-SAMESITE: sesión en cookie HttpOnly de primera parte `added: 2026-09-29`
 
 El token sigue en `localStorage` (riesgo aceptado, regla de react-doctor ignorada en `doctor.config.json`). Una cookie emitida por `*.convex.site` es de terceros y Safari/Firefox estricto la bloquean, así que se descartó (PR #12, commit `ed858ca`).
 
 - [ ] Cuando el dominio del frontend sea el oficial: rewrite de hosting `/api/*` → `*.convex.site` (mismo rewrite que `MCP-MISC`), cookie `SameSite=Lax` y cliente con rutas relativas. Retomar `ed858ca` como base
+
+### BUNDLE-SMOKE: un ciclo entre chunks rompió la app sin que ningún gate lo viera `added: 2026-09-30`
+
+`scheduler` caía en `vendor` y `react-vendor` <-> `vendor` se importaban entre sí; la app no cargaba en el navegador con lint, test y build en verde (arreglado en PR #19). Falta el gate que lo habría detectado.
+
+- [ ] Script de CI post-build que importe cada chunk de `dist/assets/*vendor*.js` en Node y falle si alguno lanza (con el build viejo reproduce exactamente `Cannot set properties of undefined (setting 'Activity')`), o detecte ciclos entre chunks
+- [ ] Alternativa más simple: quitar `manualChunks` y dejar que Vite decida; medir el tamaño antes de aceptar
+
+### PERF-COLLECT: lecturas sin límite en Convex `added: 2026-09-30`
+
+94 usos de `.collect()` contra 9 de `.take()`/`.paginate()` en `convex/`; 122 `withIndex` (bien indexado, pero sin acotar). Hoy es una app familiar pequeña, pero las tablas que crecen sin techo van a degradar las queries reactivas.
+
+- [ ] Auditar las tablas que crecen con el tiempo: `expenses` (`expenses/queries.ts`, 6 collects), `places` (8), `nutrition` (5), actividad de `household`, `gifts/summary`, agentConversations. Poner `take(n)`/paginación o un rango de fechas
+- [ ] `convex/admin.ts` (4 collects): confirmar que solo corre bajo demanda
+
+### TEST-COVERAGE: `convex/` sin tests `added: 2026-09-30`
+
+11 archivos de test sobre ~37k líneas; ninguno cubre `convex/` (auth, MCP, tools del agente, fuzzy match) y ahí está el riesgo (aislamiento entre familias).
+
+- [ ] Tests unitarios de lo puro: `lib/agent/fuzzyMatch.ts`, `lib/agent/dates.ts`, `lib/mcp/protocol.ts`
+- [ ] Evaluar `convex-test` para `requireFamilyAccessFromSession` (sesión de otra familia, sesión MCP acotada) y `apiTokens`
+
+### TYPES-ANY: `any` y supresiones en `convex/*/access.ts` `added: 2026-09-30`
+
+23 `any` y 23 `eslint-disable`/`@ts-*` en `src/` + `convex/`, concentrados en `health/access.ts`, `trips/access.ts`, `gifts/access.ts`, `vehicles/access.ts` (guardas de acceso, la parte más sensible).
+
+- [ ] Tipar las guardas con `QueryCtx | MutationCtx` y `Id<"...">` y quitar los `any`
+- [ ] 16 `console.log/debug` en `src`/`convex`: revisar y quitar los de depuración
+
+### REACTDOCTOR-2: 23 warnings restantes `added: 2026-09-30`
+
+- [ ] `no-high-complexity-react-function` ×19, `no-giant-component` ×3 (partir componentes; candidatos: `DashboardPage` 427 líneas, `CalendarPage` 404, `HouseholdPage` 346, `SubscriptionDetailModal` 344). El gate exige score ≥ 90, hoy 91: cualquier regresión lo rompe
 
 ### REVIEW-HEALTH: cobertura de typecheck en CI `added: 2026-09-29`
 
