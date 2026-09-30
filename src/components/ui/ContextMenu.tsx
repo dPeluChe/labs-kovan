@@ -62,13 +62,12 @@ export function ContextMenu({
         {trigger ?? <MoreVertical className="w-5 h-5" />}
       </button>
       <ul
-        tabIndex={0}
         className={`dropdown-content menu p-2 shadow bg-base-100 rounded-box border border-base-300 z-50 ${contentClassName}`}
       >
-        {visibleItems.map((item, idx) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon;
           return (
-            <li key={`${item.label}-${idx}`}>
+            <li key={item.label}>
               <button
                 type="button"
                 onClick={item.onClick}

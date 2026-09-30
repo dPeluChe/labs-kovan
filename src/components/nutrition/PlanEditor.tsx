@@ -122,8 +122,8 @@ export function PlanEditor({ familyId, plan, onClose }: PlanEditorProps) {
           <div className="card-body p-4 gap-4">
             <SectionTitle className="uppercase tracking-wider text-subtle">Detalles</SectionTitle>
             <div className="form-control">
-              <label className="label text-sm font-medium">Nombre</label>
-              <input
+              <label htmlFor="nombre" className="label text-sm font-medium">Nombre</label>
+              <input id="nombre"
                 required
                 className="input input-sm input-bordered w-full focus:input-primary"
                 placeholder="Ej. Definición 2024"
@@ -132,8 +132,8 @@ export function PlanEditor({ familyId, plan, onClose }: PlanEditorProps) {
               />
             </div>
             <div className="form-control">
-              <label className="label text-sm font-medium">Notas</label>
-              <textarea
+              <label htmlFor="notas" className="label text-sm font-medium">Notas</label>
+              <textarea id="notas"
                 className="textarea textarea-sm textarea-bordered w-full focus:textarea-primary leading-tight min-h-[60px]"
                 rows={2}
                 placeholder="Notas del plan..."
@@ -142,8 +142,8 @@ export function PlanEditor({ familyId, plan, onClose }: PlanEditorProps) {
               />
             </div>
             <div className="form-control">
-              <label className="label text-sm font-medium">Calorías (Kcal)</label>
-              <input
+              <label htmlFor="calorias-kcal" className="label text-sm font-medium">Calorías (Kcal)</label>
+              <input id="calorias-kcal"
                 type="number"
                 className="input input-sm input-bordered w-full"
                 placeholder="2000"
@@ -169,6 +169,7 @@ export function PlanEditor({ familyId, plan, onClose }: PlanEditorProps) {
                         type="button"
                         onClick={() => toggleNutrient(key)}
                         className="btn btn-xs btn-circle btn-ghost text-error opacity-50 hover:opacity-100"
+                        aria-label={`Quitar ${nutrient.label}`}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -176,6 +177,7 @@ export function PlanEditor({ familyId, plan, onClose }: PlanEditorProps) {
                       <span className="font-bold text-sm">{nutrient.label}</span>
                     </div>
                     <CounterInput
+                      label={nutrient.label}
                       value={(formData as Record<string, string | number>)[key] as number}
                       onChange={(val) => setFormData({ ...formData, [key]: val })}
                     />
@@ -228,7 +230,7 @@ export function PlanEditor({ familyId, plan, onClose }: PlanEditorProps) {
   );
 }
 
-function CounterInput({ value, onChange, min = 0, max = 50 }: { value: number; onChange: (val: number) => void; min?: number; max?: number }) {
+function CounterInput({ value, onChange, min = 0, max = 50, label }: { value: number; onChange: (val: number) => void; min?: number; max?: number; label?: string }) {
   const handleDecrement = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -247,16 +249,21 @@ function CounterInput({ value, onChange, min = 0, max = 50 }: { value: number; o
         onClick={handleDecrement}
         disabled={value <= min}
         className="btn btn-sm btn-ghost btn-square w-8 h-8 rounded-lg text-lg hover:bg-base-300 disabled:opacity-20"
+        aria-label={label ? `Disminuir ${label}` : "Disminuir"}
       >
         <Minus className="w-4 h-4" />
       </button>
       <input
         type="number"
+        aria-label={label}
         value={value}
         onChange={(e) => {
-          const v = parseInt(e.target.value, 10);
-          if (!isNaN(v) && v >= min && v <= max) onChange(v);
-          else if (e.target.value === "") onChange(0);
+          const v = e.target.valueAsNumber;
+          if (Number.isNaN(v)) {
+            if (e.target.value === "") onChange(min);
+            return;
+          }
+          if (v >= min && v <= max) onChange(v);
         }}
         className="input input-ghost input-sm w-12 text-center text-lg font-bold p-0 focus:outline-none"
       />
@@ -265,6 +272,7 @@ function CounterInput({ value, onChange, min = 0, max = 50 }: { value: number; o
         onClick={handleIncrement}
         disabled={value >= max}
         className="btn btn-sm btn-ghost btn-square w-8 h-8 rounded-lg text-lg hover:bg-base-300 disabled:opacity-20"
+        aria-label={label ? `Aumentar ${label}` : "Aumentar"}
       >
         <Plus className="w-4 h-4" />
       </button>

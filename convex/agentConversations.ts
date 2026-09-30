@@ -43,9 +43,7 @@ export const clearConversation = mutation({
             .withIndex("by_user", (q) => q.eq("userId", user._id))
             .collect();
 
-        for (const message of messages) {
-            await ctx.db.delete(message._id);
-        }
+        await Promise.all(messages.map((message) => ctx.db.delete(message._id)));
 
         return { success: true, deleted: messages.length };
     },

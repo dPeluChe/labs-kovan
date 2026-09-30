@@ -20,18 +20,6 @@ _(vacío — agregar aquí lo que está activamente en trabajo)_
 
 ## Priority 2 — Siguiente
 
-### REVIEW-REACTDOCTOR: react-doctor 48/100 → 90 `added: 2026-09-29`
-
-`npx -y react-doctor@latest .` (0.9.14) reporta 513 issues (15 errores,
-498 warnings). Tarea separada según el brief de la revisión — no mezclar
-con otros cambios. Empezar por los 15 errores:
-
-- [ ] `react-router-no-navigate-in-render` ×2 — `src/pages/GiftEventDetailPage.tsx:144`, `src/pages/HealthProfilePage.tsx:87`
-- [ ] `no-layout-property-animation` ×9 — `WeeklyPodium`, `AnimatedTabs` (usar transform/opacity)
-- [ ] `effect-needs-cleanup` ×2 — suscripciones/timers sin cleanup
-- [ ] `no-impure-state-updater` ×1, `require-reduced-motion` ×1
-- [ ] Luego warnings por volumen: accesibilidad de labels (105+93+64), `no-static-element-interactions` ×27, `click-events-have-key-events` ×26, `async-await-in-loop` ×23 en `convex/`
-
 ### REVIEW-AUTH: funciones públicas sin validación de sesión `added: 2026-09-29`
 
 13 de 220 funciones públicas de `convex/` no validan sesión ni membresía
@@ -89,6 +77,12 @@ Sistema modular y reutilizable para juegos basados en turnos. Vive en `src/compo
 - [ ] `npm audit fix` — 31 vulns (1 critical, 17 high); la mayoría transitivas/dev-only o en deps muertas (langchain/langsmith)
 - [ ] Actualizaciones menores seguras: `react-router-dom` → 7.18.x (advisories de XSS/open-redirect), `convex` → 1.46
 - [ ] Evaluar majors: `vite` 8, `vitest` 5, `eslint` 10, `typescript` 7
+
+### AUTH-SAMESITE: sesión en cookie HttpOnly de primera parte `added: 2026-09-29`
+
+El token sigue en `localStorage` (riesgo aceptado, regla de react-doctor ignorada en `doctor.config.json`). Una cookie emitida por `*.convex.site` es de terceros y Safari/Firefox estricto la bloquean, así que se descartó (PR #12, commit `ed858ca`).
+
+- [ ] Cuando el dominio del frontend sea el oficial: rewrite de hosting `/api/*` → `*.convex.site` (mismo rewrite que `MCP-MISC`), cookie `SameSite=Lax` y cliente con rutas relativas. Retomar `ed858ca` como base
 
 ### REVIEW-HEALTH: cobertura de typecheck en CI `added: 2026-09-29`
 

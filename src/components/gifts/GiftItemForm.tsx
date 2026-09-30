@@ -121,8 +121,8 @@ export function GiftItemForm({
                 />
 
                 <div className="form-control w-full">
-                    <label className="label"><span className="label-text font-medium">Estado</span></label>
-                    <select
+                    <label htmlFor="estado" className="label"><span className="label-text font-medium">Estado</span></label>
+                    <select id="estado"
                         className="select select-bordered w-full"
                         value={formData.status}
                         onChange={(e) => setFormData({ ...formData, status: e.target.value as GiftStatus })}

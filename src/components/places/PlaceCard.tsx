@@ -118,6 +118,7 @@ export function PlaceCard({ place, onClick, onCheckIn }: PlaceCardProps) {
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
+                            aria-label="Ver en Google Maps"
                             className="btn btn-circle btn-ghost btn-xs text-faint hover:text-primary hover:bg-primary/10"
                         >
                             <Map className="w-4 h-4" />
@@ -129,6 +130,7 @@ export function PlaceCard({ place, onClick, onCheckIn }: PlaceCardProps) {
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
+                            aria-label="Abrir sitio web"
                             className="btn btn-circle btn-ghost btn-xs text-faint hover:text-pink-500 hover:bg-pink-500/10"
                         >
                             <ExternalLink className="w-4 h-4" />

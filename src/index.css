@@ -276,3 +276,20 @@ body {
   @apply sticky top-0 z-40 bg-base-100/80 backdrop-blur-md;
   padding-top: env(safe-area-inset-top);
 }
+
+/* ==================== REDUCED MOTION ==================== */
+/*
+ * Honor prefers-reduced-motion (WCAG 2.3.3): collapse CSS animations and
+ * transitions for users who ask for less motion. Framer Motion animations
+ * are JS-driven and are handled per-component.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

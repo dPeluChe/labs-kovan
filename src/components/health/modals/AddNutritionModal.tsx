@@ -23,7 +23,7 @@ export function AddNutritionModal({
     const [type, setType] = useState<NutritionType>("food");
     const [amount, setAmount] = useState("");
     const [weight, setWeight] = useState("");
-    const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split("T")[0]);
+    const [purchaseDate, setPurchaseDate] = useState(() => new Date().toISOString().split("T")[0]);
     const [store, setStore] = useState("");
     const [notes, setNotes] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -88,8 +88,8 @@ export function AddNutritionModal({
                 />
 
                 <div className="form-control">
-                    <label className="label"><span className="label-text">Tipo</span></label>
-                    <select
+                    <label htmlFor="tipo" className="label"><span className="label-text">Tipo</span></label>
+                    <select id="tipo"
                         className="select select-bordered w-full"
                         value={type}
                         onChange={(e) => setType(e.target.value as NutritionType)}
@@ -103,8 +103,8 @@ export function AddNutritionModal({
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="form-control">
-                        <label className="label"><span className="label-text">Costo ($)</span></label>
-                        <input
+                        <label htmlFor="costo" className="label"><span className="label-text">Costo ($)</span></label>
+                        <input id="costo"
                             type="number"
                             step="0.01"
                             className="input input-bordered w-full"
@@ -115,8 +115,8 @@ export function AddNutritionModal({
                         />
                     </div>
                     <div className="form-control">
-                        <label className="label"><span className="label-text">Peso / Cantidad</span></label>
-                        <input
+                        <label htmlFor="peso-cantidad" className="label"><span className="label-text">Peso / Cantidad</span></label>
+                        <input id="peso-cantidad"
                             type="text"
                             className="input input-bordered w-full"
                             value={weight}

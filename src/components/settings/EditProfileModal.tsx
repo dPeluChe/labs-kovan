@@ -38,20 +38,20 @@ export function EditProfileModal({
           autoFocus
         />
         <div className="form-control">
-          <label className="label">
+          <label htmlFor="email" className="label">
             <span className="label-text">Email</span>
           </label>
-          <input
+          <input id="email"
             type="email"
             value={userEmail}
             className="input input-bordered w-full bg-base-200"
             disabled
           />
-          <label className="label">
+          <p className="label">
             <span className="label-text-alt text-subtle">
               El email se usa para iniciar sesión y no puede cambiarse
             </span>
-          </label>
+          </p>
         </div>
         <div className="modal-action">
           <button

@@ -68,7 +68,7 @@ export function DashboardPage() {
               <p className="font-medium">Error al unirse a la familia</p>
               <p className="text-sm opacity-80">{inviteError}</p>
             </div>
-            <button onClick={clearInviteError} className="btn btn-ghost btn-sm btn-circle">
+            <button onClick={clearInviteError} className="btn btn-ghost btn-sm btn-circle" aria-label="Cerrar aviso">
               <X className="w-4 h-4" />
             </button>
           </div>

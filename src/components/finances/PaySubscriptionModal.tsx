@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useRef} from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
@@ -22,19 +22,22 @@ export function PaySubscriptionModal({
   onClose,
 }: PaySubscriptionModalProps) {
   const sub = subscriptions.find((s) => s._id === subscriptionId);
-  const [amount, setAmount] = useState(sub?.amount?.toString() || "");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [amount, setAmount] = useState(() => sub?.amount?.toString() || "");
+  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const submitSeq = useRef(0);
 
   const createExpense = useMutation(api.expenses.createExpense);
 
   if (!sub) return null;
 
   const handleSubmit = async (e: FormEvent) => {
+    const seq = ++submitSeq.current;
     e.preventDefault();
     if (!amount) return;
 
-    setIsLoading(true);
+    setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
     try {
       if (!sessionToken) return;
       await createExpense({
@@ -47,9 +50,9 @@ export function PaySubscriptionModal({
         date: new Date(date).getTime(),
         subscriptionId,
       });
-      onClose();
+      if (seq === submitSeq.current) onClose();
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
     }
   };
 

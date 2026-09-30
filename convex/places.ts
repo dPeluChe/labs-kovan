@@ -17,19 +17,20 @@ export const getLists = query({
   args: { sessionToken: v.string(), familyId: v.id("families") },
   handler: async (ctx, args) => {
     await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
-    const lists = await ctx.db
-      .query("placeLists")
-      .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
-      .collect();
-
     // Fetch counts for each list
     // Note: N+1 query pattern, but safe for small number of lists (<20).
     // An alternative is fetching all places for family and aggregating in memory.
     // Let's do aggregation for efficiency if lists grow.
-    const allPlaces = await ctx.db
-      .query("places")
-      .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
-      .collect();
+    const [lists, allPlaces] = await Promise.all([
+      ctx.db
+        .query("placeLists")
+        .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
+        .collect(),
+      ctx.db
+        .query("places")
+        .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
+        .collect(),
+    ]);
 
     // Map counts
     const counts = allPlaces.reduce((acc, place) => {
@@ -94,9 +95,7 @@ export const deleteList = mutation({
 
     if (placesInList.length > 0) {
       // Unlink them or burn them? Let's unlink them for safety
-      for (const place of placesInList) {
-        await ctx.db.patch(place._id, { listId: undefined });
-      }
+      await Promise.all(placesInList.map((place) => ctx.db.patch(place._id, { listId: undefined })));
     }
     await ctx.db.delete(args.listId);
   },
@@ -209,9 +208,7 @@ export const deletePlace = mutation({
       .withIndex("by_place", (q) => q.eq("placeId", args.placeId))
       .collect();
 
-    for (const visit of visits) {
-      await ctx.db.delete(visit._id);
-    }
+    await Promise.all(visits.map((visit) => ctx.db.delete(visit._id)));
 
     return await ctx.db.delete(args.placeId);
   },

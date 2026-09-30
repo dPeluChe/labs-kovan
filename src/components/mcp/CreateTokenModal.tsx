@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { Copy, Check, KeyRound, AlertTriangle } from "lucide-react";
 import { api } from "../../../convex/_generated/api";
@@ -18,6 +18,14 @@ export function CreateTokenModal({ isOpen, onClose, sessionToken, familyId }: Cr
   const createApiToken = useMutation(api.apiTokens.createApiToken);
 
   const [name, setName] = useState("");
+
+  const firstFieldRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+
+      firstFieldRef.current?.focus();
+
+  }, []);
   const [isCreating, setIsCreating] = useState(false);
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -96,18 +104,19 @@ export function CreateTokenModal({ isOpen, onClose, sessionToken, familyId }: Cr
           Puedes revocarla en cualquier momento.
         </p>
 
-        <label className="form-control w-full">
+        <div className="form-control w-full">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && void handleCreate()}
             placeholder="Nombre de la llave"
+            aria-label="Nombre de la llave"
             maxLength={60}
             className="input input-bordered w-full"
-            autoFocus
+            ref={firstFieldRef}
           />
-        </label>
+        </div>
 
         <button
           onClick={() => void handleCreate()}

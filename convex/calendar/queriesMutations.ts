@@ -83,9 +83,7 @@ export const removeCalendarIntegration = mutation({
         .query("cachedCalendarEvents")
         .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
         .collect();
-      for (const event of events) {
-        await ctx.db.delete(event._id);
-      }
+      await Promise.all(events.map((event) => ctx.db.delete(event._id)));
       await ctx.db.delete(integration._id);
     }
   },
@@ -160,16 +158,16 @@ export const syncCalendarEvents = mutation({
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
       .collect();
 
-    for (const event of existingEvents) {
-      await ctx.db.delete(event._id);
-    }
+    await Promise.all(existingEvents.map((event) => ctx.db.delete(event._id)));
 
-    for (const event of args.events) {
-      await ctx.db.insert("cachedCalendarEvents", {
-        familyId: args.familyId,
-        ...event,
-      });
-    }
+    await Promise.all(
+      args.events.map((event) =>
+        ctx.db.insert("cachedCalendarEvents", {
+          familyId: args.familyId,
+          ...event,
+        })
+      )
+    );
 
     const integration = await ctx.db
       .query("calendarIntegrations")

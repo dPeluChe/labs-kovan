@@ -93,8 +93,8 @@ export function AddBookingModal({ tripId, booking, onClose }: AddBookingModalPro
         <MobileModal isOpen onClose={onClose} title={booking ? "Editar Reserva" : "Nueva Reserva"}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="form-control">
-                    <label className="label"><span className="label-text">Tipo</span></label>
-                    <select className="select select-bordered w-full" value={type} onChange={(e) => setType(e.target.value)}>
+                    <label htmlFor="tipo" className="label"><span className="label-text">Tipo</span></label>
+                    <select id="tipo" className="select select-bordered w-full" value={type} onChange={(e) => setType(e.target.value)}>
                         <option value="flight">Vuelo</option>
                         <option value="hotel">Hospedaje</option>
                         <option value="transport">Transporte (Tren/Bus)</option>
@@ -142,7 +142,7 @@ export function AddBookingModal({ tripId, booking, onClose }: AddBookingModalPro
 
                 <div className="modal-action justify-between">
                     {booking && (
-                        <button type="button" className="btn btn-ghost text-error" onClick={handleDelete} disabled={isLoading}>
+                        <button type="button" className="btn btn-ghost text-error" onClick={handleDelete} disabled={isLoading} aria-label="Eliminar reserva">
                             <Trash2 className="w-5 h-5" />
                         </button>
                     )}

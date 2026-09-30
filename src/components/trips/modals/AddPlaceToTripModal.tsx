@@ -59,8 +59,8 @@ export function AddPlaceToTripModal({ familyId, placeListId, onClose }: AddPlace
                 />
 
                 <div className="form-control">
-                    <label className="label"><span className="label-text">Categoría</span></label>
-                    <select className="select select-bordered w-full" value={category} onChange={(e) => setCategory(e.target.value)}>
+                    <label htmlFor="categoria" className="label"><span className="label-text">Categoría</span></label>
+                    <select id="categoria" className="select select-bordered w-full" value={category} onChange={(e) => setCategory(e.target.value)}>
                         <option value="restaurant">Restaurante / Comida</option>
                         <option value="cafe">Café / Bar</option>
                         <option value="activity">Actividad / Museo</option>

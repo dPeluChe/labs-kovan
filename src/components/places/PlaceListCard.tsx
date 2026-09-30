@@ -13,7 +13,6 @@ interface PlaceListCardProps {
 export function PlaceListCard({ list, placeCount = 0, isSelected, onClick, onEdit }: PlaceListCardProps) {
     return (
         <div
-            onClick={onClick}
             className={`relative group p-4 rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden
         ${isSelected
                     ? "bg-primary text-primary-content border-primary shadow-lg shadow-primary/20 scale-[1.02]"
@@ -21,6 +20,12 @@ export function PlaceListCard({ list, placeCount = 0, isSelected, onClick, onEdi
                 }
       `}
         >
+            <button
+                type="button"
+                onClick={onClick}
+                aria-label={list.name}
+                className="absolute inset-0 rounded-2xl cursor-pointer"
+            />
             <div className="flex items-start justify-between">
                 <div className={`p-3 rounded-xl mb-3 ${isSelected ? 'bg-white/20' : 'bg-primary/10 text-primary'}`}>
                     {list.icon ? (
@@ -32,7 +37,8 @@ export function PlaceListCard({ list, placeCount = 0, isSelected, onClick, onEdi
                 {onEdit && (
                     <button
                         onClick={onEdit}
-                        className={`btn btn-xs btn-circle btn-ghost ${isSelected ? 'text-primary-content hover:bg-white/20' : ''}`}
+                        className={`btn btn-xs btn-circle btn-ghost relative z-10 ${isSelected ? 'text-primary-content hover:bg-white/20' : ''}`}
+                        aria-label="Editar lista"
                     >
                         •••
                     </button>

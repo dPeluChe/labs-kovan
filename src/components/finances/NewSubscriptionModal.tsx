@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useRef} from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -25,13 +25,16 @@ export function NewSubscriptionModal({
   const [dueDay, setDueDay] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const submitSeq = useRef(0);
+
   const createSubscription = useMutation(api.subscriptions.create);
 
   const handleSubmit = async (e: FormEvent) => {
+    const seq = ++submitSeq.current;
     e.preventDefault();
     if (!name.trim()) return;
 
-    setIsLoading(true);
+    setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
     try {
       if (!sessionToken) return;
       await createSubscription({
@@ -43,9 +46,9 @@ export function NewSubscriptionModal({
         billingCycle,
         dueDay: dueDay ? parseInt(dueDay, 10) : undefined,
       });
-      onClose();
+      if (seq === submitSeq.current) onClose();
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
     }
   };
 

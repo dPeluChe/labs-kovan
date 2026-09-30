@@ -21,9 +21,11 @@ export const getStats = query({
         await checkSuperAdmin(ctx, user._id);
 
         // Families
-        const families = await ctx.db.query("families").collect();
-        const users = await ctx.db.query("users").collect();
-        const invites = await ctx.db.query("familyInvites").collect();
+        const [families, users, invites] = await Promise.all([
+            ctx.db.query("families").collect(),
+            ctx.db.query("users").collect(),
+            ctx.db.query("familyInvites").collect(),
+        ]);
 
         // Some aggregate stats
         const totalFamilies = families.length;
@@ -82,8 +84,6 @@ export const deleteUser = mutation({
             .withIndex("by_user", (q) => q.eq("userId", args.targetUserId))
             .collect();
 
-        for (const membership of memberships) {
-            await ctx.db.delete(membership._id);
-        }
+        await Promise.all(memberships.map((membership) => ctx.db.delete(membership._id)));
     },
 });

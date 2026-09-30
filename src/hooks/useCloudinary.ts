@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import {
@@ -34,8 +34,16 @@ export function useCloudinary(options: UseCloudinaryOptions): UseCloudinaryRetur
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+  const progressIntervalRef = useRef<number | null>(null);
 
   const deleteImage = useAction(api.cloudinary.deleteImage);
+
+  useEffect(
+    () => () => {
+      if (progressIntervalRef.current !== null) clearInterval(progressIntervalRef.current);
+    },
+    []
+  );
 
   const upload = useCallback(
     async (file: File, previousUrl?: string): Promise<string | null> => {
@@ -48,16 +56,18 @@ export function useCloudinary(options: UseCloudinaryOptions): UseCloudinaryRetur
         const folder = generateFolderPath(familyId, context, entityId);
 
         // Simulate progress (Cloudinary doesn't give real progress for unsigned uploads)
-        const progressInterval = setInterval(() => {
+        progressIntervalRef.current = window.setInterval(() => {
           setProgress((prev) => Math.min(prev + 10, 90));
         }, 100);
 
         // Upload new image
-        const result: CloudinaryUploadResponse = await uploadToCloudinary(file, {
-          folder,
-        });
-
-        clearInterval(progressInterval);
+        let result: CloudinaryUploadResponse;
+        try {
+          result = await uploadToCloudinary(file, { folder });
+        } finally {
+          clearInterval(progressIntervalRef.current ?? undefined);
+          progressIntervalRef.current = null;
+        }
         setProgress(100);
 
         // If there was a previous image, delete it (cleanup)

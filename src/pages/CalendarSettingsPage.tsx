@@ -43,6 +43,7 @@ export function CalendarSettingsPage() {
 
   // Handle OAuth Callback
   useEffect(() => {
+    let cancelled = false;
     const handleOAuth = async () => {
       const code = searchParams.get("code");
       if (code && currentFamily && sessionToken) {
@@ -53,9 +54,11 @@ export function CalendarSettingsPage() {
             code,
             redirectUri: window.location.origin + "/settings/calendar"
           });
+          if (cancelled) return;
 
           // 1.5 Provision Kovan Calendar
           const kovanCalendar = await provisionCalendar({ accessToken: tokens.accessToken });
+          if (cancelled) return;
 
           // 2. Save Integration
           await saveIntegration({
@@ -69,18 +72,21 @@ export function CalendarSettingsPage() {
             scope: tokens.scope,
           });
 
+          if (cancelled) return;
+
           // 3. Cleanup URL
           setSearchParams({});
           navigate("/calendar");
         } catch {
-          alert("Error al conectar con Google. Revisa que las credenciales en Convex Dashboard sean correctas.");
+          if (!cancelled) alert("Error al conectar con Google. Revisa que las credenciales en Convex Dashboard sean correctas.");
         } finally {
-          setIsSyncing(false);
+          if (!cancelled) setIsSyncing(false);
         }
       }
     };
 
     handleOAuth();
+    return () => { cancelled = true; };
   }, [searchParams, currentFamily, sessionToken, exchangeCode, saveIntegration, navigate, setSearchParams, provisionCalendar]);
 
   const handleConnect = async () => {
@@ -214,7 +220,7 @@ export function CalendarSettingsPage() {
 
         {/* Manual Configuration (Advanced) - Always visible or only when needed? User kept it. */}
         <div className="collapse collapse-arrow bg-base-100 border border-base-300">
-          <input type="checkbox" />
+          <input type="checkbox" aria-label="Mostrar configuración manual" />
           <div className="collapse-title font-medium text-sm text-body">
             Configuración manual (Avanzado)
           </div>
@@ -224,10 +230,10 @@ export function CalendarSettingsPage() {
                 * Editar estos valores puede romper la sincronización automática.
               </p>
               <div className="form-control">
-                <label className="label">
+                <label htmlFor="id-del-calendario" className="label">
                   <span className="label-text">ID del Calendario</span>
                 </label>
-                <input
+                <input id="id-del-calendario"
                   type="text"
                   placeholder="primary"
                   className="input input-bordered w-full"
@@ -236,10 +242,10 @@ export function CalendarSettingsPage() {
                 />
               </div>
               <div className="form-control">
-                <label className="label">
+                <label htmlFor="nombre-a-mostrar" className="label">
                   <span className="label-text">Nombre a mostrar</span>
                 </label>
-                <input
+                <input id="nombre-a-mostrar"
                   type="text"
                   placeholder="Mi Calendario"
                   className="input input-bordered w-full"

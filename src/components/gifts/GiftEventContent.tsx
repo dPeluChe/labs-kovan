@@ -8,6 +8,160 @@ import type { ConfirmOptions } from "../../hooks/useConfirmModal";
 
 const STATUS_ICONS = STATUS_CONFIG;
 
+const BOUGHT_STATUSES = ["bought", "wrapped", "delivered"];
+
+function GiftListRow({
+  item,
+  recipientName,
+  recipientId,
+  eventCompleted,
+  onEditItem,
+}: {
+  item: Doc<"giftItems">;
+  recipientName: string;
+  recipientId: string;
+  eventCompleted: boolean;
+  onEditItem: (item: Doc<"giftItems">) => void;
+}) {
+  const isBought = BOUGHT_STATUSES.includes(item.status);
+  const statusConfig = STATUS_ICONS[item.status as GiftStatus];
+  return (
+    <button
+      type="button"
+      disabled={eventCompleted}
+      onClick={() => onEditItem(item)}
+      className={`flex items-center gap-2 p-2 rounded-lg border transition-all animate-fade-in w-full text-left ${recipientId === "" ? "bg-warning/5 border-warning/20 hover:bg-warning/10" : "bg-base-100 border-base-200 hover:shadow-sm"} ${eventCompleted ? "opacity-75 cursor-default" : "cursor-pointer"}`}
+    >
+      <span>{statusConfig.icon}</span>
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm truncate ${isBought ? "line-through opacity-60" : ""}`}>
+          {item.title}
+        </p>
+        <p className="text-xs text-subtle">
+          {recipientName === "Sin asignar" ? <span className="text-warning">Sin asignar</span> : `→ ${recipientName}`}
+        </p>
+      </div>
+      {item.priceEstimate && <span className="text-xs text-subtle">${item.priceEstimate}</span>}
+    </button>
+  );
+}
+
+function UnassignedGiftsCard({
+  unassignedGifts,
+  recipientsWithItems,
+  eventCompleted,
+  confirmDialog,
+  onEditItem,
+  onAddToPool,
+}: {
+  unassignedGifts: Doc<"giftItems">[];
+  recipientsWithItems: Array<{ recipient: Doc<"giftRecipients">; items: Doc<"giftItems">[] }>;
+  eventCompleted: boolean;
+  confirmDialog: (options: ConfirmOptions) => Promise<boolean>;
+  onEditItem: (item: Doc<"giftItems">) => void;
+  onAddToPool: () => void;
+}) {
+  return (
+    <div className="card card-compact bg-base-200/50 border border-dashed border-base-300">
+      <div className="card-body p-3">
+        <div className="flex items-center gap-2">
+          <Package className="w-4 h-4 text-primary" />
+          <span className="font-medium text-sm">Sin asignar</span>
+          <span className="badge badge-xs badge-primary">{unassignedGifts.length}</span>
+          <div className="flex-1" />
+          {!eventCompleted && (
+            <button onClick={onAddToPool} className="btn btn-ghost btn-xs" aria-label="Agregar regalo al evento">
+              <UserPlus className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {unassignedGifts.map((item: Doc<"giftItems">) => (
+            <UnassignedGiftItem
+              key={item._id}
+              item={item}
+              recipients={recipientsWithItems.map((r) => r.recipient)}
+              onEdit={() => onEditItem(item)}
+              confirmDialog={confirmDialog}
+              isEventArchived={eventCompleted}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RecipientsView({
+  filter,
+  unassignedGifts,
+  recipientsWithItems,
+  filteredData,
+  eventCompleted,
+  confirmDialog,
+  onEditItem,
+  onAddToPool,
+  onAddRecipient,
+  onAddItemToRecipient,
+}: {
+  filter: "all" | "pending" | "bought" | "gifts";
+  unassignedGifts: Doc<"giftItems">[] | undefined;
+  recipientsWithItems: Array<{ recipient: Doc<"giftRecipients">; items: Doc<"giftItems">[] }>;
+  filteredData: Array<{ recipient: Doc<"giftRecipients">; items: Doc<"giftItems">[]; totalItems: number }>;
+  eventCompleted: boolean;
+  confirmDialog: (options: ConfirmOptions) => Promise<boolean>;
+  onEditItem: (item: Doc<"giftItems">) => void;
+  onAddToPool: () => void;
+  onAddRecipient: () => void;
+  onAddItemToRecipient: (recipientId: Id<"giftRecipients">) => void;
+}) {
+  return (
+    <>
+      {filter === "all" && unassignedGifts && unassignedGifts.length > 0 && (
+        <UnassignedGiftsCard
+          unassignedGifts={unassignedGifts}
+          recipientsWithItems={recipientsWithItems}
+          eventCompleted={eventCompleted}
+          confirmDialog={confirmDialog}
+          onEditItem={onEditItem}
+          onAddToPool={onAddToPool}
+        />
+      )}
+
+      {filteredData.length === 0 ? (
+        <EmptyState
+          icon={Package}
+          title="Sin regalos en esta vista"
+          description={`No hay receptores con regalos ${filter === "bought" ? "listos" : "pendientes"}`}
+        />
+      ) : (
+        <div className="space-y-3 stagger-children">
+          {filteredData.map(({ recipient, items }) => (
+            <RecipientCard
+              key={recipient._id}
+              recipient={recipient}
+              items={items}
+              onAddItem={() => onAddItemToRecipient(recipient._id)}
+              onEditItem={(item) => onEditItem(item)}
+              confirmDialog={confirmDialog}
+              isEventArchived={eventCompleted}
+            />
+          ))}
+        </div>
+      )}
+
+      {filter === "all" && !eventCompleted && (
+        <button
+          onClick={onAddRecipient}
+          className="btn btn-ghost btn-sm btn-block border-dashed border mt-2 text-subtle"
+        >
+          <UserPlus className="w-4 h-4" /> Agregar persona
+        </button>
+      )}
+    </>
+  );
+}
+
 interface GiftEventContentProps {
   filter: "all" | "pending" | "bought" | "gifts";
   eventCompleted: boolean;
@@ -47,29 +201,16 @@ export function GiftEventContent({
         ) : (
           <div className="space-y-4">
             <div className="space-y-1.5">
-              {allGifts.map(({ item, recipientName, recipientId }) => {
-                const isBought = ["bought", "wrapped", "delivered"].includes(item.status);
-                const statusConfig = STATUS_ICONS[item.status as GiftStatus];
-
-                return (
-                  <div
-                    key={item._id}
-                    onClick={() => !eventCompleted && onEditItem(item)}
-                    className={`flex items-center gap-2 p-2 rounded-lg border transition-all animate-fade-in ${recipientId === "" ? "bg-warning/5 border-warning/20 hover:bg-warning/10" : "bg-base-100 border-base-200 hover:shadow-sm"} ${eventCompleted ? "opacity-75 cursor-default" : "cursor-pointer"}`}
-                  >
-                    <span>{statusConfig.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm truncate ${isBought ? "line-through opacity-60" : ""}`}>
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-subtle">
-                        {recipientName === "Sin asignar" ? <span className="text-warning">Sin asignar</span> : `→ ${recipientName}`}
-                      </p>
-                    </div>
-                    {item.priceEstimate && <span className="text-xs text-subtle">${item.priceEstimate}</span>}
-                  </div>
-                );
-              })}
+              {allGifts.map(({ item, recipientName, recipientId }) => (
+                <GiftListRow
+                  key={item._id}
+                  item={item}
+                  recipientName={recipientName}
+                  recipientId={recipientId}
+                  eventCompleted={eventCompleted}
+                  onEditItem={onEditItem}
+                />
+              ))}
             </div>
           </div>
         )
@@ -87,68 +228,18 @@ export function GiftEventContent({
           }
         />
       ) : (
-        <>
-          {filter === "all" && unassignedGifts && unassignedGifts.length > 0 && (
-            <div className="card card-compact bg-base-200/50 border border-dashed border-base-300">
-              <div className="card-body p-3">
-                <div className="flex items-center gap-2">
-                  <Package className="w-4 h-4 text-primary" />
-                  <span className="font-medium text-sm">Sin asignar</span>
-                  <span className="badge badge-xs badge-primary">{unassignedGifts.length}</span>
-                  <div className="flex-1" />
-                  {!eventCompleted && (
-                    <button onClick={onAddToPool} className="btn btn-ghost btn-xs">
-                      <UserPlus className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {unassignedGifts.map((item: Doc<"giftItems">) => (
-                    <UnassignedGiftItem
-                      key={item._id}
-                      item={item}
-                      recipients={recipientsWithItems.map((r) => r.recipient)}
-                      onEdit={() => onEditItem(item)}
-                      confirmDialog={confirmDialog}
-                      isEventArchived={eventCompleted}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {filteredData.length === 0 ? (
-            <EmptyState
-              icon={Package}
-              title="Sin regalos en esta vista"
-              description={`No hay receptores con regalos ${filter === "bought" ? "listos" : "pendientes"}`}
-            />
-          ) : (
-            <div className="space-y-3 stagger-children">
-              {filteredData.map(({ recipient, items }) => (
-                <RecipientCard
-                  key={recipient._id}
-                  recipient={recipient}
-                  items={items}
-                  onAddItem={() => onAddItemToRecipient(recipient._id)}
-                  onEditItem={(item) => onEditItem(item)}
-                  confirmDialog={confirmDialog}
-                  isEventArchived={eventCompleted}
-                />
-              ))}
-            </div>
-          )}
-
-          {filter === "all" && !eventCompleted && (
-            <button
-              onClick={onAddRecipient}
-              className="btn btn-ghost btn-sm btn-block border-dashed border mt-2 text-subtle"
-            >
-              <UserPlus className="w-4 h-4" /> Agregar persona
-            </button>
-          )}
-        </>
+        <RecipientsView
+          filter={filter}
+          unassignedGifts={unassignedGifts}
+          recipientsWithItems={recipientsWithItems}
+          filteredData={filteredData}
+          eventCompleted={eventCompleted}
+          confirmDialog={confirmDialog}
+          onEditItem={onEditItem}
+          onAddToPool={onAddToPool}
+          onAddRecipient={onAddRecipient}
+          onAddItemToRecipient={onAddItemToRecipient}
+        />
       )}
     </div>
   );

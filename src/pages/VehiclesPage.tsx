@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef} from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useFamily } from "../contexts/FamilyContext";
@@ -65,8 +65,8 @@ export function VehiclesPage() {
               {summary.upcomingEvents.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-base-content/10">
                   <div className="text-xs text-muted mb-1">Próximos eventos</div>
-                  {summary.upcomingEvents.slice(0, 2).map((item, i) => (
-                    <div key={i} className="text-sm flex justify-between">
+                  {summary.upcomingEvents.slice(0, 2).map((item) => (
+                    <div key={`${item.event.title}-${item.event.date}`} className="text-sm flex justify-between">
                       <span>{item.event.title}</span>
                       <span className="text-muted">
                         {new Date(item.event.date).toLocaleDateString("es-MX", { day: "numeric", month: "short" })}
@@ -141,13 +141,16 @@ function NewVehicleModal({
   const [color, setColor] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const submitSeq = useRef(0);
+
   const createVehicle = useMutation(api.vehicles.createVehicle);
 
   const handleSubmit = async (e: React.FormEvent) => {
+    const seq = ++submitSeq.current;
     e.preventDefault();
     if (!name.trim()) return;
 
-    setIsLoading(true);
+    setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
     try {
       if (!sessionToken) return;
       await createVehicle({
@@ -160,9 +163,9 @@ function NewVehicleModal({
         year: year ? parseInt(year) : undefined,
         color: color.trim() || undefined,
       });
-      onClose();
+      if (seq === submitSeq.current) onClose();
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
     }
   };
 

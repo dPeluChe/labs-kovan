@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAction, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -18,18 +18,29 @@ export function CalendarSelection({ sessionToken, syncedIds, familyId }: Calenda
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const requestSeq = useRef(0);
+
+  // Resync local selection when the prop changes (React's adjust-during-render pattern)
+  const [prevSyncedIds, setPrevSyncedIds] = useState(syncedIds);
+  if (prevSyncedIds !== syncedIds) {
+    setPrevSyncedIds(syncedIds);
+    setSelectedIds(syncedIds);
+  }
+
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 
   const loadCalendars = useCallback(async () => {
+    const seq = ++requestSeq.current;
     setIsLoading(true);
     setError("");
     try {
       const list = await listCalendars({ sessionToken, familyId });
-      setCalendars(list);
+      if (seq === requestSeq.current) setCalendars(list);
     } catch (err) {
       console.error(err);
-      setError("Error al cargar calendarios");
+      if (seq === requestSeq.current) setError("Error al cargar calendarios");
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === requestSeq.current ? false : cur));
     }
   }, [familyId, listCalendars, sessionToken]);
 
@@ -46,6 +57,7 @@ export function CalendarSelection({ sessionToken, syncedIds, familyId }: Calenda
   };
 
   const handleSave = async () => {
+    const seq = ++requestSeq.current;
     setIsSaving(true);
     try {
       await updateSettings({
@@ -55,9 +67,9 @@ export function CalendarSelection({ sessionToken, syncedIds, familyId }: Calenda
       });
     } catch (err) {
       console.error(err);
-      setError("Error al guardar configuración");
+      if (seq === requestSeq.current) setError("Error al guardar configuración");
     } finally {
-      setIsSaving(false);
+      setIsSaving((cur) => (seq === requestSeq.current ? false : cur));
     }
   };
 
@@ -81,7 +93,7 @@ export function CalendarSelection({ sessionToken, syncedIds, familyId }: Calenda
 
         <div className="space-y-1 max-h-60 overflow-y-auto">
           {calendars.map((cal) => {
-            const isSelected = selectedIds.includes(cal.id);
+            const isSelected = selectedSet.has(cal.id);
             return (
               <label key={cal.id} className="flex items-center gap-3 p-2 hover:bg-base-200 rounded-lg cursor-pointer transition-colors">
                 <input

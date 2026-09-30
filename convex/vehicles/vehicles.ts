@@ -73,9 +73,7 @@ export const deleteVehicle = mutation({
       .query("vehicleEvents")
       .withIndex("by_vehicle", (q) => q.eq("vehicleId", args.vehicleId))
       .collect();
-    for (const event of events) {
-      await ctx.db.delete(event._id);
-    }
+    await Promise.all(events.map((event) => ctx.db.delete(event._id)));
     await ctx.db.delete(args.vehicleId);
   },
 });

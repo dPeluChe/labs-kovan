@@ -94,13 +94,12 @@ export const sendInvite = mutation({
       )
       .collect();
 
-    for (const invite of currentPending) {
-      if (invite.expiresAt < Date.now()) {
-        await ctx.db.patch(invite._id, { status: "declined" });
-      } else {
-        throw new Error("Ya existe una invitación pendiente para ese correo");
-      }
+    if (currentPending.some((invite) => invite.expiresAt >= Date.now())) {
+      throw new Error("Ya existe una invitación pendiente para ese correo");
     }
+    await Promise.all(
+      currentPending.map((invite) => ctx.db.patch(invite._id, { status: "declined" }))
+    );
 
     const rawInviteToken = generateRandomToken(32);
     const tokenHash = await sha256Hex(rawInviteToken);

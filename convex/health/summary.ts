@@ -34,22 +34,28 @@ export const getHealthSummary = query({
       };
     }> = [];
 
-    for (const profile of profiles) {
-      const records = await ctx.db
-        .query("medicalRecords")
-        .withIndex("by_person", (q) => q.eq("personId", profile._id))
-        .collect();
+    const profileData = await Promise.all(
+      profiles.map(async (profile) => {
+        const [records, meds] = await Promise.all([
+          ctx.db
+            .query("medicalRecords")
+            .withIndex("by_person", (q) => q.eq("personId", profile._id))
+            .collect(),
+          ctx.db
+            .query("medications")
+            .withIndex("by_person", (q) => q.eq("personId", profile._id))
+            .collect(),
+        ]);
+        return { profile, records, meds };
+      })
+    );
 
+    for (const { profile, records, meds } of profileData) {
       for (const record of records) {
         if (record.date > thirtyDaysAgo) {
           recentRecords.push({ personName: profile.name, record });
         }
       }
-
-      const meds = await ctx.db
-        .query("medications")
-        .withIndex("by_person", (q) => q.eq("personId", profile._id))
-        .collect();
 
       for (const med of meds) {
         const isActiveStatus = med.status === "active" || !med.status;

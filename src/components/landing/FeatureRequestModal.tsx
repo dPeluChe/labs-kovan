@@ -18,7 +18,7 @@ export const FeatureRequestModal: React.FC<FeatureRequestModalProps> = ({ isOpen
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [email, setEmail] = useState('');
-    const [category, setCategory] = useState('general');
+    const category = 'general';
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -57,7 +57,6 @@ export const FeatureRequestModal: React.FC<FeatureRequestModalProps> = ({ isOpen
         setTitle('');
         setDescription('');
         setEmail('');
-        setCategory('general');
         setError(null);
         onClose();
     }
@@ -92,10 +91,10 @@ export const FeatureRequestModal: React.FC<FeatureRequestModalProps> = ({ isOpen
                         )}
 
                         <div className="form-control">
-                            <label className="label py-1">
+                            <label htmlFor="titulo" className="label py-1">
                                 <span className="label-text font-medium text-sm">Título</span>
                             </label>
-                            <input
+                            <input id="titulo"
                                 type="text"
                                 placeholder="Ej. Lista de compras compartida..."
                                 className="input input-bordered w-full rounded-xl focus:input-primary bg-base-200/50"
@@ -120,10 +119,10 @@ export const FeatureRequestModal: React.FC<FeatureRequestModalProps> = ({ isOpen
                         />
 
                         <div className="form-control">
-                            <label className="label py-1">
+                            <label htmlFor="email-opcional" className="label py-1">
                                 <span className="label-text font-medium text-sm">Email (Opcional)</span>
                             </label>
-                            <input
+                            <input id="email-opcional"
                                 type="email"
                                 placeholder="tu@email.com"
                                 className="input input-bordered w-full rounded-xl focus:input-primary bg-base-200/50"

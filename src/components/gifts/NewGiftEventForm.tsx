@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { DateInput } from "../ui/DateInput";
@@ -16,17 +16,24 @@ export function NewGiftEventForm({
   onClose,
 }: NewGiftEventFormProps) {
   const [name, setName] = useState("");
+  const firstFieldRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+      firstFieldRef.current?.focus();
+  }, []);
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const submitSeq = useRef(0);
+
   const createEvent = useMutation(api.gifts.createGiftEvent);
 
   const handleSubmit = async (e: FormEvent) => {
+    const seq = ++submitSeq.current;
     e.preventDefault();
     if (!name.trim()) return;
 
-    setIsLoading(true);
+    setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
     try {
       await createEvent({
         sessionToken,
@@ -35,28 +42,28 @@ export function NewGiftEventForm({
         date: date ? new Date(date).getTime() : undefined,
         description: description.trim() || undefined,
       });
-      onClose();
+      if (seq === submitSeq.current) onClose();
     } catch (error) {
       console.error("Error creating event:", error);
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="form-control">
-        <label className="label">
+        <label htmlFor="nombre-del-evento" className="label">
           <span className="label-text">Nombre del evento *</span>
         </label>
-        <input
+        <input id="nombre-del-evento"
           type="text"
           placeholder="Ej: Navidad 2025, Cumple de mamá"
           className="input input-bordered w-full"
           value={name}
           onChange={(e) => setName(e.target.value)}
           disabled={isLoading}
-          autoFocus
+          ref={firstFieldRef}
         />
       </div>
 
@@ -68,10 +75,10 @@ export function NewGiftEventForm({
       />
 
       <div className="form-control">
-        <label className="label">
+        <label htmlFor="descripcion-opcional" className="label">
           <span className="label-text">Descripción (opcional)</span>
         </label>
-        <textarea
+        <textarea id="descripcion-opcional"
           placeholder="Notas adicionales..."
           className="textarea textarea-bordered w-full"
           value={description}

@@ -75,23 +75,21 @@ export const deleteTrip = mutation({
   args: { sessionToken: v.string(), tripId: v.id("trips") },
   handler: async (ctx, args) => {
     await getTripWithAccessOrThrow(ctx, args.sessionToken, args.tripId);
-    const plans = await ctx.db
-      .query("tripPlans")
-      .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
-      .collect();
+    const [plans, bookings] = await Promise.all([
+      ctx.db
+        .query("tripPlans")
+        .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
+        .collect(),
+      ctx.db
+        .query("tripBookings")
+        .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
+        .collect(),
+    ]);
 
-    for (const plan of plans) {
-      await ctx.db.delete(plan._id);
-    }
-
-    const bookings = await ctx.db
-      .query("tripBookings")
-      .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
-      .collect();
-
-    for (const booking of bookings) {
-      await ctx.db.delete(booking._id);
-    }
+    await Promise.all([
+      ...plans.map((plan) => ctx.db.delete(plan._id)),
+      ...bookings.map((booking) => ctx.db.delete(booking._id)),
+    ]);
 
     await ctx.db.delete(args.tripId);
   },

@@ -8,7 +8,9 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, wrapperClassName, className, id, ...props }, ref) => {
-    const inputId = id || (label ? `input-${label.replace(/\s+/g, "-").toLowerCase()}` : undefined);
+    const autoId = React.useId();
+    const inputId = id || autoId;
+    const errorId = `${inputId}-error`;
 
     return (
       <div className={`form-control w-full ${wrapperClassName || ""}`}>
@@ -20,15 +22,17 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           id={inputId}
           ref={ref}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
           className={`input input-bordered w-full focus:input-primary transition-all ${
             error ? "input-error" : ""
           } ${className || ""}`}
           {...props}
         />
         {error && (
-          <label className="label">
+          <p id={errorId} className="label">
             <span className="label-text-alt text-error">{error}</span>
-          </label>
+          </p>
         )}
       </div>
     );

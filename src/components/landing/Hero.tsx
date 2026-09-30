@@ -34,7 +34,7 @@ export const Hero: React.FC = () => {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
                     <button
                         onClick={() => navigate('/login')}
-                        className="btn btn-primary btn-lg rounded-full px-8 shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all hover:scale-105"
+                        className="btn btn-primary btn-lg rounded-full px-8 shadow-lg shadow-primary/30 hover:shadow-primary/50 transition hover:scale-105"
                     >
                         Comenzar
                         <ArrowRight className="w-5 h-5 ml-2" />
@@ -54,7 +54,7 @@ export const Hero: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-base-200 to-transparent z-10 bottom-0 h-40" />
                     <div className="rounded-xl border border-base-content/10 bg-base-100/50 backdrop-blur-xl p-2 shadow-2xl" style={{ transform: 'perspective(1000px) rotateX(12deg)' }}>
                         <div className="rounded-lg overflow-hidden bg-base-100 aspect-video flex items-center justify-center border border-base-content/5 relative group">
-                            <div className="absolute inset-0 bg-primary/20 blur-xl group-hover:bg-primary/30 transition-all duration-500" />
+                            <div className="absolute inset-0 bg-primary/20 blur-xl group-hover:bg-primary/30 transition-colors duration-500" />
                             <img
                                 src="/src/assets/dashboard-preview.png"
                                 alt="Vista Previa del Panel del Sistema"

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useRef} from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -26,6 +26,8 @@ export function InviteModal({
   const [generatedInviteLink, setGeneratedInviteLink] = useState<string>("");
   const [generatedForEmail, setGeneratedForEmail] = useState<string>("");
   const { success } = useToast();
+
+  const submitSeq = useRef(0);
 
   const sendInvite = useMutation(api.families.sendInvite);
   const baseUrl = window.location.origin;
@@ -71,7 +73,8 @@ export function InviteModal({
     e.preventDefault();
     if (!email.trim()) return;
 
-    setIsLoading(true);
+    const seq = ++submitSeq.current;
+    setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
     setMessage("");
     try {
       if (!sessionToken) throw new Error("Sesión inválida");
@@ -90,7 +93,7 @@ export function InviteModal({
     } catch (error) {
       setMessage(`❌ ${error instanceof Error ? error.message : "Error al invitar"}`);
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
     }
   };
 
@@ -173,10 +176,10 @@ export function InviteModal({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="form-control">
-          <label className="label">
+          <label htmlFor="email-del-usuario" className="label">
             <span className="label-text">Email del usuario</span>
           </label>
-          <input
+          <input id="email-del-usuario"
             type="email"
             placeholder="ejemplo@email.com"
             className="input input-bordered w-full"
@@ -184,11 +187,11 @@ export function InviteModal({
             onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading}
           />
-          <label className="label">
+          <p className="label">
             <span className="label-text-alt text-muted">
               Se enviará una invitación segura atada a este correo.
             </span>
-          </label>
+          </p>
         </div>
 
         {message && (

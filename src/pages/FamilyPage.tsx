@@ -145,6 +145,7 @@ export function FamilyPage() {
                               }
                             }}
                             className="btn btn-ghost btn-xs btn-circle text-error"
+                            aria-label={`Eliminar a ${member.name}`}
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -189,6 +190,7 @@ export function FamilyPage() {
                           cancelInvite({ inviteId: invite._id, sessionToken });
                         }}
                         className="btn btn-ghost btn-xs btn-circle text-error"
+                        aria-label={`Cancelar invitación de ${invite.email}`}
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>

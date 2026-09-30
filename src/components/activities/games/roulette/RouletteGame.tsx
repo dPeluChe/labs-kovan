@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { useFamily } from "../../../../contexts/FamilyContext";
@@ -31,6 +31,14 @@ export function RouletteGame({ onComplete }: RouletteGameProps) {
   const [newOption, setNewOption] = useState("");
   const [winner, setWinner] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
+  const spinIntervalRef = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (spinIntervalRef.current !== null) clearInterval(spinIntervalRef.current);
+    },
+    []
+  );
 
   // Cargar opciones según el preset seleccionado
   const loadPresetOptions = useCallback((presetType: RoulettePresetType) => {
@@ -80,8 +88,9 @@ export function RouletteGame({ onComplete }: RouletteGameProps) {
   }, [currentPresetType, loadPresetOptions]);
 
   const addOption = () => {
-    if (newOption.trim()) {
-      setOptions([...options, newOption.trim()]);
+    const option = newOption.trim();
+    if (option && !options.includes(option)) {
+      setOptions([...options, option]);
       setNewOption("");
     }
   };
@@ -103,13 +112,14 @@ export function RouletteGame({ onComplete }: RouletteGameProps) {
     const steps = SPIN_DURATION / SPIN_INTERVAL;
     let currentStep = 0;
 
-    const spinInterval = setInterval(() => {
+    const spinInterval = window.setInterval(() => {
       const randomIndex = Math.floor(Math.random() * options.length);
       setWinner(options[randomIndex]);
       currentStep++;
 
       if (currentStep >= steps) {
         clearInterval(spinInterval);
+        spinIntervalRef.current = null;
         setIsSpinning(false);
         const finalIndex = Math.floor(Math.random() * options.length);
         const finalWinner = options[finalIndex];
@@ -117,6 +127,7 @@ export function RouletteGame({ onComplete }: RouletteGameProps) {
         onComplete?.(finalWinner);
       }
     }, SPIN_INTERVAL);
+    spinIntervalRef.current = spinInterval;
   };
 
   return (
@@ -178,7 +189,7 @@ export function RouletteGame({ onComplete }: RouletteGameProps) {
         {/* Gestión de Opciones - Compacta */}
         {currentPresetType === "custom" && (
           <div className="collapse collapse-arrow bg-base-200/50 mb-3">
-            <input type="checkbox" defaultChecked />
+            <input type="checkbox" defaultChecked aria-label="Mostrar opciones personalizadas" />
             <div className="collapse-title font-medium flex justify-between text-sm py-2 min-h-0">
               Opciones ({options.length})
             </div>
@@ -188,22 +199,24 @@ export function RouletteGame({ onComplete }: RouletteGameProps) {
                   type="text"
                   className="input input-sm input-bordered flex-1"
                   placeholder="Agregar opción..."
+                  aria-label="Agregar opción"
                   value={newOption}
                   onChange={(e) => setNewOption(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addOption()}
                 />
-                <button className="btn btn-sm btn-square" onClick={addOption}>
+                <button className="btn btn-sm btn-square" onClick={addOption} aria-label="Agregar opción">
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
 
               <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
                 {options.map((opt, i) => (
-                  <div key={i} className="badge badge-lg gap-2 pr-1">
+                  <div key={opt} className="badge badge-lg gap-2 pr-1">
                     {opt}
                     <button
                       onClick={() => removeOption(i)}
                       className="btn btn-ghost btn-xs btn-circle w-4 h-4 min-h-0"
+                      aria-label={`Quitar ${opt}`}
                     >
                       ×
                     </button>

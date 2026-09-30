@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "doctor": "react-doctor .",
+    "doctor:check": "node scripts/doctor-check.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.46",
@@ -44,10 +46,11 @@
     "@vitejs/plugin-react": "^5.1.1",
     "daisyui": "^5.5.8",
     "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-hooks": "7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "jsdom": "^27.0.1",
+    "react-doctor": "^0.9.14",
     "tailwindcss": "^4.1.17",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",

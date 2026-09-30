@@ -116,6 +116,7 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                         <div className="collapse collapse-arrow join-item border-base-200">
                             <input
                                 type="checkbox"
+                                aria-label="Mostrar costos y ciclo"
                                 checked={openSection === "costs"}
                                 onChange={() => setOpenSection(openSection === "costs" ? null : "costs")}
                             />
@@ -125,29 +126,35 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                             <div className="collapse-content space-y-3 pt-2">
                                 <div className="flex gap-3">
                                     <div className="flex-1">
-                                        <label className="label py-0 pb-1 text-xs">Costo ($)</label>
-                                        <input
+                                        <label htmlFor="costo" className="label py-0 pb-1 text-xs">Costo ($)</label>
+                                        <input id="costo"
                                             type="number"
                                             className="input input-bordered w-full rounded-xl"
                                             value={formData.amount || ""}
-                                            onChange={e => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
+                                            onChange={e => {
+                                                const v = e.target.valueAsNumber;
+                                                setFormData({ ...formData, amount: Number.isNaN(v) ? undefined : v });
+                                            }}
                                         />
                                     </div>
                                     <div className="flex-1">
-                                        <label className="label py-0 pb-1 text-xs">Día Pago</label>
-                                        <input
+                                        <label htmlFor="dia-pago" className="label py-0 pb-1 text-xs">Día Pago</label>
+                                        <input id="dia-pago"
                                             type="number"
                                             className="input input-bordered w-full rounded-xl"
                                             value={formData.dueDay || ""}
-                                            onChange={e => setFormData({ ...formData, dueDay: parseInt(e.target.value) })}
+                                            onChange={e => {
+                                                const v = e.target.valueAsNumber;
+                                                setFormData({ ...formData, dueDay: Number.isNaN(v) ? undefined : v });
+                                            }}
                                         />
                                     </div>
                                 </div>
 
                                 <div className="flex gap-3">
                                     <div className="flex-1 form-control">
-                                        <label className="label py-0 pb-1 text-xs">Ciclo</label>
-                                        <select
+                                        <label htmlFor="ciclo" className="label py-0 pb-1 text-xs">Ciclo</label>
+                                        <select id="ciclo"
                                             className="select select-bordered w-full rounded-xl"
                                             value={formData.billingCycle}
                                             onChange={e => setFormData({ ...formData, billingCycle: e.target.value as "monthly" | "bimonthly" | "quarterly" | "annual" | "variable" })}
@@ -160,8 +167,8 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                                         </select>
                                     </div>
                                     <div className="flex-1 form-control">
-                                        <label className="label py-0 pb-1 text-xs">Estado</label>
-                                        <select
+                                        <label htmlFor="estado" className="label py-0 pb-1 text-xs">Estado</label>
+                                        <select id="estado"
                                             className="select select-bordered w-full rounded-xl"
                                             value={formData.isActive ? "active" : "inactive"}
                                             onChange={e => setFormData({ ...formData, isActive: e.target.value === "active" })}
@@ -178,6 +185,7 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                         <div className="collapse collapse-arrow join-item border-base-200">
                             <input
                                 type="checkbox"
+                                aria-label="Mostrar código escaneable"
                                 checked={openSection === "scan"}
                                 onChange={() => setOpenSection(openSection === "scan" ? null : "scan")}
                             />
@@ -186,9 +194,9 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                             </div>
                             <div className="collapse-content pt-2">
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-faint">Tipo y Valor</label>
+                                    <label htmlFor="tipo-y-valor" className="text-xs font-bold uppercase text-faint">Tipo y Valor</label>
                                     <div className="flex gap-2">
-                                        <select
+                                        <select id="tipo-y-valor"
                                             className="select select-sm select-bordered"
                                             value={formData.barcodeType}
                                             onChange={e => setFormData({ ...formData, barcodeType: e.target.value as "code128" | "qr" })}
@@ -200,6 +208,7 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
                                             type="text"
                                             className="input input-sm input-bordered flex-1"
                                             placeholder="Dígitos..."
+                                            aria-label="Dígitos del código"
                                             value={formData.barcodeValue || ""}
                                             onChange={e => setFormData({ ...formData, barcodeValue: e.target.value })}
                                         />
@@ -212,10 +221,10 @@ export function SubscriptionDetailModal({ subscription, onClose }: SubscriptionD
 
                     {/* Notes */}
                     <div className="form-control w-full">
-                        <label className="label py-0 pb-1">
+                        <label htmlFor="notas" className="label py-0 pb-1">
                             <span className="label-text text-xs font-medium">Notas</span>
                         </label>
-                        <textarea
+                        <textarea id="notas"
                             className="textarea textarea-bordered rounded-xl w-full"
                             value={formData.notes || ""}
                             onChange={e => setFormData({ ...formData, notes: e.target.value })}

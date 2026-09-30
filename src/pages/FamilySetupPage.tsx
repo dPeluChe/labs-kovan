@@ -71,10 +71,10 @@ export function FamilySetupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="form-control">
-              <label className="label">
+              <label htmlFor="nombre-de-la-familia" className="label">
                 <span className="label-text">Nombre de la familia</span>
               </label>
-              <input
+              <input id="nombre-de-la-familia"
                 type="text"
                 placeholder="Ej: Familia García, Nuestra casa"
                 className="input input-bordered w-full"
@@ -85,9 +85,9 @@ export function FamilySetupPage() {
             </div>
 
             <div className="form-control">
-              <label className="label">
+              <p className="label">
                 <span className="label-text">Ícono</span>
-              </label>
+              </p>
               <div className="flex flex-wrap gap-2">
                 {EMOJIS.map((e) => (
                   <button

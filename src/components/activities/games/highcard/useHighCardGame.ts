@@ -107,47 +107,47 @@ export function useHighCardGame({ onComplete }: UseHighCardGameParams = {}) {
 
   const flipCard = useCallback(
     (playerName: string) => {
-      setGameState((prev) => {
-        const updatedPlayers = [...prev.players];
-        const playerIndex = updatedPlayers.findIndex((player) => player.name === playerName);
-        if (playerIndex === -1) return prev;
+      const updatedPlayers = [...gameState.players];
+      const playerIndex = updatedPlayers.findIndex((player) => player.name === playerName);
+      if (playerIndex === -1) return;
 
-        const player = updatedPlayers[playerIndex];
-        updatedPlayers[playerIndex] = { ...player, isFlipped: !player.isFlipped };
+      const player = updatedPlayers[playerIndex];
+      updatedPlayers[playerIndex] = { ...player, isFlipped: !player.isFlipped };
 
-        const allFlipped = updatedPlayers.every((currentPlayer) => currentPlayer.isFlipped);
-        if (!allFlipped) return { ...prev, players: updatedPlayers };
+      const allFlipped = updatedPlayers.every((currentPlayer) => currentPlayer.isFlipped);
+      if (!allFlipped) {
+        setGameState({ ...gameState, players: updatedPlayers });
+        return;
+      }
 
-        const playersWithCards = updatedPlayers.filter((currentPlayer) => currentPlayer.card !== null) as Array<
-          HighCardPlayer & { card: NonNullable<HighCardPlayer["card"]> }
-        >;
+      const playersWithCards = updatedPlayers.filter((currentPlayer) => currentPlayer.card !== null) as Array<
+        HighCardPlayer & { card: NonNullable<HighCardPlayer["card"]> }
+      >;
 
-        let highestCard = playersWithCards[0].card;
-        let winner = playersWithCards[0];
+      let highestCard = playersWithCards[0].card;
+      let winner = playersWithCards[0];
 
-        for (const currentPlayer of playersWithCards) {
-          const higherCard = getHigherCard(highestCard, currentPlayer.card);
-          if (higherCard === currentPlayer.card) {
-            highestCard = currentPlayer.card;
-            winner = currentPlayer;
-          }
+      for (const currentPlayer of playersWithCards) {
+        const higherCard = getHigherCard(highestCard, currentPlayer.card);
+        if (higherCard === currentPlayer.card) {
+          highestCard = currentPlayer.card;
+          winner = currentPlayer;
         }
+      }
 
-        const playersWithWinner = updatedPlayers.map((currentPlayer) =>
-          currentPlayer.name === winner.name ? { ...currentPlayer, isWinner: true } : currentPlayer
-        );
+      const playersWithWinner = updatedPlayers.map((currentPlayer) =>
+        currentPlayer.name === winner.name ? { ...currentPlayer, isWinner: true } : currentPlayer
+      );
 
-        onComplete?.(winner.name);
-
-        return {
-          ...prev,
-          phase: "revealed",
-          players: playersWithWinner,
-          winner: winner.name,
-        };
+      setGameState({
+        ...gameState,
+        phase: "revealed",
+        players: playersWithWinner,
+        winner: winner.name,
       });
+      onComplete?.(winner.name);
     },
-    [onComplete]
+    [gameState, onComplete]
   );
 
   return {

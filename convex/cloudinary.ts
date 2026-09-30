@@ -52,6 +52,11 @@ export const deleteImage = action({
         }
       );
 
+      if (!response.ok) {
+        console.error("Cloudinary delete HTTP error:", response.status);
+        return { success: false, reason: "api_error" };
+      }
+
       const result = await response.json();
 
       if (result.result === "ok" || result.result === "not found") {

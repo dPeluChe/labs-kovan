@@ -51,9 +51,7 @@ export const deleteGiftRecipient = mutation({
       .query("giftItems")
       .withIndex("by_recipient", (q) => q.eq("giftRecipientId", args.recipientId))
       .collect();
-    for (const item of items) {
-      await ctx.db.delete(item._id);
-    }
+    await Promise.all(items.map((item) => ctx.db.delete(item._id)));
     await ctx.db.delete(args.recipientId);
   },
 });

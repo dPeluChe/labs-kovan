@@ -96,8 +96,7 @@ export const registerUser = mutation({
       });
     }
 
-    const sessionToken = await createSession(ctx, userId);
-    const user = await ctx.db.get(userId);
+    const [sessionToken, user] = await Promise.all([createSession(ctx, userId), ctx.db.get(userId)]);
     if (!user) throw new Error("No se pudo crear la cuenta");
 
     return { user: sanitizeUser(user), sessionToken };

@@ -30,13 +30,14 @@ export function RecordsTab({
                 />
             ) : (
                 <div className="space-y-3 animate-fade-in">
-                    {records
+                    {[...records]
                         .sort((a, b) => b.date - a.date)
                         .map((record) => (
-                            <div
+                            <button
+                                type="button"
                                 key={record._id}
                                 onClick={() => onSelect(record)}
-                                className="card bg-base-100 shadow-sm border border-base-300 cursor-pointer hover:shadow-md transition-shadow"
+                                className="card bg-base-100 shadow-sm border border-base-300 cursor-pointer hover:shadow-md transition-shadow w-full text-left"
                             >
                                 <div className="card-body p-4">
                                     <div className="flex justify-between items-start">
@@ -62,7 +63,7 @@ export function RecordsTab({
                                         <Stethoscope className="w-4 h-4 text-base-content/30 flex-shrink-0" />
                                     </div>
                                 </div>
-                            </div>
+                            </button>
                         ))}
                 </div>
             )}

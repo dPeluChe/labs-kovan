@@ -5,6 +5,7 @@ check:lint: npm run lint
 check:types: npx tsc -b
 check:test: npm run test
 check:build: npm run build
+check:doctor: npm run doctor:check
 smoke:start: VITE_CONVEX_URL=https://example.convex.cloud npm run dev -- --port 5173 --strictPort
 smoke:url: http://localhost:5173
 smoke:routes: /,/health

@@ -44,7 +44,7 @@ export function CollectionSection({
                 ))}
                 {items.length > 6 && (
                     <div className="min-w-[100px] flex items-center justify-center snap-start">
-                        <button onClick={onViewAll} className="btn btn-circle btn-outline">
+                        <button onClick={onViewAll} className="btn btn-circle btn-outline" aria-label="Ver todos">
                             <ChevronRight className="w-6 h-6" />
                         </button>
                     </div>

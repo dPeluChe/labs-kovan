@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Plus, Edit2, Trash2, Gift, CheckCircle2, ExternalLink } from "lucide-react";
@@ -8,6 +8,133 @@ import type { ConfirmOptions } from "../../hooks/useConfirmModal";
 import { sortGifts } from "./GiftConstants";
 import { useAuth } from "../../contexts/AuthContext";
 import { ContextMenu } from "../ui/ContextMenu";
+
+const BOUGHT_STATUSES = ["bought", "wrapped", "delivered"];
+
+function statusColorClass(total: number, boughtCount: number, hasIdeas: boolean) {
+    if (total === 0) return "bg-base-300";
+    if (boughtCount === total) return "bg-success";
+    if (hasIdeas) return "bg-warning";
+    return "bg-base-300";
+}
+
+function countBadgeClass(boughtCount: number, total: number, hasIdeas: boolean) {
+    if (boughtCount === total) return "bg-success/20 text-success";
+    if (hasIdeas) return "bg-warning/20 text-warning";
+    return "bg-base-200 text-subtle";
+}
+
+function GiftChip({
+    item,
+    isEventArchived,
+    onEditItem,
+    onToggleStatus,
+}: {
+    item: Doc<"giftItems">;
+    isEventArchived?: boolean;
+    onEditItem: (item: Doc<"giftItems">) => void;
+    onToggleStatus: (item: Doc<"giftItems">, isBought: boolean) => void;
+}) {
+    const isBought = BOUGHT_STATUSES.includes(item.status);
+    return (
+        <div
+            className={`badge gap-1.5 transition-all relative ${!isEventArchived ? "cursor-pointer hover:shadow-sm" : "cursor-default opacity-80"} ${isBought
+                ? "bg-success/20 text-success border border-success/30"
+                : "bg-base-200 text-base-content border border-base-300"
+                }`}
+        >
+            {!isEventArchived && (
+                <button
+                    type="button"
+                    onClick={() => onEditItem(item)}
+                    aria-label={`Editar ${item.title}`}
+                    className="absolute inset-0 rounded-[inherit]"
+                />
+            )}
+            {!isEventArchived && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleStatus(item, isBought);
+                    }}
+                    className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center relative z-10 ${isBought
+                        ? "bg-success border-success text-white"
+                        : "border-base-300 hover:border-success"
+                        }`}
+                    title={isBought ? "Marcar como pendiente" : "Marcar como comprado"}
+                >
+                    {isBought && <CheckCircle2 className="w-2.5 h-2.5" />}
+                </button>
+            )}
+
+            <span className={`text-xs ${isBought ? "line-through opacity-60" : ""}`}>
+                {item.title}
+            </span>
+
+            {item.priceEstimate && (
+                <span className="text-[10px] opacity-50 border-l border-base-content/20 pl-1.5 ml-0.5">${item.priceEstimate}</span>
+            )}
+
+            {item.url && (
+                <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="opacity-40 hover:opacity-100 border-l border-base-content/20 pl-1.5 ml-0.5 relative z-10"
+                    aria-label="Abrir enlace del regalo"
+                >
+                    <ExternalLink className="w-2.5 h-2.5" />
+                </a>
+            )}
+        </div>
+    );
+}
+
+function RecipientEditForm({
+    editName,
+    editNotes,
+    onNameChange,
+    onNotesChange,
+    onCancel,
+    onSave,
+}: {
+    editName: string;
+    editNotes: string;
+    onNameChange: (v: string) => void;
+    onNotesChange: (v: string) => void;
+    onCancel: () => void;
+    onSave: () => void;
+}) {
+    const nameRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+        nameRef.current?.focus();
+    }, []);
+    return (
+        <div className="mt-2 p-3 bg-base-200 rounded-lg space-y-2">
+            <input
+                type="text"
+                value={editName}
+                onChange={(e) => onNameChange(e.target.value)}
+                placeholder="Nombre"
+                aria-label="Nombre"
+                className="input input-sm input-bordered w-full"
+                ref={nameRef}
+            />
+            <textarea
+                value={editNotes}
+                onChange={(e) => onNotesChange(e.target.value)}
+                placeholder="Notas (ej: alérgico a perfumes, talla M...)"
+                aria-label="Notas"
+                className="textarea textarea-bordered textarea-sm w-full h-16"
+            />
+            <div className="flex gap-2 justify-end">
+                <button onClick={onCancel} className="btn btn-ghost btn-xs">Cancelar</button>
+                <button onClick={onSave} className="btn btn-primary btn-xs">Guardar</button>
+            </div>
+        </div>
+    );
+}
 
 export function RecipientCard({
     recipient,
@@ -69,18 +196,18 @@ export function RecipientCard({
         }
     };
 
+    const handleToggleStatus = (item: Doc<"giftItems">, isBought: boolean) => {
+        // Prevent accidental toggles
+        const newStatus = isBought ? "idea" : "bought";
+        if (!sessionToken) return;
+        updateItem({ sessionToken, itemId: item._id, status: newStatus });
+    };
+
     // Stats
     const total = items.length;
-    const boughtCount = items.filter(i => ["bought", "wrapped", "delivered"].includes(i.status)).length;
+    const boughtCount = items.filter(i => BOUGHT_STATUSES.includes(i.status)).length;
     const hasIdeas = items.some(i => i.status === "idea" || i.status === "to_buy");
-
-    const statusColor = total === 0
-        ? "bg-base-300"
-        : boughtCount === total
-            ? "bg-success"
-            : hasIdeas
-                ? "bg-warning"
-                : "bg-base-300";
+    const statusColor = statusColorClass(total, boughtCount, hasIdeas);
 
     // SORT ITEMS: Incomplete first, then Alphabetical
     const sortedItems = [...items].sort(sortGifts);
@@ -101,12 +228,7 @@ export function RecipientCard({
                     <div className="flex-1 min-w-0 flex items-center gap-2">
                         <h3 className="font-semibold truncate">{recipient.name}</h3>
                         {total > 0 && (
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${boughtCount === total
-                                ? "bg-success/20 text-success"
-                                : hasIdeas
-                                    ? "bg-warning/20 text-warning"
-                                    : "bg-base-200 text-subtle"
-                                }`}>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${countBadgeClass(boughtCount, total, hasIdeas)}`}>
                                 {boughtCount}/{total}
                             </span>
                         )}
@@ -141,26 +263,14 @@ export function RecipientCard({
 
                 {/* Inline Edit Form */}
                 {isEditing && (
-                    <div className="mt-2 p-3 bg-base-200 rounded-lg space-y-2">
-                        <input
-                            type="text"
-                            value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
-                            placeholder="Nombre"
-                            className="input input-sm input-bordered w-full"
-                            autoFocus
-                        />
-                        <textarea
-                            value={editNotes}
-                            onChange={(e) => setEditNotes(e.target.value)}
-                            placeholder="Notas (ej: alérgico a perfumes, talla M...)"
-                            className="textarea textarea-bordered textarea-sm w-full h-16"
-                        />
-                        <div className="flex gap-2 justify-end">
-                            <button onClick={handleCancelEdit} className="btn btn-ghost btn-xs">Cancelar</button>
-                            <button onClick={handleSave} className="btn btn-primary btn-xs">Guardar</button>
-                        </div>
-                    </div>
+                    <RecipientEditForm
+                        editName={editName}
+                        editNotes={editNotes}
+                        onNameChange={setEditName}
+                        onNotesChange={setEditNotes}
+                        onCancel={handleCancelEdit}
+                        onSave={handleSave}
+                    />
                 )}
 
                 {/* Gift Items as Chips */}
@@ -175,63 +285,15 @@ export function RecipientCard({
                     )
                 ) : (
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                        {sortedItems.map((item) => {
-                            const isBought = ["bought", "wrapped", "delivered"].includes(item.status);
-
-                            return (
-                                <div
-                                    key={item._id}
-                                    onClick={() => !isEventArchived && onEditItem(item)}
-                                    className={`badge gap-1.5 transition-all ${!isEventArchived ? "cursor-pointer hover:shadow-sm" : "cursor-default opacity-80"} ${isBought
-                                        ? "bg-success/20 text-success border border-success/30"
-                                        : "bg-base-200 text-base-content border border-base-300"
-                                        }`}
-                                >
-                                    {!isEventArchived && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                // Prevent accidental toggles
-                                                const newStatus = isBought ? "idea" : "bought";
-                                                if (!sessionToken) return;
-                                                updateItem({
-                                                    sessionToken,
-                                                    itemId: item._id,
-                                                    status: newStatus
-                                                });
-                                            }}
-                                            className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${isBought
-                                                ? "bg-success border-success text-white"
-                                                : "border-base-300 hover:border-success"
-                                                }`}
-                                            title={isBought ? "Marcar como pendiente" : "Marcar como comprado"}
-                                        >
-                                            {isBought && <CheckCircle2 className="w-2.5 h-2.5" />}
-                                        </button>
-                                    )}
-
-                                    <span className={`text-xs ${isBought ? "line-through opacity-60" : ""}`}>
-                                        {item.title}
-                                    </span>
-
-                                    {item.priceEstimate && (
-                                        <span className="text-[10px] opacity-50 border-l border-base-content/20 pl-1.5 ml-0.5">${item.priceEstimate}</span>
-                                    )}
-
-                                    {item.url && (
-                                        <a
-                                            href={item.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="opacity-40 hover:opacity-100 border-l border-base-content/20 pl-1.5 ml-0.5"
-                                        >
-                                            <ExternalLink className="w-2.5 h-2.5" />
-                                        </a>
-                                    )}
-                                </div>
-                            );
-                        })}
+                        {sortedItems.map((item) => (
+                            <GiftChip
+                                key={item._id}
+                                item={item}
+                                isEventArchived={isEventArchived}
+                                onEditItem={onEditItem}
+                                onToggleStatus={handleToggleStatus}
+                            />
+                        ))}
                     </div>
                 )}
             </div>

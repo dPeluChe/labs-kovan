@@ -1,5 +1,4 @@
 import React from "react";
-import { v4 as uuidv4 } from 'uuid';
 
 interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -9,7 +8,9 @@ interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 
 export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
   ({ label, error, wrapperClassName, className, id, ...props }, ref) => {
-    const textareaId = id || (label ? `textarea-${label.replace(/\s+/g, "-").toLowerCase()}-${uuidv4()}` : `textarea-${uuidv4()}`);
+    const autoId = React.useId();
+    const textareaId = id || autoId;
+    const errorId = `${textareaId}-error`;
 
     return (
       <div className={`form-control w-full ${wrapperClassName || ""}`}>
@@ -21,15 +22,17 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
         <textarea
           id={textareaId}
           ref={ref}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
           className={`textarea textarea-bordered w-full focus:textarea-primary transition-all ${
             error ? "textarea-error" : ""
           } ${className || ""}`}
           {...props}
         />
         {error && (
-          <label className="label">
+          <p id={errorId} className="label">
             <span className="label-text-alt text-error">{error}</span>
-          </label>
+          </p>
         )}
       </div>
     );

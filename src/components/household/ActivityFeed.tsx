@@ -62,6 +62,7 @@ export function ActivityFeed({ logs, onDelete }: ActivityFeedProps) {
             <button
               onClick={() => onDelete(log._id)}
               className="btn btn-ghost btn-xs btn-square text-faint hover:text-error"
+              aria-label="Eliminar registro"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>

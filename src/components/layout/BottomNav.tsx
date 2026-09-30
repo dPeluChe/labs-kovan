@@ -53,7 +53,7 @@ export function BottomNav() {
   const mainItems = navOrder.slice(0, 4);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex flex-row items-center justify-around bg-base-200/90 backdrop-blur-md border-t border-base-300 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] safe-bottom transition-all duration-300">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex flex-row items-center justify-around bg-base-200/90 backdrop-blur-md border-t border-base-300 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] safe-bottom transition-colors duration-300">
       <div className="flex w-full h-16 items-center justify-around">
         {mainItems.map((id) => {
           const config = NAV_CONFIG[id];

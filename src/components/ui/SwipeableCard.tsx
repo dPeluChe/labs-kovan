@@ -1,6 +1,7 @@
 
-import { motion, useAnimation, type PanInfo } from "framer-motion";
+import { m, useAnimation, type PanInfo } from "framer-motion";
 import { useState, type ReactNode } from "react";
+import { activationKeyDown } from "../../utils/a11y";
 
 interface SwipeableCardProps {
     children: ReactNode;
@@ -69,17 +70,20 @@ export function SwipeableCard({
             </div>
 
             {/* Foreground Card */}
-            <motion.div
+            <m.div
                 drag={enabled ? "x" : false}
                 dragConstraints={{ left: -actionWidth - 20, right: 0 }}
                 dragElastic={0.1}
                 onDragEnd={handleDragEnd}
                 animate={controls}
                 onClick={handleClick}
+                role="button"
+                tabIndex={0}
+                onKeyDown={activationKeyDown(handleClick)}
                 className={`relative z-10 select-none ${contentClassName}`}
             >
                 {children}
-            </motion.div>
+            </m.div>
         </div>
     );
 }

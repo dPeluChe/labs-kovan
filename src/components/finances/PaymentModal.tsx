@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useRef} from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -13,15 +13,17 @@ interface PaymentModalProps {
 }
 
 export function PaymentModal({ sessionToken, loanId, onClose }: PaymentModalProps) {
+  const submitSeq = useRef(0);
   const addPayment = useMutation(api.loans.addPayment);
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
+    const seq = ++submitSeq.current;
     e.preventDefault();
     if (!amount) return;
-    setIsLoading(true);
+    setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
     try {
       if (!sessionToken) return;
       await addPayment({
@@ -30,9 +32,9 @@ export function PaymentModal({ sessionToken, loanId, onClose }: PaymentModalProp
         amount: parseFloat(amount),
         date: new Date(date).getTime(),
       });
-      onClose();
+      if (seq === submitSeq.current) onClose();
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
     }
   };
 

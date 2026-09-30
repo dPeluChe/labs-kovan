@@ -53,7 +53,7 @@ export function AdminDashboardPage() {
         <div className="min-h-screen bg-base-200 p-4 pb-20">
             {/* Header */}
             <div className="flex items-center gap-4 mb-6">
-                <button onClick={() => navigate("/")} className="btn btn-circle btn-ghost">
+                <button onClick={() => navigate("/")} className="btn btn-circle btn-ghost" aria-label="Volver">
                     <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
@@ -67,18 +67,20 @@ export function AdminDashboardPage() {
 
             {/* Tabs */}
             <div className="tabs tabs-boxed mb-6">
-                <a
+                <button
+                    type="button"
                     className={`tab ${activeTab === "overview" ? "tab-active" : ""}`}
                     onClick={() => setActiveTab("overview")}
                 >
                     Resumen
-                </a>
-                <a
+                </button>
+                <button
+                    type="button"
                     className={`tab ${activeTab === "users" ? "tab-active" : ""}`}
                     onClick={() => setActiveTab("users")}
                 >
                     Usuarios
-                </a>
+                </button>
             </div>
 
             {activeTab === "overview" && stats && (

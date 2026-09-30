@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useRef} from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
@@ -21,20 +21,23 @@ export function AddVehicleEventModal({
 }: AddVehicleEventModalProps) {
   const [type, setType] = useState<EventType>("service");
   const [title, setTitle] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [amount, setAmount] = useState("");
   const [odometer, setOdometer] = useState("");
   const [nextDate, setNextDate] = useState("");
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const submitSeq = useRef(0);
+
   const createEvent = useMutation(api.vehicles.createVehicleEvent);
 
   const handleSubmit = async (e: FormEvent) => {
+    const seq = ++submitSeq.current;
     e.preventDefault();
     if (!title.trim()) return;
 
-    setIsLoading(true);
+    setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
     try {
       if (!sessionToken) return;
       await createEvent({
@@ -48,9 +51,9 @@ export function AddVehicleEventModal({
         nextDate: nextDate ? new Date(nextDate).getTime() : undefined,
         notes: notes.trim() || undefined,
       });
-      onClose();
+      if (seq === submitSeq.current) onClose();
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
     }
   };
 
@@ -71,7 +74,7 @@ export function AddVehicleEventModal({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="form-control">
-          <label className="label"><span className="label-text">Tipo de evento</span></label>
+          <p className="label"><span className="label-text">Tipo de evento</span></p>
           <div className="grid grid-cols-3 gap-2">
             {(Object.entries(EVENT_TYPE_CONFIG) as [EventType, typeof EVENT_TYPE_CONFIG[EventType]][]).map(([key, config]) => {
               const Icon = config.icon;
@@ -95,8 +98,8 @@ export function AddVehicleEventModal({
         </div>
 
         <div className="form-control">
-          <label className="label"><span className="label-text">Descripción *</span></label>
-          <input
+          <label htmlFor="descripcion" className="label"><span className="label-text">Descripción *</span></label>
+          <input id="descripcion"
             type="text"
             placeholder="Ej: Cambio de aceite"
             className="input input-bordered w-full"
@@ -112,8 +115,8 @@ export function AddVehicleEventModal({
             onChange={setDate}
           />
           <div className="form-control">
-            <label className="label"><span className="label-text">Monto</span></label>
-            <input
+            <label htmlFor="monto" className="label"><span className="label-text">Monto</span></label>
+            <input id="monto"
               type="number"
               placeholder="$0.00"
               className="input input-bordered w-full"
@@ -126,8 +129,8 @@ export function AddVehicleEventModal({
 
         <div className="grid grid-cols-2 gap-2">
           <div className="form-control">
-            <label className="label"><span className="label-text">Kilometraje</span></label>
-            <input
+            <label htmlFor="kilometraje" className="label"><span className="label-text">Kilometraje</span></label>
+            <input id="kilometraje"
               type="number"
               placeholder="123,456"
               className="input input-bordered w-full"
@@ -143,8 +146,8 @@ export function AddVehicleEventModal({
         </div>
 
         <div className="form-control">
-          <label className="label"><span className="label-text">Notas (opcional)</span></label>
-          <textarea
+          <label htmlFor="notas-opcional" className="label"><span className="label-text">Notas (opcional)</span></label>
+          <textarea id="notas-opcional"
             placeholder="Detalles adicionales..."
             className="textarea textarea-bordered w-full"
             rows={2}

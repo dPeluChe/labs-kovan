@@ -10,6 +10,7 @@ import { EditDiaryEntryModal } from "../components/diary/EditDiaryEntryModal";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Timeline, TimelineItem } from "../components/ui/Timeline";
 import { MOODS_MAP } from "../components/diary/constants";
+
 import { Plus, Users, Lock, Trash2, Calendar } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { es } from "date-fns/locale";
@@ -103,9 +104,16 @@ export function DiaryPage() {
                                                 dot={<span className="transition-transform hover:scale-110">{moodEmoji}</span>}
                                             >
                                                 <div
-                                                    onClick={() => isOwner && setEditingEntry(entry)}
-                                                    className={`animate-fade-in group ${isOwner ? "cursor-pointer hover:translate-x-1 transition-transform" : ""}`}
+                                                    className={`animate-fade-in group relative ${isOwner ? "cursor-pointer hover:translate-x-1 transition-transform" : ""}`}
                                                 >
+                                                    {isOwner && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setEditingEntry(entry)}
+                                                            aria-label="Editar entrada"
+                                                            className="absolute inset-0 cursor-pointer"
+                                                        />
+                                                    )}
                                                     <div className="flex flex-col gap-2">
                                                         <div className="flex justify-between items-start">
                                                             <div>
@@ -134,7 +142,7 @@ export function DiaryPage() {
                                                             {isOwner && (
                                                                 <button
                                                                     onClick={(e) => handleDelete(e, entry._id)}
-                                                                    className="btn btn-ghost btn-xs btn-square text-base-content/20 hover:text-error hover:bg-error/10"
+                                                                    className="btn btn-ghost btn-xs btn-square text-base-content/20 hover:text-error hover:bg-error/10 relative z-10"
                                                                     title="Eliminar"
                                                                 >
                                                                     <Trash2 className="w-4 h-4" />

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useId, useRef } from "react";
 import { Calendar } from "lucide-react";
 
 interface DateInputProps {
@@ -25,14 +25,7 @@ export function DateInput({
   max,
 }: DateInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleContainerClick = () => {
-    // Force open the date picker by focusing and clicking the input
-    if (inputRef.current && !disabled) {
-      inputRef.current.showPicker?.();
-      inputRef.current.focus();
-    }
-  };
+  const inputId = useId();
 
   const formatDisplayDate = (dateString: string) => {
     if (!dateString) return "";
@@ -48,14 +41,13 @@ export function DateInput({
   return (
     <div className={`form-control ${className}`}>
       {label && (
-        <label className="label">
+        <label htmlFor={inputId} className="label">
           <span className="label-text">
             {label} {required && "*"}
           </span>
         </label>
       )}
       <div
-        onClick={handleContainerClick}
         className={`relative flex items-center input input-bordered w-full cursor-pointer ${disabled ? "opacity-50 cursor-not-allowed" : "hover:border-primary"
           }`}
       >
@@ -63,7 +55,7 @@ export function DateInput({
         <span className={`flex-1 ${value ? "" : "text-faint"}`}>
           {value ? formatDisplayDate(value) : placeholder}
         </span>
-        <input
+        <input id={inputId}
           ref={inputRef}
           type="date"
           value={value}

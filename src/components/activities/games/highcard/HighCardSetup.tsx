@@ -77,7 +77,7 @@ export function HighCardSetup({
               <UserPlus className="w-4 h-4" />
               Agregar
             </button>
-            <button onClick={onRemoveAnonymous} className="btn btn-sm btn-ghost btn-square" disabled={anonymousCount === 0}>
+            <button onClick={onRemoveAnonymous} className="btn btn-sm btn-ghost btn-square" disabled={anonymousCount === 0} aria-label="Quitar jugador anónimo">
               <UserMinus className="w-4 h-4" />
             </button>
           </div>

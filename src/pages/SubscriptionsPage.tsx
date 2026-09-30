@@ -85,10 +85,11 @@ export function SubscriptionsPage() {
                     subscriptions.map((sub) => {
                         const Icon = TYPE_ICONS[sub.type] || HelpCircle;
                         return (
-                            <div
+                            <button
+                                type="button"
                                 key={sub._id}
                                 onClick={() => setSelectedSub(sub)}
-                                className={`card bg-base-100 shadow-sm border border-base-200 p-4 active:scale-[0.98] transition-all cursor-pointer ${!sub.isActive ? "opacity-60" : ""}`}
+                                className={`card bg-base-100 shadow-sm border border-base-200 p-4 active:scale-[0.98] transition-all cursor-pointer w-full text-left ${!sub.isActive ? "opacity-60" : ""}`}
                             >
                                 <div className="flex justify-between items-center">
                                     <div className="flex gap-3 items-center">
@@ -114,7 +115,7 @@ export function SubscriptionsPage() {
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            </button>
                         );
                     })
                 ) : (

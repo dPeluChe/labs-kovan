@@ -111,7 +111,7 @@ export function DailyTracker({ sessionToken, familyId, personId }: DailyTrackerP
       )}
 
       <div className="flex items-center justify-between surface-card p-2">
-        <button onClick={() => shiftDate(-1)} className="btn btn-sm btn-ghost btn-circle">
+        <button onClick={() => shiftDate(-1)} className="btn btn-sm btn-ghost btn-circle" aria-label="Día anterior">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div className="text-center">
@@ -120,7 +120,7 @@ export function DailyTracker({ sessionToken, familyId, personId }: DailyTrackerP
           </span>
           <span className="text-xs text-subtle block">Hoy: {new Date().toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</span>
         </div>
-        <button onClick={() => shiftDate(1)} className="btn btn-sm btn-ghost btn-circle">
+        <button onClick={() => shiftDate(1)} className="btn btn-sm btn-ghost btn-circle" aria-label="Día siguiente">
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
@@ -199,6 +199,7 @@ export function DailyTracker({ sessionToken, familyId, personId }: DailyTrackerP
                     <button
                       onClick={() => handleLog(t.key, 1)}
                       className="btn btn-xs btn-circle btn-ghost border border-base-300 hover:bg-base-200"
+                      aria-label={`Agregar ${t.label}`}
                     >
                       <Plus className="w-3 h-3" />
                     </button>
@@ -206,6 +207,7 @@ export function DailyTracker({ sessionToken, familyId, personId }: DailyTrackerP
                       onClick={() => handleLog(t.key, -1)}
                       disabled={current <= 0}
                       className="btn btn-xs btn-circle btn-ghost border border-base-300 hover:bg-base-200 disabled:opacity-20"
+                      aria-label={`Quitar ${t.label}`}
                     >
                       <Minus className="w-3 h-3" />
                     </button>

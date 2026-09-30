@@ -51,15 +51,18 @@ export function SettingsPage() {
     const mergedOrder = [...savedNavOrder];
 
     // Add any new items that aren't in the saved order
+    const mergedSet = new Set(mergedOrder);
     allAvailableIds.forEach(id => {
-      if (!mergedOrder.includes(id)) {
+      if (!mergedSet.has(id)) {
         mergedOrder.push(id);
+        mergedSet.add(id);
       }
     });
 
     // Remove any legacy or invalid items
+    const availableSet = new Set(allAvailableIds);
     const cleanedOrder = mergedOrder.filter(id =>
-      allAvailableIds.includes(id) || id === 'more'
+      availableSet.has(id) || id === 'more'
     );
 
     return cleanedOrder;
@@ -156,6 +159,7 @@ export function SettingsPage() {
                   setShowEditProfile(true);
                 }}
                 className="btn btn-ghost btn-sm"
+                aria-label="Editar perfil"
               >
                 <Pen className="w-4 h-4" />
               </button>

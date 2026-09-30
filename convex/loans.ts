@@ -138,9 +138,7 @@ export const deleteLoan = mutation({
             .withIndex("by_loan", (q) => q.eq("loanId", args.loanId))
             .collect();
 
-        for (const payment of payments) {
-            await ctx.db.delete(payment._id);
-        }
+        await Promise.all(payments.map((payment) => ctx.db.delete(payment._id)));
 
         await ctx.db.delete(args.loanId);
     },

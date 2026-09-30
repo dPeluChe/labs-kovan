@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef} from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Input } from "../../ui/Input";
@@ -27,13 +27,15 @@ export function CreatePlaceModal({
     const [isLoading, setIsLoading] = useState(false);
 
     const lists = useQuery(api.places.getLists, sessionToken ? { sessionToken, familyId } : "skip");
+    const submitSeq = useRef(0);
     const createPlace = useMutation(api.places.createPlace);
 
     const handleSubmit = async (e: React.FormEvent) => {
+        const seq = ++submitSeq.current;
         e.preventDefault();
         if (!name.trim()) return;
 
-        setIsLoading(true);
+        setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
         try {
             if (!sessionToken) return;
             await createPlace({
@@ -48,9 +50,9 @@ export function CreatePlaceModal({
                 // Add defaults for fields we aren't asking yet to keep UI simple
                 visited: false,
             });
-            onClose();
+            if (seq === submitSeq.current) onClose();
         } finally {
-            setIsLoading(false);
+            setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
         }
     };
 
@@ -79,8 +81,8 @@ export function CreatePlaceModal({
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="form-control">
-                        <label className="label"><span className="label-text">Categoría</span></label>
-                        <select
+                        <label htmlFor="categoria" className="label"><span className="label-text">Categoría</span></label>
+                        <select id="categoria"
                             className="select select-bordered w-full"
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
@@ -91,8 +93,8 @@ export function CreatePlaceModal({
                         </select>
                     </div>
                     <div className="form-control">
-                        <label className="label"><span className="label-text">Lista</span></label>
-                        <select
+                        <label htmlFor="lista" className="label"><span className="label-text">Lista</span></label>
+                        <select id="lista"
                             className="select select-bordered w-full"
                             value={listId}
                             onChange={(e) => setListId(e.target.value as Id<"placeLists">)}

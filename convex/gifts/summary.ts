@@ -21,12 +21,16 @@ export const getGiftEventSummary = query({
     };
     let totalEstimate = 0;
 
-    for (const recipient of recipients) {
-      const items = await ctx.db
-        .query("giftItems")
-        .withIndex("by_recipient", (q) => q.eq("giftRecipientId", recipient._id))
-        .collect();
+    const itemsByRecipient = await Promise.all(
+      recipients.map((recipient) =>
+        ctx.db
+          .query("giftItems")
+          .withIndex("by_recipient", (q) => q.eq("giftRecipientId", recipient._id))
+          .collect()
+      )
+    );
 
+    for (const items of itemsByRecipient) {
       totalItems += items.length;
       for (const item of items) {
         byStatus[item.status]++;
@@ -54,27 +58,25 @@ export const getRecipientsWithStatus = query({
       .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
       .collect();
 
-    const result = [];
+    return await Promise.all(
+      recipients.map(async (recipient) => {
+        const items = await ctx.db
+          .query("giftItems")
+          .withIndex("by_recipient", (q) => q.eq("giftRecipientId", recipient._id))
+          .collect();
 
-    for (const recipient of recipients) {
-      const items = await ctx.db
-        .query("giftItems")
-        .withIndex("by_recipient", (q) => q.eq("giftRecipientId", recipient._id))
-        .collect();
+        const pending = items.filter((i) => i.status === "idea" || i.status === "to_buy").length;
+        const bought = items.filter((i) => i.status === "bought" || i.status === "wrapped" || i.status === "delivered").length;
 
-      const pending = items.filter((i) => i.status === "idea" || i.status === "to_buy").length;
-      const bought = items.filter((i) => i.status === "bought" || i.status === "wrapped" || i.status === "delivered").length;
-
-      result.push({
-        ...recipient,
-        totalItems: items.length,
-        pending,
-        bought,
-        allBought: items.length > 0 && pending === 0,
-        hasNoGifts: items.length === 0,
-      });
-    }
-
-    return result;
+        return {
+          ...recipient,
+          totalItems: items.length,
+          pending,
+          bought,
+          allBought: items.length > 0 && pending === 0,
+          hasNoGifts: items.length === 0,
+        };
+      })
+    );
   },
 });

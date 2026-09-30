@@ -33,7 +33,7 @@ export function ActivitiesPage() {
                 <button
                   key={game.id}
                   onClick={() => setActiveGame(game.id)}
-                  className="card bg-base-100 shadow-sm border border-base-300 hover:border-primary transition-all text-left"
+                  className="card bg-base-100 shadow-sm border border-base-300 hover:border-primary transition-colors text-left"
                 >
                   <div className="card-body p-4 flex flex-col items-center text-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">

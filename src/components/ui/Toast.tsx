@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useMemo } from "react";
 import type { ReactNode } from "react";
 import { CheckCircle, XCircle, AlertCircle, Info, X } from "lucide-react";
 
@@ -47,8 +47,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const warning = useCallback((message: string) => showToast(message, "warning"), [showToast]);
   const info = useCallback((message: string) => showToast(message, "info"), [showToast]);
 
+  const contextValue = useMemo(
+    () => ({ showToast, success, error, warning, info }),
+    [showToast, success, error, warning, info]
+  );
+
   return (
-    <ToastContext.Provider value={{ showToast, success, error, warning, info }}>
+    <ToastContext.Provider value={contextValue}>
       {children}
 
       {/* Toast container */}
@@ -67,6 +72,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <button
                 onClick={() => removeToast(toast.id)}
                 className="btn btn-ghost btn-xs btn-circle"
+                aria-label="Cerrar notificación"
               >
                 <X className="w-4 h-4" />
               </button>

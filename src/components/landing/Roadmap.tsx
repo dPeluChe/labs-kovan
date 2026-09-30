@@ -58,8 +58,8 @@ export const Roadmap: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {roadmapItems.map((item, index) => (
-                        <div key={index} className="relative group">
+                    {roadmapItems.map((item) => (
+                        <div key={item.title} className="relative group">
                             <div className={`absolute inset-0 bg-gradient-to-br ${item.bgFrom} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl`}></div>
                             <div className="card bg-base-100 border border-base-content/10 h-full relative z-10 hover:-translate-y-1 transition-transform duration-300 shadow-sm hover:shadow-lg">
                                 <div className="card-body">

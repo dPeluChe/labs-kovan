@@ -115,6 +115,7 @@ export function NutritionTab({
                                     <button
                                         onClick={() => handleDelete(record._id, record.brand)}
                                         className="btn btn-ghost btn-xs btn-circle text-base-content/30 hover:text-error"
+                                        aria-label={`Eliminar registro de ${record.brand}`}
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>

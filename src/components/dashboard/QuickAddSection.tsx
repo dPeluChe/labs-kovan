@@ -51,7 +51,7 @@ export function QuickAddSection({
                     <Link
                         key={to}
                         to={to}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-base-300 hover:border-primary hover:bg-primary/5 transition-all group"
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-base-300 hover:border-primary hover:bg-primary/5 transition-colors group"
                     >
                         <div className={`${color} opacity-60 group-hover:opacity-100`}>
                             <Icon className="w-4 h-4" />

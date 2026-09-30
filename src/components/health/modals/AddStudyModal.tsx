@@ -18,17 +18,17 @@ export function AddStudyModal({
     onClose: () => void;
 }) {
     const [title, setTitle] = useState("");
-    const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+    const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
     const [laboratory, setLaboratory] = useState("");
     const [storageId, setStorageId] = useState<Id<"_storage"> | null>(null);
-    const [results, setResults] = useState<Array<{ parameter: string, value: string, unit: string, status: string }>>([]);
+    const [results, setResults] = useState<Array<{ id: string, parameter: string, value: string, unit: string, status: string }>>([]);
     const [isLoading, setIsLoading] = useState(false);
     const { sessionToken } = useAuth();
 
     const createStudy = useMutation(api.health.createStudy);
 
     const addResult = () => {
-        setResults([...results, { parameter: "", value: "", unit: "", status: "normal" }]);
+        setResults([...results, { id: crypto.randomUUID(), parameter: "", value: "", unit: "", status: "normal" }]);
     };
 
     const updateResult = (index: number, field: string, value: string) => {
@@ -96,28 +96,32 @@ export function AddStudyModal({
 
                 <div className="space-y-2">
                     {results.map((result, index) => (
-                        <div key={index} className="flex gap-2 items-start">
+                        <div key={result.id} className="flex gap-2 items-start">
                             <div className="flex-1 grid grid-cols-12 gap-2">
                                 <input
                                     className="input input-bordered input-sm col-span-5"
                                     placeholder="Parámetro (Glucosa)"
+                                    aria-label="Parámetro"
                                     value={result.parameter}
                                     onChange={(e) => updateResult(index, "parameter", e.target.value)}
                                 />
                                 <input
                                     className="input input-bordered input-sm col-span-3"
                                     placeholder="Valor"
+                                    aria-label="Valor"
                                     value={result.value}
                                     onChange={(e) => updateResult(index, "value", e.target.value)}
                                 />
                                 <input
                                     className="input input-bordered input-sm col-span-2"
                                     placeholder="Unidad"
+                                    aria-label="Unidad"
                                     value={result.unit}
                                     onChange={(e) => updateResult(index, "unit", e.target.value)}
                                 />
                                 <select
                                     className="select select-bordered select-sm col-span-2 px-1"
+                                    aria-label="Estado del resultado"
                                     value={result.status}
                                     onChange={(e) => updateResult(index, "status", e.target.value)}
                                 >
@@ -126,7 +130,7 @@ export function AddStudyModal({
                                     <option value="low">Bajo</option>
                                 </select>
                             </div>
-                            <button type="button" onClick={() => removeResult(index)} className="btn btn-ghost btn-xs btn-circle text-error">
+                            <button type="button" onClick={() => removeResult(index)} className="btn btn-ghost btn-xs btn-circle text-error" aria-label="Quitar resultado">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>

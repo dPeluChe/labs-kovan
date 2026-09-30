@@ -57,7 +57,7 @@ export function UnassignedGiftItem({
                         <button tabIndex={0} className="btn btn-ghost btn-xs gap-1">
                             <UserPlus className="w-3 h-3" /> Asignar
                         </button>
-                        <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 border border-base-300 z-50">
+                        <ul className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 border border-base-300 z-50">
                             {recipients.map((recipient) => (
                                 <li key={recipient._id}>
                                     <button onClick={() => {
@@ -71,10 +71,10 @@ export function UnassignedGiftItem({
                         </ul>
                     </div>
 
-                    <button onClick={onEdit} className="btn btn-ghost btn-xs btn-circle">
+                    <button onClick={onEdit} className="btn btn-ghost btn-xs btn-circle" aria-label="Editar regalo">
                         <Edit2 className="w-3 h-3" />
                     </button>
-                    <button onClick={handleDelete} className="btn btn-ghost btn-xs btn-circle text-error">
+                    <button onClick={handleDelete} className="btn btn-ghost btn-xs btn-circle text-error" aria-label="Eliminar regalo">
                         <Trash2 className="w-3 h-3" />
                     </button>
                 </>

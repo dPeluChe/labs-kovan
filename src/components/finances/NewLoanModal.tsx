@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useRef} from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -13,17 +13,19 @@ interface NewLoanModalProps {
 }
 
 export function NewLoanModal({ sessionToken, familyId, onClose }: NewLoanModalProps) {
+  const submitSeq = useRef(0);
   const createLoan = useMutation(api.loans.create);
   const [type, setType] = useState<"lent" | "borrowed">("lent");
   const [person, setPerson] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
+    const seq = ++submitSeq.current;
     e.preventDefault();
     if (!person || !amount) return;
-    setIsLoading(true);
+    setIsLoading((cur) => (seq === submitSeq.current ? true : cur));
     try {
       if (!sessionToken) return;
       await createLoan({
@@ -34,9 +36,9 @@ export function NewLoanModal({ sessionToken, familyId, onClose }: NewLoanModalPr
         amount: parseFloat(amount),
         date: new Date(date).getTime(),
       });
-      onClose();
+      if (seq === submitSeq.current) onClose();
     } finally {
-      setIsLoading(false);
+      setIsLoading((cur) => (seq === submitSeq.current ? false : cur));
     }
   };
 
@@ -44,12 +46,12 @@ export function NewLoanModal({ sessionToken, familyId, onClose }: NewLoanModalPr
     <MobileModal isOpen={true} onClose={onClose} title="Nuevo Préstamo">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="tabs tabs-boxed">
-          <a className={`tab flex-1 ${type === "lent" ? "tab-active" : ""}`} onClick={() => setType("lent")}>
+          <button type="button" className={`tab flex-1 ${type === "lent" ? "tab-active" : ""}`} onClick={() => setType("lent")}>
             Presté dinero
-          </a>
-          <a className={`tab flex-1 ${type === "borrowed" ? "tab-active" : ""}`} onClick={() => setType("borrowed")}>
+          </button>
+          <button type="button" className={`tab flex-1 ${type === "borrowed" ? "tab-active" : ""}`} onClick={() => setType("borrowed")}>
             Me prestaron
-          </a>
+          </button>
         </div>
 
         <Input

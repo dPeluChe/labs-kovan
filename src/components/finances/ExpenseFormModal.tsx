@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { MobileModal } from "../ui/MobileModal";
@@ -26,11 +26,15 @@ export function ExpenseFormModal({
     const [description, setDescription] = useState("");
     const [amount, setAmount] = useState("");
     const [category, setCategory] = useState<ExpenseCategory>("food");
-    const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+    const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Populate form for edit
-    useEffect(() => {
+    // Populate/reset the form when a different expense is passed in
+    // (adjust-state-during-render avoids showing stale values for one frame).
+    const expenseKey = expenseToEdit?._id ?? "new";
+    const [prevExpenseKey, setPrevExpenseKey] = useState(expenseKey);
+    if (prevExpenseKey !== expenseKey) {
+        setPrevExpenseKey(expenseKey);
         if (expenseToEdit) {
             setDescription(expenseToEdit.description);
             setAmount(expenseToEdit.amount.toString());
@@ -42,7 +46,7 @@ export function ExpenseFormModal({
             setCategory("food");
             setDate(new Date().toISOString().split("T")[0]);
         }
-    }, [expenseToEdit]);
+    }
 
     const createExpense = useMutation(api.expenses.createExpense);
     const updateExpense = useMutation(api.expenses.updateExpense);
@@ -113,7 +117,7 @@ export function ExpenseFormModal({
                 </div>
 
                 <div className="form-control">
-                    <label className="label"><span className="label-text font-medium text-base-content/80">Categoría</span></label>
+                    <p className="label"><span className="label-text font-medium text-base-content/80">Categoría</span></p>
                     <div className="grid grid-cols-3 gap-2">
                         {GENERAL_EXPENSE_CATEGORIES.map((key) => {
                             const config = CATEGORY_CONFIG[key];
