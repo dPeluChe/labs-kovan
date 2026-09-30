@@ -1,10 +1,9 @@
 import { v } from "convex/values";
-import { internalQuery, mutation, query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import {
   createSession,
   deleteSessionByToken,
   generateSalt,
-  getUserFromSessionToken,
   hashPassword,
   normalizeEmail,
   requireUserFromSessionToken,
@@ -132,13 +131,6 @@ export const loginUser = mutation({
 
     const sessionToken = await createSession(ctx, user._id);
     return { user: sanitizeUser(user), sessionToken };
-  },
-});
-
-export const validateSessionToken = internalQuery({
-  args: { sessionToken: v.string() },
-  handler: async (ctx, args) => {
-    return (await getUserFromSessionToken(ctx, args.sessionToken)) !== null;
   },
 });
 
