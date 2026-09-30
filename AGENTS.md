@@ -48,9 +48,11 @@ UI copy and user-facing strings are Mexican Spanish (`README.md` §Convenciones)
   `GOOGLE_CLIENT_*`, `CLOUDINARY_*` are read via `process.env` inside
   `convex/` — set them in the Convex Dashboard. Both `.env.example` and
   `README.md` §Setup document the split.
-- **Dead dependencies**: `ai`, `@ai-sdk/google`, `langchain`, `@langchain/*`,
-  `matter-js`, `@types/react-router-dom` are installed with zero imports; the
-  agent actually uses `@google/generative-ai` (`convex/agent.ts`). The
-  README stack line is wrong — don't build on them (backlog `REVIEW-DEADCODE`).
+- **AI deps are `@google/generative-ai` only** (`convex/agent.ts`). `ai`,
+  `@ai-sdk/*`, `langchain`, `@langchain/*`, `matter-js`, `uuid`, `zod` and
+  `@types/react-router-dom` were removed as dead (PR #22) — don't re-add
+  them; `matter-js` comes back only with `PhysicsEngine` (backlog
+  `ACTIVITIES-CORE`). `REVIEW-DEADCODE` still tracks dead functions:
+  `users.getCurrentUser`/`getOrCreateUser` and `featureRequests.list`.
 - CI runs on a self-hosted pool and **skips forked PRs** (`ci.yml`), so a fork
   PR shows no check results — run the gates locally before asking for review.
