@@ -1,11 +1,17 @@
 # Gates de calidad que Orbital ejecuta antes de abrir un PR.
-# Reflejan los pasos de CI (.github/workflows/ci.yml): lint, tipos, tests y build.
+# Cubren las mismas verificaciones que CI (.github/workflows/ci.yml), ordenadas
+# de la más barata a la más cara según tiempos medidos en caliente
+# (types < test < lint < build). doctor va al final aunque es el más rápido:
+# depende de una API remota y falla cerrado (scripts/doctor-check.mjs).
 setup: npm ci
-check:lint: npm run lint
 check:types: npx tsc -b
 check:test: npm run test
+check:lint: npm run lint
 check:build: npm run build
 check:doctor: npm run doctor:check
 smoke:start: VITE_CONVEX_URL=https://example.convex.cloud npm run dev -- --port 5173 --strictPort
 smoke:url: http://localhost:5173
+# Smoke serve-only: verifica que el dev server levanta y sirve el shell en
+# 5173; no prueba conectividad con Convex. /health es una ruta SPA real
+# (HealthPage, src/App.tsx) servida por el fallback de Vite.
 smoke:routes: /,/health
