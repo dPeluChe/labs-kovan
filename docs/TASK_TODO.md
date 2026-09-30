@@ -78,6 +78,12 @@ Sistema modular y reutilizable para juegos basados en turnos. Vive en `src/compo
 - [ ] Actualizaciones menores seguras: `react-router-dom` → 7.18.x (advisories de XSS/open-redirect), `convex` → 1.46
 - [ ] Evaluar majors: `vite` 8, `vitest` 5, `eslint` 10, `typescript` 7
 
+### AUTH-SAMESITE: sesión en cookie HttpOnly de primera parte `added: 2026-09-29`
+
+El token sigue en `localStorage` (riesgo aceptado, regla de react-doctor ignorada en `doctor.config.json`). Una cookie emitida por `*.convex.site` es de terceros y Safari/Firefox estricto la bloquean, así que se descartó (PR #12, commit `ed858ca`).
+
+- [ ] Cuando el dominio del frontend sea el oficial: rewrite de hosting `/api/*` → `*.convex.site` (mismo rewrite que `MCP-MISC`), cookie `SameSite=Lax` y cliente con rutas relativas. Retomar `ed858ca` como base
+
 ### REVIEW-HEALTH: cobertura de typecheck en CI `added: 2026-09-29`
 
 - [ ] `convex/` no lo typecheckea ningún gate: `tsc -b` solo cubre `tsconfig.app.json` + `tsconfig.node.json`. Agregar `npx tsc --noEmit -p convex/tsconfig.json` al CI (o un script `typecheck` en `package.json`)
