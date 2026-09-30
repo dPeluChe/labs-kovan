@@ -234,10 +234,9 @@ agente.
 
 `vite.config.ts` define manual chunks para vendors:
 
-- `react-vendor`: React, React DOM, React Router
+- `react-vendor`: React, React DOM, Scheduler, React Router
 - `ui-vendor`: Framer Motion, Lucide icons
-- `utils-vendor`: Convex, Zod, UUID
-- `ai-vendor`: matcher de ids con `@ai-sdk`, `ai/`, `langchain` o `google` — el frontend no importa librerías de IA (el agente usa `@google/generative-ai` solo en `convex/`, fuera de este bundle), así que no emite chunk; rama muerta que se elimina con las deps (`REVIEW-DEADCODE`)
+- `utils-vendor`: Convex
 - `vendor`: el resto
 
 Combinado con el lazy loading de páginas, esto produce un grafo de chunks

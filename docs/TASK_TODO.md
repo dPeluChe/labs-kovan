@@ -75,15 +75,15 @@ Sistema modular y reutilizable para juegos basados en turnos. Vive en `src/compo
 
 - [ ] Eliminar `users.getCurrentUser` y `users.getOrCreateUser` (`convex/users.ts:14,29`) — usan `ctx.auth.getUserIdentity()` sin `auth.config.*`; identidad siempre `null`, sin callers en `src/`
 - [ ] `featureRequests.list` (`convex/featureRequests.ts:35`) — sin callers; decidir entre borrarla o protegerla con admin (ver `REVIEW-AUTH`)
-- [ ] Quitar dependencias sin un solo import en `src/` ni `convex/` (verificado 2026-09-30): `ai`, `@ai-sdk/google`, `langchain`, `@langchain/core`, `@langchain/google-genai`, `matter-js`, `uuid`, `zod`, `@types/react-router-dom` (v5 muerta; `react-router-dom` v7 trae sus tipos). Al quitarlas: eliminar la rama `ai-vendor` y `zod`/`uuid` de `utils-vendor` en `vite.config.ts` y actualizar §Bundle splitting del README. `@google/generative-ai` se queda (la usa `convex/agent.ts`)
-- [ ] `matter-js` la usa solo la tarea futura `PhysicsEngine` (ACTIVITIES-CORE); reinstalar cuando se construya
+- [x] (2026-09-30, PR de limpieza de deps) Quitar dependencias sin un solo import en `src/` ni `convex/` (verificado 2026-09-30): `ai`, `@ai-sdk/google`, `langchain`, `@langchain/core`, `@langchain/google-genai`, `matter-js`, `uuid`, `zod`, `@types/react-router-dom` (v5 muerta; `react-router-dom` v7 trae sus tipos). Al quitarlas: eliminar la rama `ai-vendor` y `zod`/`uuid` de `utils-vendor` en `vite.config.ts` y actualizar §Bundle splitting del README. `@google/generative-ai` se queda (la usa `convex/agent.ts`)
+- [x] `matter-js` la usa solo la tarea futura `PhysicsEngine` (ACTIVITIES-CORE); reinstalar cuando se construya
 
 ### REVIEW-DEPS: dependencias y vulnerabilidades `added: 2026-09-29`
 
-Revisión 2026-09-30: `npm audit --omit=dev` reporta 14 vulns (4 low, 4 moderate, 6 high), todas en la cadena `langchain` → `langgraph` → `uuid`, es decir, deps muertas. Quitarlas (`REVIEW-DEADCODE`) debería limpiar producción; correr `npm audit` de nuevo después.
+Revisión 2026-09-30: `npm audit --omit=dev` tenía 14 vulns, casi todas de la cadena `langchain` → `langgraph` → `uuid` (deps muertas). Quitadas las deps y subido `react-router-dom` a 7.18: producción en 0 vulns. Quedan 19 en devDependencies.
 
-- [ ] Tras `REVIEW-DEADCODE`, `npm audit fix` para lo que quede (dev-only)
-- [ ] Bump seguro dentro de rango (`npm update`), un PR con los 4 gates: `react` / `react-dom` 19.3, `react-router-dom` 7.18 (advisories XSS/open-redirect), `convex` 1.46, `vite` 7.3, `vitest` 3.2, `tailwindcss` + `@tailwindcss/vite` 4.3, `daisyui` 5.7, `framer-motion` 12.43, `date-fns` 4.4, `typescript-eslint` 8.71
+- [ ] `npm audit fix` para lo que quede en devDependencies (19 vulns, 1 crítica; revisar cuál paquete)
+- [ ] Bump seguro dentro de rango (`npm update`), un PR con los 4 gates: `react` / `react-dom` 19.3, `convex` 1.46, `vite` 7.3, `vitest` 3.2, `tailwindcss` + `@tailwindcss/vite` 4.3, `daisyui` 5.7, `framer-motion` 12.43, `date-fns` 4.4, `typescript-eslint` 8.71
 - [ ] Majors, uno por PR y solo con motivo: `vite` 8 + `@vitejs/plugin-react` 6, `vitest` 5, `eslint` 10, `typescript` 7, `lucide-react` 1.x (revisar iconos renombrados; 121 archivos lo importan), `framer-motion` 13
 - [ ] Fijar versión de Node: no hay `engines` ni `.nvmrc`; CI usa 22.x y con Node 26 local fallan 3 tests de `AuthContext` (`localStorage` no existe en jsdom). Agregar `.nvmrc` y `engines`
 
