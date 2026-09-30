@@ -23,10 +23,13 @@ UI copy and user-facing strings are Mexican Spanish (`README.md` §Convenciones)
 ## Gates
 
 - `npm run lint` · `npm run test` (Vitest, single run) · `npm run build`
-  (`tsc -b && vite build`) · `npm run dev`. CI = lint → test → build
-  (`.github/workflows/ci.yml`); `orbital.yaml` mirrors the same gates.
+  (`tsc -b && vite build`) · `npm run doctor:check` (react-doctor score,
+  remote API, fails closed) · `npm run dev`. CI = lint → test → doctor →
+  build (`.github/workflows/ci.yml`); `orbital.yaml` runs the same gates in
+  a different (cost-first) order and puts `doctor:check` last because it
+  hits a remote API.
 - `npm run build` does NOT need a live backend — CI passes a placeholder
-  `VITE_CONVEX_URL` (`ci.yml:43-47`). But `src/lib/convex.ts` throws without
+  `VITE_CONVEX_URL` (`ci.yml:44-50`). But `src/lib/convex.ts` throws without
   it, so `npm run dev` needs the var set (a placeholder boots; a real
   deployment URL makes it work).
 - `convex/_generated/` is committed; regenerate with `npx convex dev`. The

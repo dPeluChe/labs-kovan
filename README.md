@@ -134,6 +134,10 @@ npm run dev
 - `npm run lint` - ESLint
 - `npm run test` - Corre el suite de tests con Vitest (una pasada, CI-friendly)
 - `npm run test:watch` - Vitest en modo watch para desarrollo
+- `npm run doctor` - Genera el reporte de calidad de `react-doctor` (score + issues)
+- `npm run doctor:check` - Gate de calidad sobre el score de `react-doctor`:
+  falla si el score baja de 90 o si la API remota no está disponible
+  (`scripts/doctor-check.mjs`); es el paso "Doctor score" de CI
 - `npm run preview` - Preview del build de producción
 
 Nota: puede aparecer un warning conocido de DaisyUI (`@property`) durante
@@ -158,8 +162,10 @@ Convención:
   agregues un componente nuevo a `src/components/ui/`, acompáñalo con un
   smoke test mínimo (render + props básicos).
 
-El workflow de CI (`.github/workflows/ci.yml`) corre `lint → test → build`
-en cada push a `main` y en cada PR contra `main`.
+El workflow de CI (`.github/workflows/ci.yml`) corre
+`lint → test → doctor → build` en cada push a `main` y en cada PR contra
+`main` (el orden de `orbital.yaml` es distinto a propósito: los gates son los
+mismos, ordenados por costo).
 
 ## Estado del proyecto (auth y seguridad)
 
