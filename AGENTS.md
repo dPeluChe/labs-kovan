@@ -59,3 +59,11 @@ UI copy and user-facing strings are Mexican Spanish (`README.md` §Convenciones)
   `users.getCurrentUser`/`getOrCreateUser` and `featureRequests.list`.
 - CI runs on a self-hosted pool and **skips forked PRs** (`ci.yml`), so a fork
   PR shows no check results — run the gates locally before asking for review.
+
+## Git
+
+- Agent-authored merge commits need a conventional `-m` subject
+  (`chore: merge main into <branch>`; precedent `7e870af`). git's default
+  `Merge remote-tracking branch 'origin/main' into ...` subject was flagged
+  in review (PR #18); the Orbital branch-sync also emits it and is outside
+  this repo's control.
