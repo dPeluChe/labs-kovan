@@ -14,25 +14,16 @@
     "doctor:check": "node scripts/doctor-check.mjs"
   },
   "dependencies": {
-    "@ai-sdk/google": "^2.0.46",
     "@google/generative-ai": "^0.24.1",
-    "@langchain/core": "^1.1.5",
-    "@langchain/google-genai": "^2.1.0",
-    "@types/react-router-dom": "^5.3.3",
-    "ai": "^5.0.113",
     "convex": "^1.30.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.26",
-    "langchain": "^1.2.0",
     "lucide-react": "^0.556.0",
-    "matter-js": "^0.20.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.0",
     "react-barcode": "^1.6.1",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.10.1",
-    "uuid": "^13.0.0",
-    "zod": "^4.1.13"
+    "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

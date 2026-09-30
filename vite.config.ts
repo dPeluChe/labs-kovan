@@ -17,11 +17,8 @@ export default defineConfig({
             if (id.includes('framer-motion') || id.includes('lucide-react')) {
               return 'ui-vendor';
             }
-            if (id.includes('convex') || id.includes('zod') || id.includes('uuid')) {
+            if (id.includes('convex')) {
               return 'utils-vendor';
-            }
-            if (id.includes('@ai-sdk') || id.includes('ai/') || id.includes('langchain') || id.includes('google')) {
-              return 'ai-vendor';
             }
             return 'vendor';
           }
