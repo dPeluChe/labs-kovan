@@ -67,6 +67,8 @@ Sistema modular y reutilizable para juegos basados en turnos. Vive en `src/compo
 - [ ] `ParticleSystem` — sistema de partículas reusable
 - [ ] Componentes UI genéricos — tableros, controles, overlays reutilizables entre juegos
 
+Cada pieza vivirá en su propia carpeta (`physics/`, `state/`, `ui/`) dentro de `core/`; la carpeta se crea al implementar la pieza (git no conserva carpetas vacías).
+
 > Motivación: todos los juegos nuevos por turnos deberían consumir este core en vez de reimplementar lógica de estado, historial y física.
 
 ## Priority 3 — Backlog
