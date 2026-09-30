@@ -46,8 +46,8 @@ UI copy and user-facing strings are Mexican Spanish (`README.md` §Convenciones)
   `REVIEW-CLOUDINARY`). Don't treat its `success` as proof of deletion.
 - **Backend env vars do NOT go in `.env.local`.** `GEMINI_API_KEY`,
   `GOOGLE_CLIENT_*`, `CLOUDINARY_*` are read via `process.env` inside
-  `convex/` — set them in the Convex Dashboard (`.env.example` documents the
-  split). `README.md` §Setup is stale on this (backlog `REVIEW-DOCS`).
+  `convex/` — set them in the Convex Dashboard. Both `.env.example` and
+  `README.md` §Setup document the split.
 - **Dead dependencies**: `ai`, `@ai-sdk/google`, `langchain`, `@langchain/*`,
   `matter-js`, `@types/react-router-dom` are installed with zero imports; the
   agent actually uses `@google/generative-ai` (`convex/agent.ts`). The

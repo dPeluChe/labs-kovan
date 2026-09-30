@@ -62,7 +62,7 @@ Sistema modular y reutilizable para juegos basados en turnos. Vive en `src/compo
 - [ ] `ParticleSystem` — sistema de partículas reusable
 - [ ] Componentes UI genéricos — tableros, controles, overlays reutilizables entre juegos
 
-> Motivación: todos los juegos nuevos por turnos deberían consumir este core en vez de reimplementar lógica de estado, historial y física. Las carpetas `physics/`, `state/`, `ui/` ya existen vacías como placeholders.
+> Motivación: todos los juegos nuevos por turnos deberían consumir este core en vez de reimplementar lógica de estado, historial y física.
 
 ## Priority 3 — Backlog
 
@@ -81,10 +81,6 @@ Sistema modular y reutilizable para juegos basados en turnos. Vive en `src/compo
 ### REVIEW-HEALTH: cobertura de typecheck en CI `added: 2026-09-29`
 
 - [ ] `convex/` no lo typecheckea ningún gate: `tsc -b` solo cubre `tsconfig.app.json` + `tsconfig.node.json`. Agregar `npx tsc --noEmit -p convex/tsconfig.json` al CI (o un script `typecheck` en `package.json`)
-
-### REVIEW-DOCS: correcciones de README `added: 2026-09-29`
-
-- [ ] Setup: aclarar que las vars de backend (`GEMINI_API_KEY`, `GOOGLE_CLIENT_*`, `CLOUDINARY_*`) van en Convex Dashboard, no en `.env.local` — `.env.example` ya quedó corregido en el PR de la revisión
 
 ### DOCS-NITS: Doc nits menores identificados en post-merge review `added: 2026-04-10`
 
