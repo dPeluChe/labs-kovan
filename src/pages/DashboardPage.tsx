@@ -4,8 +4,7 @@ import { PageLoader } from "../components/ui/LoadingSpinner";
 import { SkeletonText } from "../components/ui/Skeleton";
 import { useAuth } from "../contexts/AuthContext";
 import {
-  Book, Calendar,
-  DollarSign, ChefHat, MapPin, Star, AlertTriangle, X, CreditCard
+  Book, Calendar, DollarSign, ChefHat, MapPin, Star, AlertTriangle, X, CreditCard
 } from "lucide-react";
 import { DashboardCard } from "../components/dashboard/DashboardCard";
 import { QuickAddSection } from "../components/dashboard/QuickAddSection";
@@ -113,7 +112,6 @@ export function DashboardPage() {
 
         {/* Expiring Documents - High Priority */}
         <ExpiringDocumentsCard documents={expiringDocuments} now={now} />
-
 
         {/* Expenses - only if has data */}
         {(hasExpenses || expensesSummary === undefined) && (

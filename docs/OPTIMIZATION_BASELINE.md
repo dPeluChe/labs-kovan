@@ -37,7 +37,7 @@ y la 2ª pasada de OPT-008 bajó 21 → 19). El gate exige ≥ 90
 | Regla | Count | Archivos |
 | --- | --- | --- |
 | `no-high-complexity-react-function` | 18 | `DocumentFormModal`, `ExpensesView`, `PlanEditor`, `PlacesLayout`, `PlaceDetailModal`, `SubscriptionDetailModal`, `CreateTaskModal`, `TripPlanDetailModal`, `TripFinancesTab`, `TripOverviewTab`, `ImageUploader`, `DashboardPage`, `FamilyPage`, `GiftsPage`, `HealthProfilePage`, `NutritionPage`, `PetProfilePage`, `TripDetailPage` |
-| ~~`no-giant-component`~~ | ~~2~~ 0 | ✅ resuelto en OPT-008 (2ª pasada): `DashboardPage` 427→277 (4 cards a `components/dashboard/`), `SubscriptionDetailModal` 344→305 (`SubscriptionPaymentSection`) — ambos siguen flaggeados por complexity |
+| ~~`no-giant-component`~~ | ~~2~~ 0 | ✅ resuelto en OPT-008 (2ª pasada): `DashboardPage` 427→275 (4 cards a `components/dashboard/`), `SubscriptionDetailModal` 344→305 (`SubscriptionPaymentSection`) — ambos siguen flaggeados por complexity |
 | `html-no-nested-interactive` | 1 | `src/utils/a11y.test.tsx:10` — fixture deliberado (testea que un control anidado no dispare el padre); mantener o suprimir localmente |
 
 ### Lighthouse (mediana de 5 corridas, build de producción local)
@@ -180,7 +180,7 @@ Archivos >~300 líneas o con UI+datos+lógica mezclados:
 
 | Archivo | Líneas | Nota |
 | --- | --- | --- |
-| `src/pages/DashboardPage.tsx` | 277 | ~~giant~~ resuelto en OPT-008 (2ª pasada): `GiftEventsCard`/`HealthSummaryCard`/`ExpiringDocumentsCard`/`VehiclesCard` en `components/dashboard/` + `getGreeting` a module scope; sigue complexity |
+| `src/pages/DashboardPage.tsx` | 275 | ~~giant~~ resuelto en OPT-008 (2ª pasada): `GiftEventsCard`/`HealthSummaryCard`/`ExpiringDocumentsCard`/`VehiclesCard` en `components/dashboard/` + `getGreeting` a module scope; sigue complexity |
 | `src/pages/CalendarPage.tsx` | 404 | página + lógica de calendario inline |
 | ~~`convex/household.ts`~~ | 16 barrel | resuelto en OPT-009 (2026-10-14): `household/{queries,mutations}.ts` |
 | ~~`src/pages/HouseholdPage.tsx`~~ | 221 | resuelto en OPT-008 (parcial): `ActivitiesSection`/`RankingSection` en `components/household/` + hook `useHouseholdActions` |
