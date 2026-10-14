@@ -66,22 +66,24 @@ export const getFamilyMembers = query({
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
       .collect();
 
-    const members = await Promise.all(
-      memberships.map(async (m) => {
-        const user = await ctx.db.get(m.userId);
-        if (!user) return null;
-        return {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          photoUrl: user.photoUrl,
-          isSuperAdmin: user.isSuperAdmin,
-          membershipId: m._id,
-          role: m.role,
-          status: m.status,
-        };
-      })
-    );
+    const userIds = [...new Set(memberships.map((m) => m.userId))];
+    const users = await Promise.all(userIds.map((id) => ctx.db.get(id)));
+    const usersById = new Map(userIds.map((id, i) => [id, users[i]] as const));
+
+    const members = memberships.map((m) => {
+      const user = usersById.get(m.userId);
+      if (!user) return null;
+      return {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        photoUrl: user.photoUrl,
+        isSuperAdmin: user.isSuperAdmin,
+        membershipId: m._id,
+        role: m.role,
+        status: m.status,
+      };
+    });
 
     return members.filter(Boolean);
   },

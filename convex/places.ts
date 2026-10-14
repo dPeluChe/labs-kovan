@@ -238,17 +238,19 @@ export const getAllVisits = query({
       .order("desc")
       .take(args.limit || 50);
 
-    // Join with place names efficiently
-    const visitsWithPlace = await Promise.all(visits.map(async (visit) => {
-      const place = await ctx.db.get(visit.placeId);
+    // Join with place names, fetching each place once
+    const placeIds = [...new Set(visits.map((visit) => visit.placeId))];
+    const places = await Promise.all(placeIds.map((id) => ctx.db.get(id)));
+    const placesById = new Map(placeIds.map((id, i) => [id, places[i]] as const));
+
+    return visits.map((visit) => {
+      const place = placesById.get(visit.placeId);
       return {
         ...visit,
         placeName: place?.name || "Lugar eliminado",
         placeImage: place?.imageUrl,
       };
-    }));
-
-    return visitsWithPlace;
+    });
   }
 });
 

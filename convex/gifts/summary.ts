@@ -6,10 +6,16 @@ export const getGiftEventSummary = query({
   args: { sessionToken: v.string(), eventId: v.id("giftEvents") },
   handler: async (ctx, args) => {
     await getEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
-    const recipients = await ctx.db
-      .query("giftRecipients")
-      .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
-      .collect();
+    const [recipients, eventItems] = await Promise.all([
+      ctx.db
+        .query("giftRecipients")
+        .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
+        .collect(),
+      ctx.db
+        .query("giftItems")
+        .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
+        .collect(),
+    ]);
 
     let totalItems = 0;
     const byStatus: Record<string, number> = {
@@ -21,22 +27,15 @@ export const getGiftEventSummary = query({
     };
     let totalEstimate = 0;
 
-    const itemsByRecipient = await Promise.all(
-      recipients.map((recipient) =>
-        ctx.db
-          .query("giftItems")
-          .withIndex("by_recipient", (q) => q.eq("giftRecipientId", recipient._id))
-          .collect()
-      )
-    );
-
-    for (const items of itemsByRecipient) {
-      totalItems += items.length;
-      for (const item of items) {
-        byStatus[item.status]++;
-        if (item.priceEstimate) {
-          totalEstimate += item.priceEstimate;
-        }
+    const recipientIds = new Set<string>(recipients.map((r) => r._id));
+    for (const item of eventItems) {
+      if (!item.giftRecipientId || !recipientIds.has(item.giftRecipientId)) {
+        continue;
+      }
+      totalItems++;
+      byStatus[item.status]++;
+      if (item.priceEstimate) {
+        totalEstimate += item.priceEstimate;
       }
     }
 
@@ -53,30 +52,39 @@ export const getRecipientsWithStatus = query({
   args: { sessionToken: v.string(), eventId: v.id("giftEvents") },
   handler: async (ctx, args) => {
     await getEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
-    const recipients = await ctx.db
-      .query("giftRecipients")
-      .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
-      .collect();
+    const [recipients, eventItems] = await Promise.all([
+      ctx.db
+        .query("giftRecipients")
+        .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
+        .collect(),
+      ctx.db
+        .query("giftItems")
+        .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
+        .collect(),
+    ]);
 
-    return await Promise.all(
-      recipients.map(async (recipient) => {
-        const items = await ctx.db
-          .query("giftItems")
-          .withIndex("by_recipient", (q) => q.eq("giftRecipientId", recipient._id))
-          .collect();
+    const itemsByRecipient = new Map<string, typeof eventItems>();
+    for (const item of eventItems) {
+      if (!item.giftRecipientId) continue;
+      const list = itemsByRecipient.get(item.giftRecipientId) ?? [];
+      list.push(item);
+      itemsByRecipient.set(item.giftRecipientId, list);
+    }
 
-        const pending = items.filter((i) => i.status === "idea" || i.status === "to_buy").length;
-        const bought = items.filter((i) => i.status === "bought" || i.status === "wrapped" || i.status === "delivered").length;
+    return recipients.map((recipient) => {
+      const items = itemsByRecipient.get(recipient._id) ?? [];
 
-        return {
-          ...recipient,
-          totalItems: items.length,
-          pending,
-          bought,
-          allBought: items.length > 0 && pending === 0,
-          hasNoGifts: items.length === 0,
-        };
-      })
-    );
+      const pending = items.filter((i) => i.status === "idea" || i.status === "to_buy").length;
+      const bought = items.filter((i) => i.status === "bought" || i.status === "wrapped" || i.status === "delivered").length;
+
+      return {
+        ...recipient,
+        totalItems: items.length,
+        pending,
+        bought,
+        allBought: items.length > 0 && pending === 0,
+        hasNoGifts: items.length === 0,
+      };
+    });
   },
 });

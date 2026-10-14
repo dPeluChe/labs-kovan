@@ -18,22 +18,29 @@ export const getAllGiftItemsForEvent = query({
   args: { sessionToken: v.string(), eventId: v.id("giftEvents") },
   handler: async (ctx, args) => {
     await getEventWithAccessOrThrow(ctx, args.sessionToken, args.eventId);
-    const recipients = await ctx.db
-      .query("giftRecipients")
-      .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
-      .collect();
+    const [recipients, eventItems] = await Promise.all([
+      ctx.db
+        .query("giftRecipients")
+        .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
+        .collect(),
+      ctx.db
+        .query("giftItems")
+        .withIndex("by_event", (q) => q.eq("giftEventId", args.eventId))
+        .collect(),
+    ]);
 
-    const itemsByRecipient = await Promise.all(
-      recipients.map(async (recipient) => {
-        const items = await ctx.db
-          .query("giftItems")
-          .withIndex("by_recipient", (q) => q.eq("giftRecipientId", recipient._id))
-          .collect();
-        return { recipient, items };
-      })
-    );
+    const itemsByRecipient = new Map<string, typeof eventItems>();
+    for (const item of eventItems) {
+      if (!item.giftRecipientId) continue;
+      const list = itemsByRecipient.get(item.giftRecipientId) ?? [];
+      list.push(item);
+      itemsByRecipient.set(item.giftRecipientId, list);
+    }
 
-    return itemsByRecipient;
+    return recipients.map((recipient) => ({
+      recipient,
+      items: itemsByRecipient.get(recipient._id) ?? [],
+    }));
   },
 });
 
@@ -147,7 +154,7 @@ export const updateGiftItem = mutation({
     ) {
       const existingExpense = await ctx.db
         .query("expenses")
-        .filter((q) => q.eq(q.field("giftItemId"), itemId))
+        .withIndex("by_gift_item", (q) => q.eq("giftItemId", itemId))
         .first();
 
       if (!existingExpense) {

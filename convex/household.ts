@@ -69,26 +69,40 @@ export const getRecentLogs = query({
       .order("desc")
       .take(args.limit ?? 50);
 
-    // Enrich with activity and user data
-    const enriched = await Promise.all(
-      logs.map(async (log) => {
-        const [activity, user, loggedByUser] = await Promise.all([
-          ctx.db.get(log.activityId),
-          ctx.db.get(log.userId),
-          log.loggedBy !== log.userId ? ctx.db.get(log.loggedBy) : Promise.resolve(null),
-        ]);
-        return {
-          ...log,
-          activityName: activity?.name ?? "Actividad eliminada",
-          activityEmoji: activity?.emoji ?? "❓",
-          userName: user?.name ?? "Usuario",
-          userPhoto: user?.photoUrl,
-          loggedByName: loggedByUser?.name,
-        };
-      })
-    );
+    // Enrich with activity and user data, fetching each doc once
+    const activityIds = new Set<Id<"householdActivities">>();
+    const userIds = new Set<Id<"users">>();
+    for (const log of logs) {
+      activityIds.add(log.activityId);
+      userIds.add(log.userId);
+      if (log.loggedBy !== log.userId) userIds.add(log.loggedBy);
+    }
 
-    return enriched;
+    const [activityEntries, userEntries] = await Promise.all([
+      Promise.all(
+        [...activityIds].map(async (id) => [id, await ctx.db.get(id)] as const)
+      ),
+      Promise.all(
+        [...userIds].map(async (id) => [id, await ctx.db.get(id)] as const)
+      ),
+    ]);
+    const activitiesById = new Map(activityEntries);
+    const usersById = new Map(userEntries);
+
+    return logs.map((log) => {
+      const activity = activitiesById.get(log.activityId);
+      const user = usersById.get(log.userId);
+      const loggedByUser =
+        log.loggedBy !== log.userId ? usersById.get(log.loggedBy) : null;
+      return {
+        ...log,
+        activityName: activity?.name ?? "Actividad eliminada",
+        activityEmoji: activity?.emoji ?? "❓",
+        userName: user?.name ?? "Usuario",
+        userPhoto: user?.photoUrl,
+        loggedByName: loggedByUser?.name,
+      };
+    });
   },
 });
 
