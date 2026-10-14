@@ -39,7 +39,9 @@ export const getHealthSummary = query({
         const [records, meds] = await Promise.all([
           ctx.db
             .query("medicalRecords")
-            .withIndex("by_person", (q) => q.eq("personId", profile._id))
+            .withIndex("by_person_date", (q) =>
+              q.eq("personId", profile._id).gt("date", thirtyDaysAgo)
+            )
             .collect(),
           ctx.db
             .query("medications")
@@ -52,9 +54,7 @@ export const getHealthSummary = query({
 
     for (const { profile, records, meds } of profileData) {
       for (const record of records) {
-        if (record.date > thirtyDaysAgo) {
-          recentRecords.push({ personName: profile.name, record });
-        }
+        recentRecords.push({ personName: profile.name, record });
       }
 
       for (const med of meds) {

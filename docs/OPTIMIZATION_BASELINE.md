@@ -214,9 +214,9 @@ Dead code/deps confirmados en esta pasada (ya trackeados):
 | --- | --- | --- |
 | 1 | ~~`OPT-001` a11y: viewport, contraste, headings, landmark~~ ✅ 2026-10-14 | §1 completo |
 | 2 | ~~`OPT-002` SEO: robots.txt, og absoluto~~ ✅ 2026-10-14 | §2 |
-| 3 | `OPT-003` Convex: índices `by_vehicle_event`/`by_gift_item` | §4.1 |
+| 3 | ~~`OPT-003` Convex: índices `by_vehicle_event`/`by_gift_item`~~ ✅ 2026-10-14 | §4.1 |
 | 4 | ~~`OPT-004` Convex: rangos sobre índices existentes~~ ✅ 2026-10-14 | §4.2 |
-| 5 | `OPT-005` Convex: batching de N+1 | §4.3 |
+| 5 | ~~`OPT-005` Convex: batching de N+1~~ ✅ 2026-10-14 | §4.3 |
 | 6 | `OPT-006` collects sin límite | §4.4 (absorbe `PERF-COLLECT`) |
 | 7 | ~~`OPT-007` manualChunks / vendor eager~~ ✅ 2026-10-14 | §3 (absorbió `BUNDLE-SMOKE`) |
 | 8 | `OPT-008` splits frontend (parcial 2026-10-14: `HouseholdPage`) | §5 + `REACTDOCTOR-2` |

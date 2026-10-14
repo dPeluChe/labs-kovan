@@ -169,7 +169,10 @@ export default defineSchema({
     attachments: v.optional(v.array(v.string())),
     attachmentStorageIds: v.optional(v.array(v.id("_storage"))),
     imageUrl: v.optional(v.string()),
-  }).index("by_person", ["personId"]),
+  })
+    .index("by_person", ["personId"])
+    // Consumido por health.getHealthSummary (records de los últimos 30 días).
+    .index("by_person_date", ["personId", "date"]),
 
   medications: defineTable({
     personId: v.id("personProfiles"),
@@ -344,7 +347,11 @@ export default defineSchema({
     .index("by_family_type", ["familyId", "type"])
     .index("by_trip", ["tripId"])
     .index("by_vehicle", ["vehicleId"])
+    // Consumido por vehicles.deleteVehicleEvent al borrar gastos ligados.
+    .index("by_vehicle_event", ["vehicleEventId"])
     .index("by_subscription", ["subscriptionId"])
+    // Consumido por gifts.updateGiftItem para no duplicar el gasto.
+    .index("by_gift_item", ["giftItemId"])
     .index("by_gift_event", ["giftEventId"]),
 
   // ==================== LOANS (PRÉSTAMOS) ====================

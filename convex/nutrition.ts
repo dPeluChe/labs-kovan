@@ -154,13 +154,15 @@ export const getAssignments = query({
             .order("desc")
             .collect();
 
-        // Enrich with Plan details
-        return await Promise.all(
-            assignments.map(async (a) => {
-                const plan = await ctx.db.get(a.planId);
-                return { ...a, plan };
-            })
-        );
+        // Enrich with Plan details, fetching each plan once
+        const planIds = [...new Set(assignments.map((a) => a.planId))];
+        const plans = await Promise.all(planIds.map((id) => ctx.db.get(id)));
+        const plansById = new Map(planIds.map((id, i) => [id, plans[i]] as const));
+
+        return assignments.map((a) => ({
+            ...a,
+            plan: plansById.get(a.planId) ?? null,
+        }));
     },
 });
 
