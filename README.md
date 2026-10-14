@@ -243,10 +243,13 @@ agente.
 - `react-vendor`: React, React DOM, Scheduler, React Router
 - `ui-vendor`: Framer Motion, Lucide icons
 - `utils-vendor`: Convex
-- `vendor`: el resto
 
-Combinado con el lazy loading de páginas, esto produce un grafo de chunks
-óptimo para el navegador.
+Todo lo demás lo reparte Rollup: las dependencias que solo usan páginas lazy
+(p. ej. `qrcode.react`/`react-barcode`/`date-fns`) quedan en los chunks lazy
+y fuera del path crítico — no hay catch-all `vendor` porque un solo import
+eager lo arrastraba entero (OPT-007). `npm run build` cierra con
+`scripts/bundle-smoke.mjs`, que falla si el grafo de chunks tiene ciclos o un
+chunk vendor no evalúa en Node (regresión del ciclo de PR #19).
 
 ## Convenciones
 
