@@ -71,6 +71,27 @@ Cada pieza vivirá en su propia carpeta (`physics/`, `state/`, `ui/`) dentro de 
 
 > Motivación: todos los juegos nuevos por turnos deberían consumir este core en vez de reimplementar lógica de estado, historial y física.
 
+### OPT — Auditoría de optimización `added: 2026-10-14`
+
+Baseline medido en `docs/OPTIMIZATION_BASELINE.md` (react-doctor 91;
+Lighthouse a11y 85-86 es la única categoría bajo target). Orden sugerido =
+orden de los items. Items previos que quedan absorbidos: `PERF-COLLECT` →
+`OPT-006`, `BUNDLE-SMOKE` → `OPT-007`, `REACTDOCTOR-2` → `OPT-008`;
+`REVIEW-HEALTH`, `REVIEW-DEADCODE`, `REVIEW-DEPS` y `TYPES-ANY` siguen bajo
+su propia clave dentro del plan (son pre-requisito o limpieza del mismo
+programa).
+
+- [ ] OPT-001: a11y de páginas públicas — quitar `user-scalable=no`/`maximum-scale` del viewport (`index.html:7`); contraste: `text-faint`→token con ratio suficiente en `Roadmap.tsx:77`, `text-base-content/50`→`text-subtle` en `Footer.tsx:15,18`, badge amber en `AboutKovan.tsx:43`, labels `opacity-70` en `LoginPage.tsx:165,182,197`; `<h4>`→jerarquía correcta en `InstallPWA.tsx` (6 steps); envolver LoginPage en `<main>` [orbital] size:S risk:low files: index.html, src/components/landing/Roadmap.tsx, src/components/landing/Footer.tsx, src/components/landing/AboutKovan.tsx, src/components/landing/InstallPWA.tsx, src/pages/LoginPage.tsx
+- [ ] OPT-002: SEO — crear `public/robots.txt` (hoy el fallback SPA devuelve HTML inválido) con política de crawl para rutas autenticadas; `og:image` a URL absoluta y verificar `og:url` cuando haya dominio (`index.html:16-26`); evaluar `sitemap.xml` [orbital] size:S risk:low files: public/robots.txt, index.html
+- [ ] OPT-003: índices faltantes en `expenses` — agregar `by_vehicle_event` y `by_gift_item` a `schema.ts` y usar `withIndex` en `vehicles/events.ts:90-93` y `gifts/items.ts:148-151` (hoy escanean la tabla completa, cross-family) [orbital] size:S risk:low files: convex/schema.ts, convex/vehicles/events.ts, convex/gifts/items.ts
+- [ ] OPT-004: usar rangos de índice existentes en vez de filtrar en JS — `getExpensesByMonth`/`getExpenseSummary`/`expenses/agent.ts` → `by_family_date`; `getCachedEvents`/`getUpcomingEvents` → `by_family_start` con `gte`/`take`; `tasks.list` → `by_family_status`/`by_family_type`; `documents.list` → `by_person`; `getUserWeeklyStats` → `by_family_date` + filtro `userId`; `vehicles/summary.ts:50-57` → `by_family_date` + filtro `type` [orbital] size:S risk:low files: convex/expenses/queries.ts, convex/expenses/agent.ts, convex/calendar/queriesMutations.ts, convex/tasks.ts, convex/documents.ts, convex/household.ts, convex/vehicles/summary.ts
+- [ ] OPT-005: eliminar N+1 — `household.getRecentLogs` (dedupe de ids), `gifts/summary.ts`+`gifts/items.ts` (un collect `by_event` + agrupar en memoria), `places.getAllVisits`, `health/summary.ts` (+ índice `by_person_date` en `medicalRecords`), `nutrition.getAssignments`, `families.getFamilyMembers` [orbital] size:M risk:low files: convex/household.ts, convex/gifts/summary.ts, convex/gifts/items.ts, convex/places.ts, convex/health/summary.ts, convex/schema.ts, convex/nutrition.ts, convex/families/queries.ts
+- [ ] OPT-006: acotar collects que crecen con el tiempo — `diary.getEntries` (paginar/`take` por `by_family_date`), listas por familia (`places`, `recipes`, `collections`, `loans`, `subscriptions`, `contacts`, `health/*`) con `take(n)` donde la UI muestra N; `syncCalendarEvents` → diff por `externalId` en vez de delete-all+insert (absorbe `PERF-COLLECT`) [orbital] size:M risk:low files: convex/diary.ts, convex/places.ts, convex/recipes.ts, convex/collections.ts, convex/loans.ts, convex/subscriptions.ts, convex/contacts/queries.ts, convex/calendar/queriesMutations.ts
+- [ ] OPT-007: revisar `manualChunks` — el catch-all `vendor` mete deps solo-lazy (`qrcode.react`, `react-barcode` en `SubscriptionDetailModal`) al path crítico (~27 KiB desperdiciados); medir quitar `manualChunks` o buckets por feature; agregar el smoke post-build de chunks (absorbe `BUNDLE-SMOKE`) [orbital] size:M risk:low files: vite.config.ts, scripts/
+- [ ] OPT-008: splits frontend — `DashboardPage` 427, `CalendarPage` 404, `HouseholdPage` 346, `SubscriptionDetailModal` 344, `RecipesPage` 305, `RecipientCard` 302 + los componentes con `no-high-complexity-react-function`; extraer hooks/sub-componentes hasta subir react-doctor con margen (absorbe `REACTDOCTOR-2`) [orbital] size:L risk:low files: src/pages/DashboardPage.tsx, src/pages/CalendarPage.tsx, src/pages/HouseholdPage.tsx, src/components/subscriptions/SubscriptionDetailModal.tsx, src/pages/RecipesPage.tsx, src/components/gifts/RecipientCard.tsx
+- [ ] OPT-009: splits backend — `household.ts` 396, `nutrition.ts` 346, `places.ts` 319, `calendar/googleActions.ts` 331 al patrón subcarpeta + barrel de `convex/README.md` (`schema.ts` 756 se queda: registro único) [orbital] size:M risk:low files: convex/household.ts, convex/nutrition.ts, convex/places.ts, convex/calendar/googleActions.ts
+- [ ] OPT-010: Lighthouse en páginas autenticadas — requiere deployment Convex con seed + login scriptable; medir a11y/best-practices de 3-5 rutas internas y fijar política `noindex` (el SPA sirve un solo HTML: robots meta por ruta necesita headers del host o la política de `OPT-002`) [orbital] size:M risk:low files: docs/OPTIMIZATION_BASELINE.md, scripts/
+
 ## Priority 3 — Backlog
 
 ### REVIEW-DEADCODE: funciones y deps muertas `added: 2026-09-29`
