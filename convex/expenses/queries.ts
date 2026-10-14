@@ -95,12 +95,12 @@ export const getExpensesByMonth = query({
     const startOfMonth = new Date(args.year, args.month - 1, 1).getTime();
     const endOfMonth = new Date(args.year, args.month, 0, 23, 59, 59, 999).getTime();
 
-    const expenses = await ctx.db
+    return await ctx.db
       .query("expenses")
-      .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
+      .withIndex("by_family_date", (q) =>
+        q.eq("familyId", args.familyId).gte("date", startOfMonth).lte("date", endOfMonth)
+      )
       .collect();
-
-    return expenses.filter((e) => e.date >= startOfMonth && e.date <= endOfMonth);
   },
 });
 
@@ -111,12 +111,13 @@ export const getExpenseSummary = query({
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
-    const expenses = await ctx.db
+    const thisMonth = await ctx.db
       .query("expenses")
-      .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
+      .withIndex("by_family_date", (q) =>
+        q.eq("familyId", args.familyId).gte("date", startOfMonth)
+      )
       .collect();
 
-    const thisMonth = expenses.filter((e) => e.date >= startOfMonth);
     const totalThisMonth = thisMonth.reduce((sum, e) => sum + e.amount, 0);
 
     const byType: Record<string, { total: number; count: number }> = {};

@@ -12,17 +12,23 @@ export const list = query({
     },
     handler: async (ctx, args) => {
         await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
-        const q = ctx.db
-            .query("documents")
-            .withIndex("by_family", (q) => q.eq("familyId", args.familyId));
-
-        let docs = await q.collect();
 
         // Filter by person if provided, otherwise return all (or specific logic)
-        // Dashboard might want "All for family". 
+        // Dashboard might want "All for family".
         // Details view might want "All for Sofia".
+        let docs;
         if (args.personId) {
-            docs = docs.filter((d) => d.personId === args.personId);
+            docs = (
+                await ctx.db
+                    .query("documents")
+                    .withIndex("by_person", (q) => q.eq("personId", args.personId!))
+                    .collect()
+            ).filter((d) => d.familyId === args.familyId);
+        } else {
+            docs = await ctx.db
+                .query("documents")
+                .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
+                .collect();
         }
 
         // Sort: Active expirations first (soonest first), then others

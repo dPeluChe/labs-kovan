@@ -13,18 +13,30 @@ export const list = query({
     },
     handler: async (ctx, args) => {
         await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
-        const q = ctx.db
-            .query("tasks")
-            .withIndex("by_family", (q) => q.eq("familyId", args.familyId));
 
-        let tasks = await q.collect();
-
+        let tasks;
         if (args.status) {
-            tasks = tasks.filter((t) => t.status === args.status);
-        }
-
-        if (args.type) {
-            tasks = tasks.filter((t) => t.type === args.type);
+            tasks = await ctx.db
+                .query("tasks")
+                .withIndex("by_family_status", (q) =>
+                    q.eq("familyId", args.familyId).eq("status", args.status!)
+                )
+                .collect();
+            if (args.type) {
+                tasks = tasks.filter((t) => t.type === args.type);
+            }
+        } else if (args.type) {
+            tasks = await ctx.db
+                .query("tasks")
+                .withIndex("by_family_type", (q) =>
+                    q.eq("familyId", args.familyId).eq("type", args.type!)
+                )
+                .collect();
+        } else {
+            tasks = await ctx.db
+                .query("tasks")
+                .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
+                .collect();
         }
 
         // Sort: Pending first, then by dueDate (if exists), then creation? 
