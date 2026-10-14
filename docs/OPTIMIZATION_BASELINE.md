@@ -29,13 +29,14 @@ a11y y best-practices, con `noindex`) queda en `OPT-013`.
 
 ### react-doctor
 
-**91 / 100** — 23 warnings, 0 errores. El gate exige ≥ 90 (`doctor:check`):
-hay margen de 1 punto, cualquier regresión lo rompe.
+**91 / 100** — 21 warnings, 0 errores (23 antes del OPT-008 parcial). El gate
+exige ≥ 90 (`doctor:check`): hay margen de 1 punto, cualquier regresión lo
+rompe.
 
 | Regla | Count | Archivos |
 | --- | --- | --- |
-| `no-high-complexity-react-function` | 19 | `DocumentFormModal`, `ExpensesView`, `PlanEditor`, `PlacesLayout`, `PlaceDetailModal`, `SubscriptionDetailModal`, `CreateTaskModal`, `TripPlanDetailModal`, `TripFinancesTab`, `TripOverviewTab`, `ImageUploader`, `DashboardPage`, `FamilyPage`, `GiftsPage`, `HealthProfilePage`, `HouseholdPage`, `NutritionPage`, `PetProfilePage`, `TripDetailPage` |
-| `no-giant-component` | 3 | `SubscriptionDetailModal.tsx:36`, `DashboardPage.tsx:14`, `HouseholdPage.tsx:31` |
+| `no-high-complexity-react-function` | 18 | `DocumentFormModal`, `ExpensesView`, `PlanEditor`, `PlacesLayout`, `PlaceDetailModal`, `SubscriptionDetailModal`, `CreateTaskModal`, `TripPlanDetailModal`, `TripFinancesTab`, `TripOverviewTab`, `ImageUploader`, `DashboardPage`, `FamilyPage`, `GiftsPage`, `HealthProfilePage`, `NutritionPage`, `PetProfilePage`, `TripDetailPage` |
+| `no-giant-component` | 2 | `SubscriptionDetailModal.tsx:36`, `DashboardPage.tsx:14` |
 | `html-no-nested-interactive` | 1 | `src/utils/a11y.test.tsx:10` — fixture deliberado (testea que un control anidado no dispare el padre); mantener o suprimir localmente |
 
 ### Lighthouse (mediana de 5 corridas, build de producción local)
@@ -181,7 +182,7 @@ Archivos >~300 líneas o con UI+datos+lógica mezclados:
 | `src/pages/DashboardPage.tsx` | 427 | giant + complexity; mezcla N `useQuery`, agregación y layout |
 | `src/pages/CalendarPage.tsx` | 404 | página + lógica de calendario inline |
 | `convex/household.ts` | 396 | monolito; `convex/README.md` manda split+barrel al crecer |
-| `src/pages/HouseholdPage.tsx` | 346 | giant + complexity |
+| ~~`src/pages/HouseholdPage.tsx`~~ | 221 | resuelto en OPT-008 (parcial): `ActivitiesSection`/`RankingSection` en `components/household/` + hook `useHouseholdActions` |
 | `convex/nutrition.ts` | 346 | monolito (además con `any` en helpers — ver `TYPES-ANY`) |
 | `src/components/subscriptions/SubscriptionDetailModal.tsx` | 344 | giant + complexity; único consumidor de `qrcode.react`/`react-barcode` |
 | `convex/calendar/googleActions.ts` | 331 | actions de Google (auth pendiente en `REVIEW-AUTH`, fuera de scope aquí) |
@@ -191,8 +192,8 @@ Archivos >~300 líneas o con UI+datos+lógica mezclados:
 | `src/components/gifts/RecipientCard.tsx` | 302 | card con lógica de estado |
 | `convex/schema.ts` | 756 | registro único de tablas; convención Convex lo mantiene en un archivo — no partir |
 
-Además los 19 `no-high-complexity-react-function` de §react-doctor (lista en
-`REACTDOCTOR-2`).
+Además los 18 `no-high-complexity-react-function` restantes de §react-doctor
+(lista en `REACTDOCTOR-2`).
 
 Dead code/deps confirmados en esta pasada (ya trackeados):
 `users.getCurrentUser`/`getOrCreateUser` (`convex/users.ts:14,29`) y
@@ -218,7 +219,7 @@ Dead code/deps confirmados en esta pasada (ya trackeados):
 | 5 | `OPT-005` Convex: batching de N+1 | §4.3 |
 | 6 | `OPT-006` collects sin límite | §4.4 (absorbe `PERF-COLLECT`) |
 | 7 | ~~`OPT-007` manualChunks / vendor eager~~ ✅ 2026-10-14 | §3 (absorbió `BUNDLE-SMOKE`) |
-| 8 | `OPT-008` splits frontend | §5 + `REACTDOCTOR-2` |
+| 8 | `OPT-008` splits frontend (parcial 2026-10-14: `HouseholdPage`) | §5 + `REACTDOCTOR-2` |
 | 9 | `OPT-009` splits backend monolitos | §5 |
 | 10 | `OPT-010` Lighthouse en páginas autenticadas | §Alcance |
 | — | `REVIEW-HEALTH`, `REVIEW-DEADCODE`, `REVIEW-DEPS`, `TYPES-ANY` | siguen bajo su clave dentro del plan |
