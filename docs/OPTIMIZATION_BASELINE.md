@@ -124,7 +124,7 @@ dentro de `<main>`.
 | `convex/vehicles/events.ts:90-93` | `deleteVehicleEvent` busca gastos con `.filter(q.eq(q.field("vehicleEventId"), id))` sin índice | Agregar índice `by_vehicle_event` a `expenses` (el campo existe, `schema.ts:330`; los índices actuales están en `schema.ts:342-348`) y usar `withIndex` |
 | `convex/gifts/items.ts:148-151` | Al marcar item `bought` busca gasto duplicado con `.filter(q.eq(q.field("giftItemId"), id))` sin índice | Ídem con `by_gift_item` (campo en `schema.ts:332`) |
 
-#### 4.2 Filtros en JS sobre campos que ya tienen índice (read amplification)
+#### 4.2 Filtros en JS sobre campos que ya tienen índice — ✅ resuelto en OPT-004 (2026-10-14)
 
 | Ubicación | Hoy | Debería |
 | --- | --- | --- |
@@ -214,7 +214,7 @@ Dead code/deps confirmados en esta pasada (ya trackeados):
 | 1 | ~~`OPT-001` a11y: viewport, contraste, headings, landmark~~ ✅ 2026-10-14 | §1 completo |
 | 2 | ~~`OPT-002` SEO: robots.txt, og absoluto~~ ✅ 2026-10-14 | §2 |
 | 3 | `OPT-003` Convex: índices `by_vehicle_event`/`by_gift_item` | §4.1 |
-| 4 | `OPT-004` Convex: rangos sobre índices existentes | §4.2 |
+| 4 | ~~`OPT-004` Convex: rangos sobre índices existentes~~ ✅ 2026-10-14 | §4.2 |
 | 5 | `OPT-005` Convex: batching de N+1 | §4.3 |
 | 6 | `OPT-006` collects sin límite | §4.4 (absorbe `PERF-COLLECT`) |
 | 7 | ~~`OPT-007` manualChunks / vendor eager~~ ✅ 2026-10-14 | §3 (absorbió `BUNDLE-SMOKE`) |
