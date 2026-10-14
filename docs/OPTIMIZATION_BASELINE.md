@@ -108,8 +108,8 @@ Todos son fixes chicos de markup/token — juntos cierran la brecha de a11y.
 
 | Ubicación | Qué hace | Fix |
 | --- | --- | --- |
-| `convex/vehicles/events.ts:90-93` | `deleteVehicleEvent` busca gastos con `.filter(q.eq(q.field("vehicleEventId"), id))` sin índice | ~~Agregar índice `by_vehicle_event` a `expenses` y usar `withIndex`~~ hecho 2026-10-14 |
-| `convex/gifts/items.ts:148-151` | Al marcar item `bought` busca gasto duplicado con `.filter(q.eq(q.field("giftItemId"), id))` sin índice | ~~Ídem con `by_gift_item`~~ hecho 2026-10-14 |
+| `convex/vehicles/events.ts:90-93` | `deleteVehicleEvent` busca gastos con `.filter(q.eq(q.field("vehicleEventId"), id))` sin índice | Agregar índice `by_vehicle_event` a `expenses` (el campo existe, `schema.ts:330`; los índices actuales están en `schema.ts:342-348`) y usar `withIndex` |
+| `convex/gifts/items.ts:148-151` | Al marcar item `bought` busca gasto duplicado con `.filter(q.eq(q.field("giftItemId"), id))` sin índice | Ídem con `by_gift_item` (campo en `schema.ts:332`) |
 
 #### 4.2 Filtros en JS sobre campos que ya tienen índice (read amplification)
 
@@ -129,12 +129,12 @@ Todos son fixes chicos de markup/token — juntos cierran la brecha de a11y.
 
 | Ubicación | Patrón | Fix sugerido |
 | --- | --- | --- |
-| `convex/household.ts:73-89` (`getRecentLogs`) | feed reactivo: hasta 50 logs × 3 `ctx.db.get` (activity, user, loggedBy) ≈ 150 lecturas puntuales por refresh | ~~deduplicar ids y resolver una vez por id~~ hecho 2026-10-14 |
-| `convex/gifts/summary.ts:24-31` y `:61-80`, `convex/gifts/items.ts:21-34` | una query de `giftItems` por recipient | ~~un solo collect `by_event` + agrupar en memoria~~ hecho 2026-10-14 |
-| `convex/health/summary.ts:37-48` | 2 queries por perfil (records + meds), cada una sin acotar | ~~índice `by_person_date` en `medicalRecords` + rango de 30 días~~ hecho 2026-10-14 |
-| `convex/places.ts:242-249` (`getAllVisits`) | `take(50)` bien, pero un `ctx.db.get(placeId)` por visita | ~~deduplicar `placeId`s~~ hecho 2026-10-14 |
+| `convex/household.ts:73-89` (`getRecentLogs`) | feed reactivo: hasta 50 logs × 3 `ctx.db.get` (activity, user, loggedBy) ≈ 150 lecturas puntuales por refresh | deduplicar ids y resolver una vez por id |
+| `convex/gifts/summary.ts:24-31` y `:61-80`, `convex/gifts/items.ts:21-34` | una query de `giftItems` por recipient | `giftItems` ya tiene `by_event` (`schema.ts:113`): un solo collect por evento + agrupar en memoria |
+| `convex/health/summary.ts:37-48` | 2 queries por perfil (records + meds), cada una sin acotar | índice `by_person_date` en `medicalRecords` + rango de 30 días (meds son pocas) |
+| `convex/places.ts:242-249` (`getAllVisits`) | `take(50)` bien, pero un `ctx.db.get(placeId)` por visita | deduplicar `placeId`s |
 | `convex/places.ts:24-33` (`getLists`) | collect de todos los `places` de la familia solo para contarlos por lista | mantener un `count` desnormalizado o aceptar hasta crecer (comentado en el propio código) |
-| `convex/nutrition.ts:158-163`, `convex/families/queries.ts:69-84` | `ctx.db.get` por assignment/membership | ~~dedupe + batch gets~~ hecho 2026-10-14 |
+| `convex/nutrition.ts:158-163`, `convex/families/queries.ts:69-84` | `ctx.db.get` por assignment/membership | n chico (miembros/planes de una familia) — baja prioridad |
 
 #### 4.4 Lecturas sin límite que crecen con el tiempo (continúa `PERF-COLLECT`)
 
