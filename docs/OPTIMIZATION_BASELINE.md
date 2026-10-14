@@ -58,6 +58,12 @@ Baseline de bundle (path crítico, gzip): `react-vendor` 232 kB (74 kB gz),
 `vendor` 155 kB (43 kB gz), `index` 71 kB (19 kB gz), `ui-vendor` 68 kB
 (24 kB gz), `utils-vendor` 68 kB (19 kB gz), CSS 194 kB (30 kB gz).
 
+Post-OPT-007 (mismo día): el catch-all `vendor` desaparece; `ui-vendor` crece
+a 106 kB (37 kB gz) al absorber `motion-dom`/`motion-utils` (eran eager de
+todos modos). Total JS eager: 595 kB → 477 kB raw, ~181 kB → ~150 kB gz.
+`SubscriptionsPage` crece a 104 kB (26 kB gz) con qrcode/jsbarcode — lazy, fuera
+del path crítico.
+
 ## Hallazgos ordenados por impacto
 
 ### 1. Accesibilidad — ✅ resuelto en OPT-001 (85-86 → 100)
@@ -91,14 +97,16 @@ dentro de `<main>`.
 
 ### 3. Performance (mobile 94-95, ya sobre target pero con margen a recuperar)
 
-- **JS sin usar ~62-63 KiB en landing**: `react-vendor` desperdicia ~37 KiB y
-  `vendor` ~27 KiB. El `manualChunks` de `vite.config.ts:12-24` mete todo
-  `node_modules` que no es react/framer/convex en un solo `vendor` — incluye
+- **JS sin usar ~62-63 KiB en landing** — ✅ resuelto en OPT-007: `react-vendor`
+  desperdiciaba ~37 KiB y `vendor` ~27 KiB. El `manualChunks` metía todo
+  `node_modules` que no es react/framer/convex en un solo `vendor` — incluidas
   deps que solo usan páginas lazy (`qrcode.react` + `react-barcode` solo los
-  importa `SubscriptionDetailModal.tsx`). Como un módulo eager ya necesita
-  `vendor`, el chunk completo se descarga en el path crítico. Relacionado:
-  `BUNDLE-SMOKE` (este mismo `manualChunks` ya produjo un ciclo de chunks en
-  PR #19).
+  importa `SubscriptionDetailModal.tsx`; `date-fns` también resultó
+  solo-lazy). Como `ui-vendor` necesitaba `vendor` por `motion-dom`, el chunk
+  completo se precargaba en el path crítico. Fix: catch-all eliminado, Rollup
+  deja cada dep en el chunk de quien la importa; buckets eager conservados.
+  `BUNDLE-SMOKE` quedó absorbido: `scripts/bundle-smoke.mjs` corre post-build
+  y falla ante ciclos entre chunks o un vendor que no evalúe en Node.
 - **CSS render-blocking 194 kB** (30 kB gz): DaisyUI completo; opciones a
   medir — purge/extracción crítica. Ahorro estimado por Lighthouse ~150 ms.
 - FCP 2.3-2.4 s / LCP 2.4-2.5 s en mobile (scores 0.72-0.92): mejoran con el
@@ -195,8 +203,9 @@ Dead code/deps confirmados en esta pasada (ya trackeados):
 
 - `convex/` no lo typecheckea ningún gate (`REVIEW-HEALTH`) — conviene antes
   de tocar schema/queries en los items OPT.
-- `BUNDLE-SMOKE` — el script post-build que importa chunks hubiera detectado
-  tanto el ciclo de PR #19 como el bloat del `vendor` catch-all (§3).
+- ~~`BUNDLE-SMOKE`~~ ✅ resuelto en OPT-007 — `scripts/bundle-smoke.mjs` corre
+  al final de `npm run build`: detecta ciclos en el grafo de chunks e importa
+  los `*vendor*.js` en Node (hubiera detectado el ciclo de PR #19).
 
 ## Mapeo a tareas (ver `TASK_TODO.md`)
 
@@ -208,7 +217,7 @@ Dead code/deps confirmados en esta pasada (ya trackeados):
 | 4 | `OPT-004` Convex: rangos sobre índices existentes | §4.2 |
 | 5 | `OPT-005` Convex: batching de N+1 | §4.3 |
 | 6 | `OPT-006` collects sin límite | §4.4 (absorbe `PERF-COLLECT`) |
-| 7 | `OPT-007` manualChunks / vendor eager | §3 (absorbe `BUNDLE-SMOKE`) |
+| 7 | ~~`OPT-007` manualChunks / vendor eager~~ ✅ 2026-10-14 | §3 (absorbió `BUNDLE-SMOKE`) |
 | 8 | `OPT-008` splits frontend | §5 + `REACTDOCTOR-2` |
 | 9 | `OPT-009` splits backend monolitos | §5 |
 | 10 | `OPT-010` Lighthouse en páginas autenticadas | §Alcance |

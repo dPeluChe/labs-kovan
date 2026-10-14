@@ -20,7 +20,6 @@ export default defineConfig({
             if (id.includes('convex')) {
               return 'utils-vendor';
             }
-            return 'vendor';
           }
         }
       }
