@@ -151,6 +151,9 @@ para tests unitarios del frontend. El setup vive en:
 - `vitest.config.ts` — configuración (jsdom, setup file, match pattern)
 - `src/test/setup.ts` — extiende `expect` con los matchers de `@testing-library/jest-dom`
 - `src/**/*.test.tsx` — los tests, colocated con el código que testean
+- `convex/**/*.test.ts` — tests del backend sobre `convex-test` (seed con
+  `t.run`, queries/mutations vía `t.query`/`t.mutation`; ver
+  `convex/dataAccess.test.ts`)
 
 Convención:
 
