@@ -1,0 +1,31 @@
+# Solo `/` (landing) y `/login` son públicas; el resto de rutas requiere sesión.
+# La SPA sirve el mismo index.html en todas las rutas, así que las rutas de la
+# app se excluyen por prefijo. `/assets/*`, manifest y og-preview siguen
+# accesibles para que los crawlers puedan renderizar la landing.
+User-agent: *
+Disallow: /activities
+Disallow: /admin
+Disallow: /agent
+Disallow: /calendar
+Disallow: /collections
+Disallow: /contacts
+Disallow: /diary
+Disallow: /documents
+Disallow: /family
+Disallow: /finances
+Disallow: /gifts
+Disallow: /health
+Disallow: /household
+Disallow: /mcp
+Disallow: /more
+Disallow: /nutrition
+Disallow: /pets
+Disallow: /places
+Disallow: /recipes
+Disallow: /settings
+Disallow: /subscriptions
+Disallow: /tasks
+Disallow: /trips
+Disallow: /vehicles
+
+Sitemap: https://kovan.labs/sitemap.xml

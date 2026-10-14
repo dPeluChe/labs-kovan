@@ -40,16 +40,19 @@ hay margen de 1 punto, cualquier regresión lo rompe.
 
 ### Lighthouse (mediana de 5 corridas, build de producción local)
 
+Baseline (2026-10-14, antes de OPT-001/002): a11y **86** (`/`), **85**
+(`/login`); SEO **91-92**. Post-fix, re-medido el mismo día:
+
 | Página | Form | Perf | A11y | Best practices | SEO |
 | --- | --- | --- | --- | --- | --- |
-| `/` (Landing) | mobile | 94 | **86** | 100 | 92 |
-| `/` (Landing) | desktop | 100 | **86** | 100 | 92 |
-| `/login` | mobile | 95 | **85** | 100 | 91 |
-| `/login` | desktop | 100 | **85** | 100 | 91 |
+| `/` (Landing) | mobile | 76 | **100** | 100 | **100** |
+| `/` (Landing) | desktop | 100 | **100** | 100 | **100** |
+| `/login` | mobile | 95 | **100** | 100 | **100** |
 
-Targets: SEO/a11y/best-practices ≥ 90 y perf mobile ≥ 80. **A11y es la única
-categoría bajo target** (85-86). Perf ya cumple con margen; SEO queda a ~5
-puntos por `robots.txt`.
+Targets: SEO/a11y/best-practices ≥ 90 y perf mobile ≥ 80. Todas las
+categorías no-perf cumplen ya; a11y cerró la brecha (85-86 → 100). Perf
+mobile osciló 67-76 en esta pasada (cold start / varianza del entorno; el
+baseline midió 94) — sigue siendo `OPT-007` el item que lo ataca.
 
 Baseline de bundle (path crítico, gzip): `react-vendor` 232 kB (74 kB gz),
 `vendor` 155 kB (43 kB gz), `index` 71 kB (19 kB gz), `ui-vendor` 68 kB
@@ -57,7 +60,7 @@ Baseline de bundle (path crítico, gzip): `react-vendor` 232 kB (74 kB gz),
 
 ## Hallazgos ordenados por impacto
 
-### 1. Accesibilidad — la única categoría bajo target (85-86 → ≥90)
+### 1. Accesibilidad — ✅ resuelto en OPT-001 (85-86 → 100)
 
 | Audit | Detalle | Dónde |
 | --- | --- | --- |
@@ -70,19 +73,21 @@ Baseline de bundle (path crítico, gzip): `react-vendor` 232 kB (74 kB gz),
 | `landmark-one-main` | Login no tiene landmark `<main>` (todo el layout son `div`) | `src/pages/LoginPage.tsx:122-153` |
 
 Todos son fixes chicos de markup/token — juntos cierran la brecha de a11y.
+Resueltos en OPT-001 (2026-10-14): `text-muted` en vez de `text-subtle` en
+footer/roadmap (50% sigue bajo 4.5:1; 60% → ~4.6:1 pasa), `text-amber-800`
+en el badge, `opacity-70` removido de los labels, steps a `<h3>` y LoginPage
+dentro de `<main>`.
 
-### 2. SEO (91-92 → ~97+)
+### 2. SEO (91-92 → 100) — ✅ resuelto en OPT-002
 
-- **`robots.txt` "no válido"**: no existe `public/robots.txt`; el fallback SPA
-  devuelve `index.html` con `200 text/html` → Lighthouse lo marca inválido.
-  Falta también `sitemap.xml` (mismo 200-HTML). Fix: crear
-  `public/robots.txt`; decidir la política de crawl para rutas autenticadas
-  (SPA sirve el mismo HTML en todas — un `Disallow` por prefijo de rutas de
-  app, o dejar que el redirect de cliente las opaque).
+- **`robots.txt` "no válido"**: ~~no existe `public/robots.txt`~~ resuelto —
+  `public/robots.txt` creado con `Disallow` por prefijo de las rutas
+  autenticadas (una app-route listada por línea; `/`, `/login` y `/assets/*`
+  quedan crawlables) + `public/sitemap.xml` con la URL de la landing.
 - **OG/canonical**: `og:url`/`twitter:url` apuntan a `https://kovan.labs/`
-  (verificar que sea el dominio real al definir hosting) y `og:image` usa la
-  ruta relativa `/og-preview.png` (`index.html:19,26`) — los scrapers
-  necesitan URL absoluta.
+  (verificar que sea el dominio real al definir hosting) — `og:image`/
+  `twitter:image` ya usan `https://kovan.labs/og-preview.png` absoluto
+  (resuelto en OPT-002).
 
 ### 3. Performance (mobile 94-95, ya sobre target pero con margen a recuperar)
 
@@ -197,8 +202,8 @@ Dead code/deps confirmados en esta pasada (ya trackeados):
 
 | Orden | Item | Cubre |
 | --- | --- | --- |
-| 1 | `OPT-001` a11y: viewport, contraste, headings, landmark | §1 completo |
-| 2 | `OPT-002` SEO: robots.txt, og absoluto | §2 |
+| 1 | ~~`OPT-001` a11y: viewport, contraste, headings, landmark~~ ✅ 2026-10-14 | §1 completo |
+| 2 | ~~`OPT-002` SEO: robots.txt, og absoluto~~ ✅ 2026-10-14 | §2 |
 | 3 | `OPT-003` Convex: índices `by_vehicle_event`/`by_gift_item` | §4.1 |
 | 4 | `OPT-004` Convex: rangos sobre índices existentes | §4.2 |
 | 5 | `OPT-005` Convex: batching de N+1 | §4.3 |

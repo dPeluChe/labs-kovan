@@ -59,14 +59,14 @@ export const InstallPWA: React.FC = () => {
                                     <div className="flex items-start gap-4">
                                         <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center shrink-0 font-bold">1</div>
                                         <div>
-                                            <h4 className="font-bold mb-1">Abre en Safari</h4>
+                                            <h3 className="font-bold mb-1">Abre en Safari</h3>
                                             <p className="text-sm text-muted">Abre Safari y navega a esta página.</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-4">
                                         <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center shrink-0 font-bold">2</div>
                                         <div>
-                                            <h4 className="font-bold mb-1">Toca 'Compartir'</h4>
+                                            <h3 className="font-bold mb-1">Toca 'Compartir'</h3>
                                             <div className="flex items-center gap-2 text-sm text-muted flex-wrap">
                                                 <span>Toca el icono de Compartir </span>
                                                 <Share className="w-4 h-4 inline" />
@@ -77,7 +77,7 @@ export const InstallPWA: React.FC = () => {
                                     <div className="flex items-start gap-4">
                                         <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center shrink-0 font-bold">3</div>
                                         <div>
-                                            <h4 className="font-bold mb-1">Añadir a Inicio</h4>
+                                            <h3 className="font-bold mb-1">Añadir a Inicio</h3>
                                             <div className="flex items-center gap-2 text-sm text-muted flex-wrap">
                                                 <span>Baja y toca </span>
                                                 <PlusSquare className="w-4 h-4 inline" />
@@ -91,14 +91,14 @@ export const InstallPWA: React.FC = () => {
                                     <div className="flex items-start gap-4">
                                         <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center shrink-0 font-bold">1</div>
                                         <div>
-                                            <h4 className="font-bold mb-1">Abre en Chrome</h4>
+                                            <h3 className="font-bold mb-1">Abre en Chrome</h3>
                                             <p className="text-sm text-muted">Abre Chrome y navega a esta página.</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-4">
                                         <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center shrink-0 font-bold">2</div>
                                         <div>
-                                            <h4 className="font-bold mb-1">Abre el Menú</h4>
+                                            <h3 className="font-bold mb-1">Abre el Menú</h3>
                                             <div className="flex items-center gap-2 text-sm text-muted flex-wrap">
                                                 <span>Toca el icono de tres puntos </span>
                                                 <Menu className="w-4 h-4 inline" />
@@ -109,7 +109,7 @@ export const InstallPWA: React.FC = () => {
                                     <div className="flex items-start gap-4">
                                         <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center shrink-0 font-bold">3</div>
                                         <div>
-                                            <h4 className="font-bold mb-1">Instalar Aplicación</h4>
+                                            <h3 className="font-bold mb-1">Instalar Aplicación</h3>
                                             <div className="flex items-center gap-2 text-sm text-muted flex-wrap">
                                                 <span>Toca </span>
                                                 <Download className="w-4 h-4 inline" />
