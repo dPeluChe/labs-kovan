@@ -12,12 +12,13 @@ export const agentGetExpenseSummary = internalQuery({
     await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    const expenses = await ctx.db
+    const thisMonth = await ctx.db
       .query("expenses")
-      .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
+      .withIndex("by_family_date", (q) =>
+        q.eq("familyId", args.familyId).gte("date", startOfMonth)
+      )
       .collect();
 
-    const thisMonth = expenses.filter((e) => e.date >= startOfMonth);
     const totalThisMonth = thisMonth.reduce((sum, e) => sum + e.amount, 0);
     const byType: Record<string, { total: number; count: number }> = {};
     const byCategory: Record<string, number> = {};
