@@ -40,7 +40,7 @@ export const AboutKovan: React.FC = () => {
 
                     {/* Text Side */}
                     <div className="w-full md:w-1/2 text-left">
-                        <div className="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full text-sm font-bold mb-4">
+                        <div className="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 rounded-full text-sm font-bold mb-4">
                             Nuestra Inspiración
                         </div>
                         <h2 className="text-4xl font-bold mb-6">Tu Familia, Tu Colmena</h2>
