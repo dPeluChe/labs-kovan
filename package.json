@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/bundle-smoke.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
@@ -35,7 +35,7 @@
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
-    "convex-test": "^0.0.38",
+    "convex-test": "^0.0.41",
     "daisyui": "^5.5.8",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "7.0.1",

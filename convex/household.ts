@@ -185,12 +185,12 @@ export const getUserWeeklyStats = query({
 
     const logs = await ctx.db
       .query("householdActivityLogs")
-      .withIndex("by_family_user", (q) =>
-        q.eq("familyId", args.familyId).eq("userId", args.userId)
+      .withIndex("by_family_date", (q) =>
+        q.eq("familyId", args.familyId).gte("date", weekStart)
       )
       .collect();
 
-    const weeklyLogs = logs.filter((l) => l.date >= weekStart);
+    const weeklyLogs = logs.filter((l) => l.userId === args.userId);
 
     // Activity breakdown
     const activityCounts: Record<Id<"householdActivities">, number> = {};

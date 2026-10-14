@@ -47,15 +47,15 @@ export const getVehiclesSummary = query({
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const vehicleExpenses = await ctx.db
+    const thisMonthExpenses = await ctx.db
       .query("expenses")
-      .withIndex("by_family_type", (q) =>
-        q.eq("familyId", args.familyId).eq("type", "vehicle")
+      .withIndex("by_family_date", (q) =>
+        q.eq("familyId", args.familyId).gte("date", startOfMonth.getTime())
       )
       .collect();
 
-    const thisMonthExpenses = vehicleExpenses.filter((e) => e.date >= startOfMonth.getTime());
-    const totalThisMonth = thisMonthExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const vehicleExpenses = thisMonthExpenses.filter((e) => e.type === "vehicle");
+    const totalThisMonth = vehicleExpenses.reduce((sum, e) => sum + e.amount, 0);
 
     return {
       vehicleCount: vehicles.length,

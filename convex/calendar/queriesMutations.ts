@@ -98,20 +98,18 @@ export const getCachedEvents = query({
   },
   handler: async (ctx, args) => {
     await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
-    const events = await ctx.db
+    return await ctx.db
       .query("cachedCalendarEvents")
-      .withIndex("by_family_start", (q) => q.eq("familyId", args.familyId))
+      .withIndex("by_family_start", (q) => {
+        const range = q.eq("familyId", args.familyId);
+        if (args.startDate && args.endDate) {
+          return range.gte("startDateTime", args.startDate).lte("startDateTime", args.endDate);
+        }
+        if (args.startDate) return range.gte("startDateTime", args.startDate);
+        if (args.endDate) return range.lte("startDateTime", args.endDate);
+        return range;
+      })
       .collect();
-
-    if (args.startDate || args.endDate) {
-      return events.filter((e) => {
-        if (args.startDate && e.startDateTime < args.startDate) return false;
-        if (args.endDate && e.startDateTime > args.endDate) return false;
-        return true;
-      });
-    }
-
-    return events;
   },
 });
 
@@ -120,16 +118,12 @@ export const getUpcomingEvents = query({
   handler: async (ctx, args) => {
     await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     const now = Date.now();
-    const events = await ctx.db
+    return await ctx.db
       .query("cachedCalendarEvents")
-      .withIndex("by_family_start", (q) => q.eq("familyId", args.familyId))
-      .collect();
-
-    const upcoming = events
-      .filter((e) => e.startDateTime >= now)
-      .sort((a, b) => a.startDateTime - b.startDateTime);
-
-    return upcoming.slice(0, args.limit || 10);
+      .withIndex("by_family_start", (q) =>
+        q.eq("familyId", args.familyId).gte("startDateTime", now)
+      )
+      .take(args.limit || 10);
   },
 });
 
