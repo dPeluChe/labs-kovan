@@ -119,7 +119,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-base-200 to-base-300">
+    <main className="min-h-screen flex flex-col bg-gradient-to-br from-base-200 to-base-300">
 
       {/* Desktop Advice Banner */}
       <div className="hidden lg:flex bg-primary/10 text-primary px-4 py-2 text-sm justify-center items-center gap-2 animate-slide-down">
@@ -162,7 +162,7 @@ export function LoginPage() {
               {mode === "register" && (
                 <div className="form-control">
                   <label htmlFor="nombre" className="label pt-0">
-                    <span className="label-text font-bold text-xs uppercase tracking-wide opacity-70">Nombre</span>
+                    <span className="label-text font-bold text-xs uppercase tracking-wide">Nombre</span>
                   </label>
                   <input id="nombre"
                     type="text"
@@ -179,7 +179,7 @@ export function LoginPage() {
 
               <div className="form-control">
                 <label htmlFor="email" className="label pt-0">
-                  <span className="label-text font-bold text-xs uppercase tracking-wide opacity-70">Email</span>
+                  <span className="label-text font-bold text-xs uppercase tracking-wide">Email</span>
                 </label>
                 <input id="email"
                   type="email"
@@ -194,7 +194,7 @@ export function LoginPage() {
 
               <div className="form-control">
                 <label htmlFor="contrasena" className="label pt-0">
-                  <span className="label-text font-bold text-xs uppercase tracking-wide opacity-70">Contraseña</span>
+                  <span className="label-text font-bold text-xs uppercase tracking-wide">Contraseña</span>
                 </label>
                 <input id="contrasena"
                   type="password"
@@ -237,10 +237,10 @@ export function LoginPage() {
           </div>
         </div>
 
-        <p className="mt-8 text-center text-xs text-faint">
+        <p className="mt-8 text-center text-xs text-muted">
           Labs Kovan v1.0 BETA
         </p>
       </div >
-    </div >
+    </main >
   );
 }

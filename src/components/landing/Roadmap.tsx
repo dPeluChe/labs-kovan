@@ -74,7 +74,7 @@ export const Roadmap: React.FC = () => {
                                     <h3 className="card-title text-lg mb-2">{item.title}</h3>
                                     <p className="text-body text-sm mb-4">{item.description}</p>
                                     <div className="mt-auto pt-4 border-t border-base-content/5">
-                                        <span className="text-xs font-bold text-faint uppercase tracking-wider">{item.quarter}</span>
+                                        <span className="text-xs font-bold text-muted uppercase tracking-wider">{item.quarter}</span>
                                     </div>
                                 </div>
                             </div>

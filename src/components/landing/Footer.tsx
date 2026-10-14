@@ -6,16 +6,16 @@ export const Footer: React.FC = () => {
             {/* Brand block */}
             <div className="max-w-7xl mx-auto px-6 py-10 text-center">
                 <p className="font-bold text-xl tracking-tight">Kovan</p>
-                <p className="text-base-content/70 text-sm mt-1">Sistema Avanzado de Gestión Personal</p>
+                <p className="text-body text-sm mt-1">Sistema Avanzado de Gestión Personal</p>
             </div>
 
             {/* Bottom bar */}
             <div className="border-t border-base-content/10">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-                    <p className="text-xs text-base-content/50">
+                    <p className="text-xs text-muted">
                         Copyright &copy; {new Date().getFullYear()} Kovan — Todos los derechos reservados.
                     </p>
-                    <p className="text-xs text-base-content/50">
+                    <p className="text-xs text-muted">
                         Built with code &amp; caffeine by{' '}
                         <a
                             href="https://iteris.tech"
