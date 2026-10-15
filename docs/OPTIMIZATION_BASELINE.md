@@ -29,9 +29,8 @@ a11y y best-practices, con `noindex`) queda en `OPT-013`.
 
 ### react-doctor
 
-**92 / 100** — 19 warnings, 0 errores (91 en el baseline del 2026-10-14;
-OPT-009 re-midió 92/21 — varianza del scorer remoto, el split es backend —
-y la 2ª pasada de OPT-008 bajó 21 → 19). El gate exige ≥ 90
+**92 / 100** — 19 warnings, 0 errores (OPT-009 re-midió 21 — varianza del
+scorer remoto; la 2ª pasada de OPT-008 bajó 21 → 19). El gate exige ≥ 90
 (`doctor:check`): margen de 2 puntos.
 
 | Regla | Count | Archivos |
@@ -162,7 +161,7 @@ crecen:
 - `convex/admin.ts:24-28` (`getStats`) — 3 collects full-table
   (`families`/`users`/`familyInvites`). Solo corre para `isSuperAdmin` desde
   `AdminDashboardPage` — aceptable hoy, documentado.
-- Listas por familia sin `take`: `places/places.ts:27-30`, `recipes.ts:17-20`,
+- Listas por familia sin `take`: `places.ts:127-130`, `recipes.ts:17-20`,
   `collections.ts`, `loans.ts`, `subscriptions.ts`, `contacts/queries.ts`,
   `health/*`. Hoy es volumen familiar chico; poner `take(n)` donde la UI
   solo muestra los primeros N.
