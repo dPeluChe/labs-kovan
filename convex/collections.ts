@@ -14,13 +14,13 @@ async function getCollectionItemWithAccessOrThrow(ctx: any, sessionToken: string
 // ==================== QUERIES ====================
 
 export const getCollections = query({
-    args: { sessionToken: v.string(), familyId: v.id("families") },
+    args: { sessionToken: v.string(), familyId: v.id("families"), limit: v.optional(v.number()) },
     handler: async (ctx, args) => {
         await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         return await ctx.db
             .query("collections")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
-            .collect();
+            .take(args.limit ?? 500);
     },
 });
 
@@ -29,6 +29,7 @@ export const getCollectionsBySeries = query({
         sessionToken: v.string(),
         familyId: v.id("families"),
         series: v.string(),
+        limit: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
@@ -37,7 +38,7 @@ export const getCollectionsBySeries = query({
             .withIndex("by_series", (q) =>
                 q.eq("familyId", args.familyId).eq("series", args.series)
             )
-            .collect();
+            .take(args.limit ?? 500);
     },
 });
 

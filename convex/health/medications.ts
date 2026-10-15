@@ -3,25 +3,25 @@ import { mutation, query } from "../_generated/server";
 import { getMedicationWithAccessOrThrow, getPersonWithAccessOrThrow } from "./access";
 
 export const getMedications = query({
-  args: { sessionToken: v.string(), personId: v.id("personProfiles") },
+  args: { sessionToken: v.string(), personId: v.id("personProfiles"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
     return await ctx.db
       .query("medications")
       .withIndex("by_person", (q) => q.eq("personId", args.personId))
-      .collect();
+      .take(args.limit ?? 100);
   },
 });
 
 export const getActiveMedications = query({
-  args: { sessionToken: v.string(), personId: v.id("personProfiles") },
+  args: { sessionToken: v.string(), personId: v.id("personProfiles"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
     const now = Date.now();
     const meds = await ctx.db
       .query("medications")
       .withIndex("by_person", (q) => q.eq("personId", args.personId))
-      .collect();
+      .take(args.limit ?? 100);
 
     return meds.filter((med) => {
       const isActiveStatus = med.status === "active" || !med.status;
@@ -80,13 +80,13 @@ export const deleteMedication = mutation({
 });
 
 export const getAllMedications = query({
-  args: { sessionToken: v.string(), personId: v.id("personProfiles") },
+  args: { sessionToken: v.string(), personId: v.id("personProfiles"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
     const meds = await ctx.db
       .query("medications")
       .withIndex("by_person", (q) => q.eq("personId", args.personId))
-      .collect();
+      .take(args.limit ?? 100);
 
     const now = Date.now();
     return meds.map((med) => {

@@ -25,7 +25,7 @@ export const getLists = query({
       ctx.db
         .query("placeLists")
         .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
-        .collect(),
+        .take(100),
       ctx.db
         .query("places")
         .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
@@ -107,10 +107,12 @@ export const getPlaces = query({
   args: {
     sessionToken: v.string(),
     familyId: v.id("families"),
-    listId: v.optional(v.id("placeLists")) // Optional filtering
+    listId: v.optional(v.id("placeLists")), // Optional filtering
+    limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
+    const limit = args.limit ?? 200;
     if (args.listId) {
       const list = await ctx.db.get(args.listId);
       if (!list || list.familyId !== args.familyId) {
@@ -119,7 +121,7 @@ export const getPlaces = query({
       return await ctx.db
         .query("places")
         .withIndex("by_list", (q) => q.eq("listId", args.listId))
-        .collect();
+        .take(limit);
     }
     // Return all for the family
     // Note: by_list index is not useful for querying by family directly unless we scan.
@@ -127,7 +129,7 @@ export const getPlaces = query({
     return await ctx.db
       .query("places")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
-      .collect();
+      .take(limit);
   },
 });
 
@@ -215,7 +217,7 @@ export const deletePlace = mutation({
 });
 
 export const getPlaceVisits = query({
-  args: { sessionToken: v.string(), placeId: v.id("places") },
+  args: { sessionToken: v.string(), placeId: v.id("places"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const place = await ctx.db.get(args.placeId);
     if (!place) return [];
@@ -224,7 +226,7 @@ export const getPlaceVisits = query({
       .query("placeVisits")
       .withIndex("by_place", (q) => q.eq("placeId", args.placeId))
       .order("desc")
-      .collect();
+      .take(args.limit ?? 100);
   }
 });
 
