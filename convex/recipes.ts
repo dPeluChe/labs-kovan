@@ -11,13 +11,13 @@ async function getRecipeWithAccessOrThrow(ctx: any, sessionToken: string, recipe
 }
 
 export const getRecipes = query({
-  args: { sessionToken: v.string(), familyId: v.id("families") },
+  args: { sessionToken: v.string(), familyId: v.id("families"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
     return await ctx.db
       .query("recipes")
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
-      .collect();
+      .take(args.limit ?? 200);
   },
 });
 

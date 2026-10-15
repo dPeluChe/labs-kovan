@@ -13,26 +13,26 @@ async function getLoanWithAccessOrThrow(ctx: any, sessionToken: string, loanId: 
 // ==================== QUERIES ====================
 
 export const list = query({
-    args: { sessionToken: v.string(), familyId: v.id("families") },
+    args: { sessionToken: v.string(), familyId: v.id("families"), limit: v.optional(v.number()) },
     handler: async (ctx, args) => {
         await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         return await ctx.db
             .query("loans")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
             .order("desc")
-            .collect();
+            .take(args.limit ?? 100);
     },
 });
 
 export const getPayments = query({
-    args: { sessionToken: v.string(), loanId: v.id("loans") },
+    args: { sessionToken: v.string(), loanId: v.id("loans"), limit: v.optional(v.number()) },
     handler: async (ctx, args) => {
         await getLoanWithAccessOrThrow(ctx, args.sessionToken, args.loanId);
         return await ctx.db
             .query("loanPayments")
             .withIndex("by_loan", (q) => q.eq("loanId", args.loanId))
             .order("desc") // Most recent payments first
-            .collect();
+            .take(args.limit ?? 100);
     },
 });
 

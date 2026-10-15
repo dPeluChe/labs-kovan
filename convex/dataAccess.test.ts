@@ -278,6 +278,109 @@ describe("nutrition.getAssignments", () => {
   });
 });
 
+describe("diary.getEntries", () => {
+  it("returns newest visible entries; limit bounds raw reads (hidden ones count)", async () => {
+    const t = makeBackend();
+    const { familyId, userIds, sessionToken } = await seedFamily(t, 2);
+    const [u0, u1] = userIds;
+    const now = Date.now();
+    await t.run(async (ctx) => {
+      const entry = (userId: Id<"users">, visibility: "private" | "family", date: number, content: string) =>
+        ctx.db.insert("diaryEntries", { familyId, userId, visibility, date, content });
+      await entry(u1, "family", now - 3000, "familia vieja");
+      await entry(u1, "private", now - 1000, "privada ajena");
+      await entry(u0, "private", now - 2000, "privada mía");
+      await entry(u0, "family", now, "familia nueva");
+    });
+
+    const all = await t.query(api.diary.getEntries, { sessionToken, familyId });
+    // Newest first; the other member's private entry never leaks.
+    expect(all.map((e) => e.content)).toEqual(["familia nueva", "privada mía", "familia vieja"]);
+
+    // take() applies before the visibility filter.
+    const capped = await t.query(api.diary.getEntries, { sessionToken, familyId, limit: 3 });
+    expect(capped.map((e) => e.content)).toEqual(["familia nueva", "privada mía"]);
+  });
+});
+
+describe("calendar.syncCalendarEvents", () => {
+  it("diffs by externalId: patches changed, deletes stale, keeps stable ids", async () => {
+    const t = makeBackend();
+    const { familyId, sessionToken } = await seedFamily(t);
+    const now = Date.now();
+    const keptId = await t.run(async (ctx) => {
+      const keptId = await ctx.db.insert("cachedCalendarEvents", {
+        familyId, externalId: "a", title: "viejo", startDateTime: now, endDateTime: now + 1, allDay: false,
+      });
+      await ctx.db.insert("cachedCalendarEvents", {
+        familyId, externalId: "b", title: "stale", startDateTime: now, endDateTime: now + 1, allDay: false,
+      });
+      return keptId;
+    });
+
+    const synced = [
+      { externalId: "a", title: "nuevo título", startDateTime: now, endDateTime: now + 1, allDay: false },
+      { externalId: "c", title: "nuevo", startDateTime: now + 2, endDateTime: now + 3, allDay: true },
+    ];
+    const count = await t.mutation(api.calendar.syncCalendarEvents, { sessionToken, familyId, events: synced });
+    expect(count).toBe(2);
+
+    const events = await t.query(api.calendar.getCachedEvents, { sessionToken, familyId });
+    expect(events.map((e) => e.externalId).sort()).toEqual(["a", "c"]);
+    const a = events.find((e) => e.externalId === "a")!;
+    // Updated in place instead of delete+insert
+    expect(a._id).toBe(keptId);
+    expect(a.title).toBe("nuevo título");
+
+    // A repeat sync of the same payload leaves the rows untouched.
+    await t.mutation(api.calendar.syncCalendarEvents, { sessionToken, familyId, events: synced });
+    const after = await t.query(api.calendar.getCachedEvents, { sessionToken, familyId });
+    expect(after.map((e) => e._id).sort()).toEqual(events.map((e) => e._id).sort());
+  });
+});
+
+describe("límites en listas acotadas (OPT-006)", () => {
+  it("loans.list y contacts.getContacts respetan limit", async () => {
+    const t = makeBackend();
+    const { familyId, userIds, sessionToken } = await seedFamily(t);
+    await t.run(async (ctx) => {
+      const loan = (personName: string, i: number) =>
+        ctx.db.insert("loans", {
+          familyId, type: "lent", personName, amount: 10, balance: 10,
+          date: i, status: "active", createdBy: userIds[0],
+        });
+      await loan("a", 1);
+      await loan("b", 2);
+      await loan("c", 3);
+      for (const name of ["Ana", "Beto", "Coco"]) {
+        await ctx.db.insert("contacts", { familyId, name, category: "other", addedBy: userIds[0] });
+      }
+    });
+
+    const loans = await t.query(api.loans.list, { sessionToken, familyId, limit: 2 });
+    expect(loans.map((l) => l.personName)).toEqual(["c", "b"]); // order desc + take
+    const contacts = await t.query(api.contacts.getContacts, { sessionToken, familyId, limit: 2 });
+    expect(contacts).toHaveLength(2);
+  });
+
+  it("health.getMedicalRecords acota por persona", async () => {
+    const t = makeBackend();
+    const { familyId, sessionToken } = await seedFamily(t);
+    const personId = await t.run(async (ctx) => {
+      const personId = await ctx.db.insert("personProfiles", { familyId, type: "human", name: "Ana", relation: "Hija" });
+      for (const title of ["r1", "r2", "r3"]) {
+        await ctx.db.insert("medicalRecords", { personId, type: "note", title, date: Date.now() });
+      }
+      return personId;
+    });
+
+    const records = await t.query(api.health.getMedicalRecords, { sessionToken, personId, limit: 2 });
+    expect(records).toHaveLength(2);
+    const all = await t.query(api.health.getMedicalRecords, { sessionToken, personId });
+    expect(all).toHaveLength(3);
+  });
+});
+
 describe("families.getFamilyMembers", () => {
   it("returns member user data joined with membership fields", async () => {
     const t = makeBackend();

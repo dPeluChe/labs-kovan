@@ -81,7 +81,6 @@ orden de los items. Items previos que quedan absorbidos: `PERF-COLLECT` →
 su propia clave dentro del plan (son pre-requisito o limpieza del mismo
 programa).
 
-- [ ] OPT-006: acotar collects que crecen con el tiempo — `diary.getEntries` (paginar/`take` por `by_family_date`), listas por familia (`places`, `recipes`, `collections`, `loans`, `subscriptions`, `contacts`, `health/*`) con `take(n)` donde la UI muestra N; `syncCalendarEvents` → diff por `externalId` en vez de delete-all+insert (absorbe `PERF-COLLECT`) [orbital] size:M risk:low files: convex/diary.ts, convex/places/, convex/recipes.ts, convex/collections.ts, convex/loans.ts, convex/subscriptions.ts, convex/contacts/queries.ts, convex/calendar/queriesMutations.ts
 - [ ] OPT-008: splits frontend — `CalendarPage` 404, `RecipesPage` 305, `RecipientCard` 302 + los 18 componentes con `no-high-complexity-react-function` restantes; extraer hooks/sub-componentes hasta subir react-doctor con margen (absorbe `REACTDOCTOR-2`). Parcial 2026-10-14 (1ª pasada): `HouseholdPage` (346 → 221 + `ActivitiesSection`/`RankingSection` + hook `useHouseholdActions`); react-doctor 23 → 21 warnings. Parcial 2026-10-14 (2ª pasada): `DashboardPage` 427 → 275 (`GiftEventsCard`/`HealthSummaryCard`/`ExpiringDocumentsCard`/`VehiclesCard` en `components/dashboard/`) y `SubscriptionDetailModal` 344 → 305 (`SubscriptionPaymentSection`); ambos `no-giant-component` resueltos (0 restantes) pero siguen flaggeados por complexity — quedan el edit-form de `SubscriptionDetailModal` y los ~7 cards inline de `DashboardPage`; react-doctor 21 → 19 warnings, score 91 → 92 [orbital] size:L risk:low files: src/pages/DashboardPage.tsx, src/pages/CalendarPage.tsx, src/components/subscriptions/SubscriptionDetailModal.tsx, src/pages/RecipesPage.tsx, src/components/gifts/RecipientCard.tsx
 - [ ] OPT-010: Lighthouse en páginas autenticadas — requiere deployment Convex con seed + login scriptable; medir a11y/best-practices de 3-5 rutas internas y fijar política `noindex` (el SPA sirve un solo HTML: robots meta por ruta necesita headers del host o la política de `OPT-002`) [orbital] size:M risk:low files: docs/OPTIMIZATION_BASELINE.md, scripts/
 
@@ -106,13 +105,6 @@ Revisión 2026-09-30: `npm audit --omit=dev` tenía 14 vulns, casi todas de la c
 El token sigue en `localStorage` (riesgo aceptado, regla de react-doctor ignorada en `doctor.config.json`). Una cookie emitida por `*.convex.site` es de terceros y Safari/Firefox estricto la bloquean, así que se descartó (PR #12, commit `ed858ca`).
 
 - [ ] Cuando el dominio del frontend sea el oficial: rewrite de hosting `/api/*` → `*.convex.site` (mismo rewrite que `MCP-MISC`), cookie `SameSite=Lax` y cliente con rutas relativas. Retomar `ed858ca` como base
-
-### PERF-COLLECT: lecturas sin límite en Convex `added: 2026-09-30`
-
-94 usos de `.collect()` contra 9 de `.take()`/`.paginate()` en `convex/`; 122 `withIndex` (bien indexado, pero sin acotar). Hoy es una app familiar pequeña, pero las tablas que crecen sin techo van a degradar las queries reactivas.
-
-- [ ] Auditar las tablas que crecen con el tiempo: `expenses` (`expenses/queries.ts`, 6 collects), `places` (8), `nutrition` (5), actividad de `household`, `gifts/summary`, agentConversations. Poner `take(n)`/paginación o un rango de fechas
-- [ ] `convex/admin.ts` (4 collects): confirmar que solo corre bajo demanda
 
 ### TEST-COVERAGE: `convex/` sin tests `added: 2026-09-30`
 

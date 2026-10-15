@@ -14,7 +14,7 @@ export const getLists = query({
       ctx.db
         .query("placeLists")
         .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
-        .collect(),
+        .take(100),
       ctx.db
         .query("places")
         .withIndex("by_family", (q) => q.eq("familyId", args.familyId))

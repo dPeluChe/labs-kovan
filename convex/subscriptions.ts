@@ -3,13 +3,13 @@ import { v } from "convex/values";
 import { requireFamilyAccessFromSession } from "./lib/auth";
 
 export const list = query({
-    args: { sessionToken: v.string(), familyId: v.id("families") },
+    args: { sessionToken: v.string(), familyId: v.id("families"), limit: v.optional(v.number()) },
     handler: async (ctx, args) => {
         await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
         return await ctx.db
             .query("subscriptions")
             .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
-            .collect();
+            .take(args.limit ?? 100);
     },
 });
 
