@@ -29,9 +29,9 @@ a11y y best-practices, con `noindex`) queda en `OPT-013`.
 
 ### react-doctor
 
-**91 / 100** — 21 warnings, 0 errores (23 antes del OPT-008 parcial). El gate
-exige ≥ 90 (`doctor:check`): hay margen de 1 punto, cualquier regresión lo
-rompe.
+**92 / 100** — 21 warnings, 0 errores (91 en el baseline del 2026-10-14,
+re-medido tras OPT-009; la varianza es del scorer remoto — el split es
+backend). El gate exige ≥ 90 (`doctor:check`): hay margen de 2 puntos.
 
 | Regla | Count | Archivos |
 | --- | --- | --- |
@@ -136,19 +136,19 @@ dentro de `<main>`.
 | `convex/calendar/queriesMutations.ts:123-132` (`getUpcomingEvents`) | collect de todos los eventos + `filter(>= now)` + `slice(limit)` | `.gte("startDateTime", now)` + `.take(limit)` |
 | `convex/tasks.ts:16-28` (`list`) | `by_family` + filtros JS por `status`/`type` | `by_family_status` / `by_family_type` ya existen (`schema.ts:606-607`) |
 | `convex/documents.ts:15-25` (`list`) | `by_family` + filtro JS por `personId` | `by_person` ya existe (`schema.ts:583`) |
-| `convex/household.ts:172-179` (`getUserWeeklyStats`) | collect de TODOS los logs del usuario (histórico completo) + filtro de semana en JS | `by_family_date` con `.gte("date", weekStart)` + filtro JS por `userId` (acotado a la semana, sin índice nuevo) |
+| `convex/household/queries.ts:144-197` (`getUserWeeklyStats`) | collect de TODOS los logs del usuario (histórico completo) + filtro de semana en JS | `by_family_date` con `.gte("date", weekStart)` + filtro JS por `userId` (acotado a la semana, sin índice nuevo) |
 | `convex/vehicles/summary.ts:50-57` | todos los expenses tipo `vehicle` de la familia + filtro de mes en JS | `by_family_date` + filtro JS por `type` (acotado al mes) |
 
 #### 4.3 N+1 (queries por elemento dentro de `Promise.all(map(...))`)
 
 | Ubicación | Patrón | Fix sugerido |
 | --- | --- | --- |
-| `convex/household.ts:73-89` (`getRecentLogs`) | feed reactivo: hasta 50 logs × 3 `ctx.db.get` (activity, user, loggedBy) ≈ 150 lecturas puntuales por refresh | deduplicar ids y resolver una vez por id |
+| `convex/household/queries.ts:32-83` (`getRecentLogs`) | feed reactivo: hasta 50 logs × 3 `ctx.db.get` (activity, user, loggedBy) ≈ 150 lecturas puntuales por refresh | deduplicar ids y resolver una vez por id |
 | `convex/gifts/summary.ts:24-31` y `:61-80`, `convex/gifts/items.ts:21-34` | una query de `giftItems` por recipient | `giftItems` ya tiene `by_event` (`schema.ts:113`): un solo collect por evento + agrupar en memoria |
 | `convex/health/summary.ts:37-48` | 2 queries por perfil (records + meds), cada una sin acotar | índice `by_person_date` en `medicalRecords` + rango de 30 días (meds son pocas) |
-| `convex/places.ts:242-249` (`getAllVisits`) | `take(50)` bien, pero un `ctx.db.get(placeId)` por visita | deduplicar `placeId`s |
-| `convex/places.ts:24-33` (`getLists`) | collect de todos los `places` de la familia solo para contarlos por lista | mantener un `count` desnormalizado o aceptar hasta crecer (comentado en el propio código) |
-| `convex/nutrition.ts:158-163`, `convex/families/queries.ts:69-84` | `ctx.db.get` por assignment/membership | n chico (miembros/planes de una familia) — baja prioridad |
+| `convex/places/visits.ts:19-44` (`getAllVisits`) | `take(50)` bien, pero un `ctx.db.get(placeId)` por visita | deduplicar `placeId`s |
+| `convex/places/lists.ts:5-38` (`getLists`) | collect de todos los `places` de la familia solo para contarlos por lista | mantener un `count` desnormalizado o aceptar hasta crecer (comentado en el propio código) |
+| `convex/nutrition/assignments.ts:69-72`, `convex/families/queries.ts:69-84` | `ctx.db.get` por assignment/membership | n chico (miembros/planes de una familia) — baja prioridad |
 
 #### 4.4 Lecturas sin límite que crecen con el tiempo (continúa `PERF-COLLECT`)
 
@@ -181,12 +181,12 @@ Archivos >~300 líneas o con UI+datos+lógica mezclados:
 | --- | --- | --- |
 | `src/pages/DashboardPage.tsx` | 427 | giant + complexity; mezcla N `useQuery`, agregación y layout |
 | `src/pages/CalendarPage.tsx` | 404 | página + lógica de calendario inline |
-| `convex/household.ts` | 396 | monolito; `convex/README.md` manda split+barrel al crecer |
+| ~~`convex/household.ts`~~ | 16 barrel | resuelto en OPT-009 (2026-10-14): `household/{queries,mutations}.ts` |
 | ~~`src/pages/HouseholdPage.tsx`~~ | 221 | resuelto en OPT-008 (parcial): `ActivitiesSection`/`RankingSection` en `components/household/` + hook `useHouseholdActions` |
-| `convex/nutrition.ts` | 346 | monolito (además con `any` en helpers — ver `TYPES-ANY`) |
+| ~~`convex/nutrition.ts`~~ | 9 barrel | resuelto en OPT-009: `nutrition/{access,plans,assignments,logs}.ts` — los `any` de helpers quedaron concentrados en `access.ts` (siguen en `TYPES-ANY`) |
 | `src/components/subscriptions/SubscriptionDetailModal.tsx` | 344 | giant + complexity; único consumidor de `qrcode.react`/`react-barcode` |
-| `convex/calendar/googleActions.ts` | 331 | actions de Google (auth pendiente en `REVIEW-AUTH`, fuera de scope aquí) |
-| `convex/places.ts` | 319 | monolito, incluye los N+1 de §4.3 |
+| ~~`convex/calendar/googleActions.ts`~~ | 13 barrel | resuelto en OPT-009: `calendar/googleActions/{auth,calendars,events}.ts` — las actions siguen públicas (auth pendiente en `REVIEW-AUTH`, fuera de scope aquí) |
+| ~~`convex/places.ts`~~ | 17 barrel | resuelto en OPT-009: `places/{types,lists,places,visits}.ts` (los N+1 de §4.3 ya se atacaron en OPT-005) |
 | `src/pages/RecipesPage.tsx` | 305 | página + formulario + listado |
 | `src/components/activities/shared/core/turnSystem/TurnManager.ts` | 305 | módulo de lógica — aceptable, revisar solo si crece |
 | `src/components/gifts/RecipientCard.tsx` | 302 | card con lógica de estado |
@@ -220,7 +220,7 @@ Dead code/deps confirmados en esta pasada (ya trackeados):
 | 6 | `OPT-006` collects sin límite | §4.4 (absorbe `PERF-COLLECT`) |
 | 7 | ~~`OPT-007` manualChunks / vendor eager~~ ✅ 2026-10-14 | §3 (absorbió `BUNDLE-SMOKE`) |
 | 8 | `OPT-008` splits frontend (parcial 2026-10-14: `HouseholdPage`) | §5 + `REACTDOCTOR-2` |
-| 9 | `OPT-009` splits backend monolitos | §5 |
+| 9 | ~~`OPT-009` splits backend monolitos~~ ✅ 2026-10-14 | §5 |
 | 10 | `OPT-010` Lighthouse en páginas autenticadas | §Alcance |
 | — | `REVIEW-HEALTH`, `REVIEW-DEADCODE`, `REVIEW-DEPS`, `TYPES-ANY` | siguen bajo su clave dentro del plan |
 
