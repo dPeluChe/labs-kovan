@@ -152,16 +152,43 @@ export const syncCalendarEvents = mutation({
       .withIndex("by_family", (q) => q.eq("familyId", args.familyId))
       .collect();
 
-    await Promise.all(existingEvents.map((event) => ctx.db.delete(event._id)));
+    // Diff por externalId: conserva los _id estables, solo escribe lo que
+    // cambió (antes borraba y reinsertaba todo el cache en cada sync).
+    const pendingByExternalId = new Map<string, typeof existingEvents>();
+    for (const event of existingEvents) {
+      const bucket = pendingByExternalId.get(event.externalId);
+      if (bucket) bucket.push(event);
+      else pendingByExternalId.set(event.externalId, [event]);
+    }
 
-    await Promise.all(
-      args.events.map((event) =>
-        ctx.db.insert("cachedCalendarEvents", {
-          familyId: args.familyId,
-          ...event,
-        })
-      )
-    );
+    const writes: Promise<unknown>[] = [];
+    for (const event of args.events) {
+      const match = pendingByExternalId.get(event.externalId)?.shift();
+      if (!match) {
+        writes.push(
+          ctx.db.insert("cachedCalendarEvents", {
+            familyId: args.familyId,
+            ...event,
+          })
+        );
+      } else if (
+        match.calendarId !== event.calendarId ||
+        match.title !== event.title ||
+        match.description !== event.description ||
+        match.startDateTime !== event.startDateTime ||
+        match.endDateTime !== event.endDateTime ||
+        match.location !== event.location ||
+        match.allDay !== event.allDay ||
+        match.colorId !== event.colorId
+      ) {
+        writes.push(ctx.db.patch(match._id, event));
+      }
+    }
+
+    for (const stale of pendingByExternalId.values()) {
+      for (const event of stale) writes.push(ctx.db.delete(event._id));
+    }
+    await Promise.all(writes);
 
     const integration = await ctx.db
       .query("calendarIntegrations")

@@ -6,15 +6,16 @@ export const getEntries = query({
     args: {
         sessionToken: v.string(),
         familyId: v.id("families"),
+        limit: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         const { user } = await requireFamilyAccessFromSession(ctx, args.sessionToken, args.familyId);
-        // Fetch all entries for the family
+        // Fetch recent entries for the family (bounded feed)
         const allEntries = await ctx.db
             .query("diaryEntries")
             .withIndex("by_family_date", (q) => q.eq("familyId", args.familyId))
             .order("desc") // Newest first
-            .collect();
+            .take(args.limit ?? 200);
 
         // Filter based on visibility
         return allEntries.filter(entry => {

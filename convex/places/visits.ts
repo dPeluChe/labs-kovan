@@ -3,7 +3,7 @@ import { query, mutation } from "../_generated/server";
 import { requireFamilyAccessFromSession, requireUserFromSessionToken } from "../lib/auth";
 
 export const getPlaceVisits = query({
-  args: { sessionToken: v.string(), placeId: v.id("places") },
+  args: { sessionToken: v.string(), placeId: v.id("places"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const place = await ctx.db.get(args.placeId);
     if (!place) return [];
@@ -12,7 +12,7 @@ export const getPlaceVisits = query({
       .query("placeVisits")
       .withIndex("by_place", (q) => q.eq("placeId", args.placeId))
       .order("desc")
-      .collect();
+      .take(args.limit ?? 100);
   }
 });
 

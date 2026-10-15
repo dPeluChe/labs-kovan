@@ -3,13 +3,13 @@ import { mutation, query } from "../_generated/server";
 import { getPersonWithAccessOrThrow, getRecordWithAccessOrThrow } from "./access";
 
 export const getMedicalRecords = query({
-  args: { sessionToken: v.string(), personId: v.id("personProfiles") },
+  args: { sessionToken: v.string(), personId: v.id("personProfiles"), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     await getPersonWithAccessOrThrow(ctx, args.sessionToken, args.personId);
     return await ctx.db
       .query("medicalRecords")
       .withIndex("by_person", (q) => q.eq("personId", args.personId))
-      .collect();
+      .take(args.limit ?? 200);
   },
 });
 

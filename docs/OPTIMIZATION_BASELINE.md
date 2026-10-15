@@ -150,28 +150,46 @@ dentro de `<main>`.
 | `convex/places/lists.ts:5-38` (`getLists`) | collect de todos los `places` de la familia solo para contarlos por lista | mantener un `count` desnormalizado o aceptar hasta crecer (comentado en el propio código) |
 | `convex/nutrition/assignments.ts:69-72`, `convex/families/queries.ts:69-84` | `ctx.db.get` por assignment/membership | n chico (miembros/planes de una familia) — baja prioridad |
 
-#### 4.4 Lecturas sin límite que crecen con el tiempo (continúa `PERF-COLLECT`)
+#### 4.4 Lecturas sin límite que crecen con el tiempo — ✅ resuelto en OPT-006 (2026-10-14)
 
-94 `.collect()` vs 9 `.take()`/`.paginate()` en `convex/`. Los casos que más
-crecen:
+96 `.collect()` vs 10 `.take()`/`.paginate()` en `convex/` → **78 / 28**
+tras OPT-006. Las listas que la UI muestra completas quedaron acotadas con
+`limit` opcional + default (cota de seguridad, no paginación — ningún
+caller pasa `limit` todavía):
 
-- `convex/diary.ts:13-26` (`getEntries`) — todas las entradas de la familia,
-  histórico completo, e incluye las `private` de otros miembros antes del
-  filtro en memoria. `by_family_date` ya permite acotar por fecha/paginar.
-- `convex/admin.ts:24-28` (`getStats`) — 3 collects full-table
-  (`families`/`users`/`familyInvites`). Solo corre para `isSuperAdmin` desde
-  `AdminDashboardPage` — aceptable hoy, documentado.
-- Listas por familia sin `take`: `places.ts:127-130`, `recipes.ts:17-20`,
-  `collections.ts`, `loans.ts`, `subscriptions.ts`, `contacts/queries.ts`,
-  `health/*`. Hoy es volumen familiar chico; poner `take(n)` donde la UI
-  solo muestra los primeros N.
+| Query | Default |
+| --- | --- |
+| `diary.getEntries` (`by_family_date` desc) | 200 |
+| `places.getPlaces` / `getLists` (`placeLists`) | 200 / 100 |
+| `places.getPlaceVisits` | 100 |
+| `recipes.getRecipes` | 200 |
+| `collections.getCollections` / `getCollectionsBySeries` | 500 |
+| `loans.list` / `getPayments` | 100 |
+| `subscriptions.list` | 100 |
+| `contacts.getContacts` | 500 |
+| `health.getPersonProfiles` | 50 |
+| `health.getMedicalRecords` / `getStudies` | 200 |
+| `health.getMedications` / `getActiveMedications` / `getAllMedications` | 100 |
 
-#### 4.5 Amplificación de escrituras
+`getEntries`: el filtro de visibilidad sigue en memoria — una `private`
+ajena consume slot del `take` (documentado en test).
 
-- `convex/calendar/queriesMutations.ts:156-170` (`syncCalendarEvents`) —
-  borra TODOS los eventos cacheados y los reinserta en cada sync (aunque no
-  cambiara nada): invalida queries reactivas y duplica escrituras. Diff por
-  `externalId` antes de escribir.
+Se conservan `collect()` donde la semántica lo exige: agregados que
+cuentan (`get*Summary`, el collect de `places` dentro de `getLists`),
+cascadas de borrado (hay que leer todo para borrarlo) y
+`admin.getStats` (solo `isSuperAdmin` desde `AdminDashboardPage` —
+aceptable, documentado). Auditoría `PERF-COLLECT` del resto: `expenses`
+ya acotado por `by_family_date`/`limit` (OPT-004), `agentConversations`
+con `take(50)`, `household`/`nutrition`/`gifts` son catálogos por familia
+o sets por entidad padre — acotados por el dominio.
+
+#### 4.5 Amplificación de escrituras — ✅ resuelto en OPT-006 (2026-10-14)
+
+- ~~`convex/calendar/queriesMutations.ts` (`syncCalendarEvents`)~~ — ahora
+  hace diff por `externalId`: patch solo a los eventos que cambiaron,
+  insert de los nuevos y delete de los que ya no vienen del proveedor. Los
+  `_id` quedan estables entre syncs; un sync sin cambios no escribe filas
+  (solo `lastSync` en la integración).
 
 ### 5. Splits y limpieza
 
@@ -217,7 +235,7 @@ Dead code/deps confirmados en esta pasada (ya trackeados):
 | 3 | ~~`OPT-003` Convex: índices `by_vehicle_event`/`by_gift_item`~~ ✅ 2026-10-14 | §4.1 |
 | 4 | ~~`OPT-004` Convex: rangos sobre índices existentes~~ ✅ 2026-10-14 | §4.2 |
 | 5 | ~~`OPT-005` Convex: batching de N+1~~ ✅ 2026-10-14 | §4.3 |
-| 6 | `OPT-006` collects sin límite | §4.4 (absorbe `PERF-COLLECT`) |
+| 6 | ~~`OPT-006` collects sin límite~~ ✅ 2026-10-14 | §4.4-4.5 (absorbió `PERF-COLLECT`) |
 | 7 | ~~`OPT-007` manualChunks / vendor eager~~ ✅ 2026-10-14 | §3 (absorbió `BUNDLE-SMOKE`) |
 | 8 | `OPT-008` splits frontend (parcial 2026-10-14: `HouseholdPage`) | §5 + `REACTDOCTOR-2` |
 | 9 | ~~`OPT-009` splits backend monolitos~~ ✅ 2026-10-14 | §5 |
