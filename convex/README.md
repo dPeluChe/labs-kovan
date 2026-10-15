@@ -32,19 +32,19 @@ convex/
 │       ├── tools.<feature>.ts   # Barrel por feature (si aplica)
 │       └── <feature>Tools/      # Tools partidas en read.ts / write.ts / helpers.ts
 │
-└── household.ts                 # Módulo monolítico (aún sin partir)
+└── recipes.ts                   # Módulo monolítico (aún sin partir)
 ```
 
 ### Módulos partidos vs monolíticos
 
 Los módulos grandes (`calendar`, `contacts`, `expenses`, `families`, `gifts`,
-`health`, `trips`, `vehicles`) están partidos en subcarpetas por
-responsabilidad y el archivo `<módulo>.ts` en la raíz de `convex/` es un
-**barrel** de re-exportaciones que mantiene estables los imports del
-frontend (`api.calendar.getUpcomingEvents`, etc.).
+`health`, `household`, `nutrition`, `places`, `trips`, `vehicles`) están
+partidos en subcarpetas por responsabilidad y el archivo `<módulo>.ts` en la
+raíz de `convex/` es un **barrel** de re-exportaciones que mantiene estables
+los imports del frontend (`api.calendar.getUpcomingEvents`, etc.).
 
-Los módulos chicos (`household.ts`, `recipes.ts`, `tasks.ts`, `documents.ts`,
-etc.) viven como archivos sueltos. Cuando uno crece demasiado, se sigue el
+Los módulos chicos (`recipes.ts`, `tasks.ts`, `documents.ts`, etc.) viven
+como archivos sueltos. Cuando uno crece demasiado, se sigue el
 mismo patrón de split + barrel. Los agentes del LLM conviven igual: sus
 tools también pueden partirse bajo `lib/agent/<feature>Tools/` y se
 re-exportan desde un `tools.<feature>.ts` delgado.

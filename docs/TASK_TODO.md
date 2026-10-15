@@ -34,7 +34,7 @@ evaluación por función en `docs/JOURNAL/REVIEW_2609.md` §4.
 - [ ] `featureRequests.list` — expone todos los requests (con emails) sin auth y sin callers; proteger como admin o eliminar
 - [ ] `files.generateUploadUrl` — minta URLs de upload sin sesión; agregar `sessionToken` (único caller: `src/components/ui/ImageUpload.tsx:15`, hay que pasarlo ahí)
 - [ ] `cloudinary.deleteImage` — sin sesión; agregar guardia al cablear credenciales (ver `REVIEW-CLOUDINARY`)
-- [ ] `calendar/googleActions.ts` ×7 — actions públicas (`getGoogleAuthUrl`, `exchangeGoogleAuthCode`, `provisionKovanCalendar`, `fetchGoogleEventsAction`, `createGoogleEventAction`, `updateGoogleEventAction`, `deleteGoogleEventAction`); validar sesión o convertir a `internalAction` las que solo se llaman server-side
+- [ ] `calendar/googleActions/` ×7 — actions públicas (`getGoogleAuthUrl`, `exchangeGoogleAuthCode`, `provisionKovanCalendar`, `fetchGoogleEventsAction`, `createGoogleEventAction`, `updateGoogleEventAction`, `deleteGoogleEventAction`; barrel `calendar/googleActions.ts` tras el split de OPT-009); validar sesión o convertir a `internalAction` las que solo se llaman server-side
 - [ ] `featureRequests.submit` — pública por diseño (modal en Landing); considerar rate-limit/captcha básico
 
 ### REVIEW-CLOUDINARY: `deleteImage` es un no-op silencioso `added: 2026-09-29`
@@ -82,7 +82,6 @@ su propia clave dentro del plan (son pre-requisito o limpieza del mismo
 programa).
 
 - [ ] OPT-008: splits frontend — `DashboardPage` 427, `CalendarPage` 404, `SubscriptionDetailModal` 344, `RecipesPage` 305, `RecipientCard` 302 + los componentes con `no-high-complexity-react-function` restantes; extraer hooks/sub-componentes hasta subir react-doctor con margen (absorbe `REACTDOCTOR-2`). Parcial 2026-10-14: `HouseholdPage` (346 → 221 + `ActivitiesSection`/`RankingSection` + hook `useHouseholdActions`) resuelto; react-doctor 23 → 21 warnings [orbital] size:L risk:low files: src/pages/DashboardPage.tsx, src/pages/CalendarPage.tsx, src/components/subscriptions/SubscriptionDetailModal.tsx, src/pages/RecipesPage.tsx, src/components/gifts/RecipientCard.tsx
-- [ ] OPT-009: splits backend — `household.ts` 396, `nutrition.ts` 346, `places.ts` 319, `calendar/googleActions.ts` 331 al patrón subcarpeta + barrel de `convex/README.md` (`schema.ts` 756 se queda: registro único) [orbital] size:M risk:low files: convex/household.ts, convex/nutrition.ts, convex/places.ts, convex/calendar/googleActions.ts
 - [ ] OPT-010: Lighthouse en páginas autenticadas — requiere deployment Convex con seed + login scriptable; medir a11y/best-practices de 3-5 rutas internas y fijar política `noindex` (el SPA sirve un solo HTML: robots meta por ruta necesita headers del host o la política de `OPT-002`) [orbital] size:M risk:low files: docs/OPTIMIZATION_BASELINE.md, scripts/
 
 ## Priority 3 — Backlog
