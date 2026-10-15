@@ -29,14 +29,14 @@ a11y y best-practices, con `noindex`) queda en `OPT-013`.
 
 ### react-doctor
 
-**92 / 100** — 21 warnings, 0 errores (91 en el baseline del 2026-10-14,
-re-medido tras OPT-009; la varianza es del scorer remoto — el split es
-backend). El gate exige ≥ 90 (`doctor:check`): hay margen de 2 puntos.
+**92 / 100** — 19 warnings, 0 errores (OPT-009 re-midió 21 — varianza del
+scorer remoto; la 2ª pasada de OPT-008 bajó 21 → 19). El gate exige ≥ 90
+(`doctor:check`): margen de 2 puntos.
 
 | Regla | Count | Archivos |
 | --- | --- | --- |
 | `no-high-complexity-react-function` | 18 | `DocumentFormModal`, `ExpensesView`, `PlanEditor`, `PlacesLayout`, `PlaceDetailModal`, `SubscriptionDetailModal`, `CreateTaskModal`, `TripPlanDetailModal`, `TripFinancesTab`, `TripOverviewTab`, `ImageUploader`, `DashboardPage`, `FamilyPage`, `GiftsPage`, `HealthProfilePage`, `NutritionPage`, `PetProfilePage`, `TripDetailPage` |
-| `no-giant-component` | 2 | `SubscriptionDetailModal.tsx:36`, `DashboardPage.tsx:14` |
+| ~~`no-giant-component`~~ | ~~2~~ 0 | ✅ resuelto en OPT-008 (2ª pasada): `DashboardPage` 427→275 (4 cards a `components/dashboard/`), `SubscriptionDetailModal` 344→305 (`SubscriptionPaymentSection`) — ambos siguen flaggeados por complexity |
 | `html-no-nested-interactive` | 1 | `src/utils/a11y.test.tsx:10` — fixture deliberado (testea que un control anidado no dispare el padre); mantener o suprimir localmente |
 
 ### Lighthouse (mediana de 5 corridas, build de producción local)
@@ -197,12 +197,12 @@ Archivos >~300 líneas o con UI+datos+lógica mezclados:
 
 | Archivo | Líneas | Nota |
 | --- | --- | --- |
-| `src/pages/DashboardPage.tsx` | 427 | giant + complexity; mezcla N `useQuery`, agregación y layout |
+| `src/pages/DashboardPage.tsx` | 275 | ~~giant~~ resuelto en OPT-008 (2ª pasada): `GiftEventsCard`/`HealthSummaryCard`/`ExpiringDocumentsCard`/`VehiclesCard` en `components/dashboard/` + `getGreeting` a module scope; sigue complexity |
 | `src/pages/CalendarPage.tsx` | 404 | página + lógica de calendario inline |
 | ~~`convex/household.ts`~~ | 16 barrel | resuelto en OPT-009 (2026-10-14): `household/{queries,mutations}.ts` |
 | ~~`src/pages/HouseholdPage.tsx`~~ | 221 | resuelto en OPT-008 (parcial): `ActivitiesSection`/`RankingSection` en `components/household/` + hook `useHouseholdActions` |
 | ~~`convex/nutrition.ts`~~ | 9 barrel | resuelto en OPT-009: `nutrition/{access,plans,assignments,logs}.ts` — los `any` de helpers quedaron concentrados en `access.ts` (siguen en `TYPES-ANY`) |
-| `src/components/subscriptions/SubscriptionDetailModal.tsx` | 344 | giant + complexity; único consumidor de `qrcode.react`/`react-barcode` |
+| `src/components/subscriptions/SubscriptionDetailModal.tsx` | 305 | ~~giant~~ resuelto en OPT-008 (2ª pasada): `SubscriptionPaymentSection` extraído; sigue complexity — el edit form (accordion) es el siguiente candidato; único consumidor de `qrcode.react`/`react-barcode` |
 | ~~`convex/calendar/googleActions.ts`~~ | 13 barrel | resuelto en OPT-009: `calendar/googleActions/{auth,calendars,events}.ts` — las actions siguen públicas (auth pendiente en `REVIEW-AUTH`, fuera de scope aquí) |
 | ~~`convex/places.ts`~~ | 17 barrel | resuelto en OPT-009: `places/{types,lists,places,visits}.ts` (los N+1 de §4.3 ya se atacaron en OPT-005) |
 | `src/pages/RecipesPage.tsx` | 305 | página + formulario + listado |
@@ -237,7 +237,7 @@ Dead code/deps confirmados en esta pasada (ya trackeados):
 | 5 | ~~`OPT-005` Convex: batching de N+1~~ ✅ 2026-10-14 | §4.3 |
 | 6 | ~~`OPT-006` collects sin límite~~ ✅ 2026-10-14 | §4.4-4.5 (absorbió `PERF-COLLECT`) |
 | 7 | ~~`OPT-007` manualChunks / vendor eager~~ ✅ 2026-10-14 | §3 (absorbió `BUNDLE-SMOKE`) |
-| 8 | `OPT-008` splits frontend (parcial 2026-10-14: `HouseholdPage`) | §5 + `REACTDOCTOR-2` |
+| 8 | `OPT-008` splits frontend (parcial 2026-10-14: `HouseholdPage`, `DashboardPage`, `SubscriptionDetailModal`) | §5 + `REACTDOCTOR-2` |
 | 9 | ~~`OPT-009` splits backend monolitos~~ ✅ 2026-10-14 | §5 |
 | 10 | `OPT-010` Lighthouse en páginas autenticadas | §Alcance |
 | — | `REVIEW-HEALTH`, `REVIEW-DEADCODE`, `REVIEW-DEPS`, `TYPES-ANY` | siguen bajo su clave dentro del plan |

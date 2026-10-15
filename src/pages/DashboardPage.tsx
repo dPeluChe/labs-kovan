@@ -4,22 +4,28 @@ import { PageLoader } from "../components/ui/LoadingSpinner";
 import { SkeletonText } from "../components/ui/Skeleton";
 import { useAuth } from "../contexts/AuthContext";
 import {
-  Gift, Heart, Book, Car, Calendar,
-  DollarSign, ChefHat, MapPin, Star, AlertTriangle, X, CreditCard, FileText
+  Book, Calendar, DollarSign, ChefHat, MapPin, Star, AlertTriangle, X, CreditCard
 } from "lucide-react";
 import { DashboardCard } from "../components/dashboard/DashboardCard";
 import { QuickAddSection } from "../components/dashboard/QuickAddSection";
+import { GiftEventsCard } from "../components/dashboard/GiftEventsCard";
+import { HealthSummaryCard } from "../components/dashboard/HealthSummaryCard";
+import { ExpiringDocumentsCard } from "../components/dashboard/ExpiringDocumentsCard";
+import { VehiclesCard } from "../components/dashboard/VehiclesCard";
 import { useDashboardData } from "../hooks/useDashboardData";
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "Buenos días";
+  if (hour >= 12 && hour < 19) return "Buenas tardes";
+  return "Buenas noches";
+}
 
 export function DashboardPage() {
   const { currentFamily, inviteError, clearInviteError } = useFamily();
   const { user, sessionToken } = useAuth();
 
-  const hour = new Date().getHours();
-  let greeting = "Hola";
-  if (hour >= 5 && hour < 12) greeting = "Buenos días";
-  else if (hour >= 12 && hour < 19) greeting = "Buenas tardes";
-  else greeting = "Buenas noches";
+  const greeting = getGreeting();
 
   const {
     now,
@@ -105,30 +111,7 @@ export function DashboardPage() {
         )}
 
         {/* Expiring Documents - High Priority */}
-        {(expiringDocuments.length > 0) && (
-          <DashboardCard
-            icon={FileText}
-            title="Documentos por vencer"
-            to="/documents"
-            color="bg-orange-500/10 text-orange-600"
-          >
-            <ul className="space-y-1">
-              {expiringDocuments.slice(0, 3).map((doc) => {
-                const daysLeft = Math.ceil(((doc.expiryDate || 0) - now) / (1000 * 60 * 60 * 24));
-                const isExpired = daysLeft < 0;
-                return (
-                  <li key={doc._id} className="text-sm flex justify-between items-center">
-                    <span className="truncate font-medium">{doc.title}</span>
-                    <span className={`text-xs font-bold ${isExpired ? "text-error" : "text-warning"}`}>
-                      {isExpired ? "Vencido" : `${daysLeft} días`}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </DashboardCard>
-        )}
-
+        <ExpiringDocumentsCard documents={expiringDocuments} now={now} />
 
         {/* Expenses - only if has data */}
         {(hasExpenses || expensesSummary === undefined) && (
@@ -174,73 +157,7 @@ export function DashboardPage() {
         )}
 
         {/* Gift Events */}
-        {(hasGifts || giftEvents === undefined) && (
-          <DashboardCard
-            icon={Gift}
-            title="Regalos e Intercambios"
-            to="/gifts"
-            color="bg-red-500/10 text-red-600"
-          >
-            {giftEvents === undefined ? (
-              <div className="py-1"><SkeletonText lines={1} /></div>
-            ) : (
-              <ul className="space-y-2">
-                {[...giftEvents]
-                  .filter(e => !e.isCompleted) // Only show active
-                  .sort((a, b) => (a.date || 9999999999999) - (b.date || 9999999999999)) // Sort by date
-                  .slice(0, 3)
-                  .map((event) => {
-                    const eventDate = new Date(event.date || 0);
-                    // Normalize dates for diff
-                    const nowDate = new Date();
-                    nowDate.setHours(0, 0, 0, 0);
-                    const targetDate = new Date(eventDate);
-                    targetDate.setHours(0, 0, 0, 0);
-
-                    const diffTime = targetDate.getTime() - nowDate.getTime();
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    let timeText = "";
-                    let timeClass = "text-primary";
-
-                    if (diffDays === 0) {
-                      timeText = "¡¡ES HOY!!";
-                      timeClass = "text-error font-bold animate-pulse";
-                    } else if (diffDays === 1) {
-                      timeText = "¡¡ES MAÑANA!!";
-                      timeClass = "text-warning font-bold";
-                    } else if (diffDays > 1) {
-                      timeText = `en ${diffDays} días`;
-                    } else if (diffDays < 0) {
-                      timeText = "VENCIDO";
-                      timeClass = "text-error font-bold";
-                    }
-
-                    return (
-                      <li key={event._id} className="text-sm flex justify-between items-center">
-                        <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-                          <span className={`truncate font-medium ${diffDays < 0 ? "text-body" : ""}`}>{event.name}</span>
-                          {timeText && (
-                            <span className={`text-[10px] uppercase shrink-0 ${timeClass}`}>
-                              {timeText}
-                            </span>
-                          )}
-                        </div>
-                        {event.date && (
-                          <span className="text-xs text-muted ml-2 whitespace-nowrap">
-                            {eventDate.toLocaleDateString("es-MX", { month: "short", day: "numeric" })}
-                          </span>
-                        )}
-                      </li>
-                    );
-                  })}
-                {giftEvents.filter(e => !e.isCompleted).length > 3 && (
-                  <li className="text-xs text-subtle pt-1">+{giftEvents.filter(e => !e.isCompleted).length - 3} más</li>
-                )}
-              </ul>
-            )}
-          </DashboardCard>
-        )}
+        <GiftEventsCard events={giftEvents} />
 
         {/* Places */}
         {(hasPlaces || placesSummary === undefined) && (
@@ -293,47 +210,7 @@ export function DashboardPage() {
         )}
 
         {/* Health Summary */}
-        {(hasHealth || healthSummary === undefined) && (
-          <DashboardCard
-            icon={Heart}
-            title="Salud"
-            to="/health"
-            color="bg-pink-500/10 text-pink-600"
-          >
-            {healthSummary === undefined ? (
-              <div className="py-1"><SkeletonText lines={2} /></div>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex flex-wrap gap-1">
-                  {healthSummary.profiles.slice(0, 4).map((profile) => (
-                    <span key={profile._id} className="badge badge-sm badge-ghost">
-                      {profile.name}
-                    </span>
-                  ))}
-                  {healthSummary.profileCount > 4 && (
-                    <span className="badge badge-sm badge-ghost">+{healthSummary.profileCount - 4}</span>
-                  )}
-                </div>
-                {healthSummary.activeMedications.length > 0 && (
-                  <div className="text-xs space-y-0.5">
-                    <span className="text-warning font-medium">💊 Medicaciones activas:</span>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {healthSummary.activeMedications.slice(0, 3).map((med, i) => (
-                        <span key={i} className="text-body">
-                          {med.medication.name} ({med.personName})
-                          {i < Math.min(2, healthSummary.activeMedications.length - 1) && ","}
-                        </span>
-                      ))}
-                      {healthSummary.activeMedications.length > 3 && (
-                        <span className="text-subtle">+{healthSummary.activeMedications.length - 3} más</span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </DashboardCard>
-        )}
+        <HealthSummaryCard summary={healthSummary} />
 
         {/* Library Summary */}
         {(hasLibrary || librarySummary === undefined) && (
@@ -365,36 +242,7 @@ export function DashboardPage() {
         )}
 
         {/* Vehicles Summary */}
-        {(hasVehicles || vehiclesSummary === undefined) && (
-          <DashboardCard
-            icon={Car}
-            title="Autos"
-            to="/vehicles"
-            color="bg-green-500/10 text-green-600"
-          >
-            {vehiclesSummary === undefined ? (
-              <div className="py-1"><SkeletonText lines={2} /></div>
-            ) : (
-              <div className="space-y-1">
-                <div className="flex gap-4 text-sm">
-                  <div>
-                    <span className="font-semibold">{vehiclesSummary.vehicleCount}</span>
-                    <span className="text-muted ml-1">vehículos</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold">{vehiclesSummary.totalSpentThisMonth.toLocaleString("es-MX", { style: "currency", currency: "MXN" })}</span>
-                    <span className="text-muted ml-1">este mes</span>
-                  </div>
-                </div>
-                {vehiclesSummary.upcomingEvents.length > 0 && (
-                  <p className="text-xs text-warning">
-                    {vehiclesSummary.upcomingEvents.length} evento(s) próximo(s)
-                  </p>
-                )}
-              </div>
-            )}
-          </DashboardCard>
-        )}
+        <VehiclesCard summary={vehiclesSummary} />
 
         {/* Empty state - only when loaded and no data */}
         {!isLoading && !hasAnyData && (
